@@ -20,10 +20,12 @@ export function Logo({
       <Image
         src={light ? "/logo-white.png" : "/logo-color.png"}
         alt="VIBEATHON 2026"
-        width={size}
-        height={Math.round(size * 0.35)}
+        // Intrinsic dimensions of the source PNG; CSS scales it responsively
+        // while preserving the aspect ratio (no console warning).
+        width={4842}
+        height={1351}
         priority
-        style={{ width: size, height: "auto" }}
+        style={{ width: size, height: "auto", maxWidth: "100%" }}
       />
     </Link>
   );
