@@ -1,7 +1,32 @@
+{
+	# Let's Encrypt notifications. Set a real address you control, or remove.
+	email admin@reinvent-labs.com
+}
+
+# DOMAIN is injected from the environment (.env), e.g.
+#   DOMAIN=vibethon.reinvent-labs.com
+# Caddy provisions and renews TLS automatically for it.
 {$DOMAIN:localhost} {
-  encode zstd gzip
-  reverse_proxy app:3000
-  header {
-    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-  }
+	encode zstd gzip
+
+	# Forward everything to the Next.js app on the internal docker network.
+	# Caddy already sets X-Forwarded-Proto / -Host / -For on the upstream request.
+	reverse_proxy app:3000
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Access logs (persisted in the caddy_data volume).
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
 }
