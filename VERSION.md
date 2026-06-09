@@ -10,3 +10,5 @@
 - Enforced a 100-person selection cap and added admin team balancing for 1–5 selected participants, including individual applicants.
 - Restricted the PostgreSQL host port to localhost so the database is not exposed on the server's public interfaces.
 - Configured the labtest deployment service to run under its dedicated deployment user and GitHub key.
+- Made database seeding non-destructive: existing event sessions, scan history, and administrator credentials are preserved across updates.
+- Separated one-time CSV bootstrap from routine database setup and preserved official team assignments when an import is deliberately rerun.

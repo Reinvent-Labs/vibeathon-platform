@@ -13,7 +13,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:import": "tsx scripts/import-registered-users.ts",
-    "db:setup": "npm run db:push && npm run db:seed && npm run db:import"
+    "db:setup": "npm run db:push && npm run db:seed",
+    "db:bootstrap": "npm run db:setup && npm run db:import",
+    "test:data-preservation": "node scripts/verify-preservation.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

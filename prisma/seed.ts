@@ -38,13 +38,7 @@ const prisma = new PrismaClient({
 async function main() {
   const competition = await prisma.competition.upsert({
     where: { slug: "vibeathon-2026" },
-    update: {
-      eventDate: new Date("2026-07-11T07:30:00+00:00"),
-      venue: EVENT.venue,
-      participationFee: EVENT.fee,
-      capacity: EVENT.capacity,
-      competitorCapacity: EVENT.competitorCapacity,
-    },
+    update: {},
     create: {
       name: EVENT.name,
       slug: "vibeathon-2026",
@@ -73,7 +67,7 @@ async function main() {
             order: index + 1,
           },
         },
-        update: { name, active: index === 1 },
+        update: {},
         create: {
           competitionId: competition.id,
           name,
@@ -84,16 +78,25 @@ async function main() {
     ),
   );
 
-  await prisma.session.deleteMany({
+  const existingSessions = await prisma.session.findMany({
     where: { competitionId: competition.id },
+    select: { name: true },
   });
-  await prisma.session.createMany({
-    data: EVENT_SESSIONS.map((name, index) => ({
-      competitionId: competition.id,
-      name,
-      active: index === 0,
-    })),
-  });
+  const existingSessionNames = new Set(
+    existingSessions.map((session) => session.name),
+  );
+  const missingSessions = EVENT_SESSIONS.filter(
+    (name) => !existingSessionNames.has(name),
+  );
+  if (missingSessions.length > 0) {
+    await prisma.session.createMany({
+      data: missingSessions.map((name, index) => ({
+        competitionId: competition.id,
+        name,
+        active: existingSessions.length === 0 && index === 0,
+      })),
+    });
+  }
 
   await Promise.all(
     JUDGING_CRITERIA.map((criterion, index) =>
@@ -104,11 +107,7 @@ async function main() {
             key: criterion.id,
           },
         },
-        update: {
-          name: criterion.name,
-          weight: criterion.weight,
-          order: index + 1,
-        },
+        update: {},
         create: {
           competitionId: competition.id,
           key: criterion.id,
@@ -120,21 +119,27 @@ async function main() {
     ),
   );
 
-  const defaultPassword = process.env.ADMIN_INITIAL_PASSWORD ?? "ChangeMe-Vibeathon-2026";
-  await prisma.adminUser.upsert({
-    where: { email: process.env.ADMIN_EMAIL ?? "admin@vibeathonci.com" },
-    update: {
-      passwordHash: await hash(defaultPassword, 12),
-      active: true,
-    },
-    create: {
-      authUserId: "local-super-admin",
-      email: process.env.ADMIN_EMAIL ?? "admin@vibeathonci.com",
-      fullName: "Administration VIBEATHON",
-      role: "SUPER_ADMIN",
-      passwordHash: await hash(defaultPassword, 12),
-    },
+  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@vibeathonci.com";
+  const existingAdmin = await prisma.adminUser.findUnique({
+    where: { email: adminEmail },
   });
+  if (!existingAdmin) {
+    const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+    if (!initialPassword || initialPassword.length < 12) {
+      throw new Error(
+        "ADMIN_INITIAL_PASSWORD must contain at least 12 characters when creating the first administrator.",
+      );
+    }
+    await prisma.adminUser.create({
+      data: {
+        authUserId: "local-super-admin",
+        email: adminEmail,
+        fullName: "Administration VIBEATHON",
+        role: "SUPER_ADMIN",
+        passwordHash: await hash(initialPassword, 12),
+      },
+    });
+  }
 }
 
 main()

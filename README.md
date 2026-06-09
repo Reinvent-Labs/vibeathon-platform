@@ -48,7 +48,7 @@ docker compose up -d db
 3. Create the schema, seed event configuration, and import the CSV:
 
 ```bash
-npm run db:setup
+npm run db:bootstrap
 ```
 
 4. Start the app:

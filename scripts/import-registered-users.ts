@@ -117,7 +117,6 @@ async function main() {
         declarationAccepted: Boolean(clean(row[columns.declaration])),
         rawApplication: row,
         importedAt: new Date(),
-        teamId: null,
       },
       create: {
         competitionId: competition.id,
