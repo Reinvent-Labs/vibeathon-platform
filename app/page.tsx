@@ -25,15 +25,6 @@ const schedule = [
 export default function HomePage() {
   return (
     <>
-      <div className="ticker">
-        <div className="track">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <span key={index}>
-              Candidatures ouvertes · {EVENT.date} · {EVENT.venue} ·{" "}
-            </span>
-          ))}
-        </div>
-      </div>
       <SiteNav />
 
       <header className="hero-home">
