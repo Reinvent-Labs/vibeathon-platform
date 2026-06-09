@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
 type EmailInput = {
@@ -9,6 +10,15 @@ type EmailInput = {
   template: string;
 };
 
+function emailFrom() {
+  return (
+    process.env.RESEND_FROM_EMAIL ??
+    process.env.EMAIL_FROM ??
+    "VIBEATHON 2026 <onboarding@resend.dev>"
+  );
+}
+
+/** Optional SMTP fallback when Resend is not configured. */
 function smtpTransport() {
   if (!process.env.SMTP_HOST) return null;
   return nodemailer.createTransport({
@@ -16,24 +26,39 @@ function smtpTransport() {
     port: Number(process.env.SMTP_PORT ?? 587),
     secure: process.env.SMTP_SECURE === "true",
     auth: process.env.SMTP_USER
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
-        }
+      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
       : undefined,
   });
 }
 
+/**
+ * Send a transactional email.
+ * Provider priority: Resend (if RESEND_API_KEY) → SMTP (if SMTP_HOST) →
+ * queued (logged, no provider configured). Every attempt is recorded in EmailLog.
+ */
 export async function sendEmail(input: EmailInput) {
-  const transport = smtpTransport();
-  let status: "SENT" | "QUEUED" | "FAILED" = transport ? "SENT" : "QUEUED";
+  const resendKey = process.env.RESEND_API_KEY;
+  const transport = resendKey ? null : smtpTransport();
+
+  let status: "SENT" | "QUEUED" | "FAILED" =
+    resendKey || transport ? "SENT" : "QUEUED";
   let providerId: string | undefined;
   let error: string | undefined;
 
   try {
-    if (transport) {
+    if (resendKey) {
+      const resend = new Resend(resendKey);
+      const result = await resend.emails.send({
+        from: emailFrom(),
+        to: input.to,
+        subject: input.subject,
+        html: input.html,
+      });
+      if (result.error) throw new Error(result.error.message);
+      providerId = result.data?.id;
+    } else if (transport) {
       const result = await transport.sendMail({
-        from: process.env.EMAIL_FROM,
+        from: emailFrom(),
         to: input.to,
         subject: input.subject,
         html: input.html,
@@ -42,7 +67,7 @@ export async function sendEmail(input: EmailInput) {
     }
   } catch (caught) {
     status = "FAILED";
-    error = caught instanceof Error ? caught.message : "SMTP error";
+    error = caught instanceof Error ? caught.message : "Email provider error";
   }
 
   if (prisma) {

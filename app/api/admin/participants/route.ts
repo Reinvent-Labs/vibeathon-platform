@@ -2,6 +2,8 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { listParticipants, updateParticipantStatus } from "@/lib/repository";
 import type { DemoParticipantStatus } from "@/lib/demo-data";
 import { isSameOrigin, requireRole } from "@/lib/auth";
+import { sendEmail } from "@/lib/notifications";
+import { emailTemplates } from "@/emails/templates";
 
 export async function GET() {
   if (!(await requireRole(["SUPER_ADMIN", "ADMIN"]))) {
@@ -36,5 +38,29 @@ export async function PATCH(request: Request) {
     }
   }
   const results = await Promise.all(body.ids.map((id) => updateParticipantStatus(id, body.status!)));
+
+  // Notify candidates when a decision is taken.
+  if (body.status === "SELECTED" || body.status === "REJECTED") {
+    const all = await listParticipants();
+    const targets = all.filter((participant) => body.ids!.includes(participant.id));
+    await Promise.all(
+      targets.map((participant) =>
+        sendEmail({
+          participantId: participant.id,
+          to: participant.email,
+          subject:
+            body.status === "SELECTED"
+              ? "🎉 Tu es sélectionné·e pour le VIBEATHON 2026"
+              : "Résultat de ta candidature VIBEATHON 2026",
+          html:
+            body.status === "SELECTED"
+              ? emailTemplates.selection(participant.fullName)
+              : emailTemplates.rejection(participant.fullName),
+          template: body.status === "SELECTED" ? "selection" : "rejection",
+        }),
+      ),
+    );
+  }
+
   return apiSuccess({ updated: results.filter(Boolean).length });
 }
