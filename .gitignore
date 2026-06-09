@@ -20,6 +20,8 @@
 # production
 /build
 /generated
+/backups/*.dump
+/backups/*.sql
 
 # misc
 .DS_Store
