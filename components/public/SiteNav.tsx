@@ -53,36 +53,35 @@ export function SiteNav() {
   return (
     <>
       <nav className={`nav-bar ${scrolled ? "scrolled" : ""}`} aria-label="Navigation principale">
-        <Logo size={132} className="nav-logo" />
+        <div className="nav-inner">
+          <Logo size={132} className="nav-logo" />
 
-        <div className="links">
-          {LINKS.map(([href, label]) => (
-            <Link href={href} key={href}>
-              {label}
+          <div className="links">
+            {LINKS.map(([href, label]) => (
+              <Link href={href} key={href}>
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="nav-cta">
+            <Link href="/statut">Mon statut</Link>
+            <Link href="/candidature" className="btn btn-grad">
+              Je candidate
             </Link>
-          ))}
-        </div>
+          </div>
 
-        <div className="nav-cta">
-          <Link href="/statut">Mon statut</Link>
-          <Link href="/candidature" className="btn btn-grad">
-            Je candidate
-          </Link>
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="menu-btn"
+            aria-label="Ouvrir le menu"
+            aria-expanded={open}
+            onClick={() => setOpen(true)}
+          >
+            <Menu />
+          </button>
         </div>
-
-        <Link href="/candidature" className="btn btn-grad mobile-candidate">
-          Je candidate
-        </Link>
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className="menu-btn"
-          aria-label="Ouvrir le menu"
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
-        >
-          <Menu />
-        </button>
       </nav>
 
       {/* Drawer is a sibling of the nav so the nav's backdrop-filter does not
