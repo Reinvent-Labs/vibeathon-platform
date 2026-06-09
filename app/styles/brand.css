@@ -1,0 +1,179 @@
+/* ============================================================
+   VIBEATHON 2026 — Brand foundation
+   Display: Roboto Condensed Bold (uppercase, tight)
+   Body/UI: Inter
+   ============================================================ */
+:root {
+  /* Core brand gradient stops */
+  --green:        #07851D;
+  --purple:       #832EDC;
+  --pink:         #FF54E2;
+
+  /* Light gradient */
+  --green-lt:     #75FF8D;
+  --purple-lt:    #BA77FF;
+  --pink-lt:      #FF57E3;
+
+  /* Dark gradient */
+  --green-dk:     #035C13;
+  --purple-dk:    #3A0D6A;
+  --pink-dk:      #7A1B6A;
+
+  --mint:         #82C880;
+
+  /* Gradients */
+  --grad-1:   linear-gradient(90deg, #07851D 0%, #832EDC 52%, #FF54E2 100%);
+  --grad-1d:  linear-gradient(120deg, #035C13 0%, #3A0D6A 52%, #7A1B6A 100%);
+  --grad-lt:  linear-gradient(90deg, #75FF8D 0%, #BA77FF 52%, #FF57E3 100%);
+  --grad-bar: linear-gradient(90deg, #1f7d3a 0%, #07851D 14%, #5e6fb8 40%, #832EDC 62%, #c77ff0 80%, #FF54E2 100%);
+
+  /* Surfaces — deep near-black green/navy */
+  --bg-0:   #050807;   /* deepest */
+  --bg-1:   #0a0f0d;   /* base page */
+  --bg-2:   #10171a;   /* raised */
+  --bg-3:   #161f22;   /* card */
+  --line:   rgba(255,255,255,0.10);
+  --line-2: rgba(255,255,255,0.06);
+
+  /* Text */
+  --ink:        #f4f7f5;
+  --ink-soft:   #aab4b0;
+  --ink-faint:  #69736f;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg-1);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Type helpers ---------- */
+.display {
+  font-family: 'Roboto Condensed', 'Inter', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+}
+.cond {
+  font-family: 'Roboto Condensed', sans-serif;
+  text-transform: uppercase;
+}
+.eyebrow {
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.grad-text {
+  background: var(--grad-1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.grad-text-lt {
+  background: var(--grad-lt);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Logo (recreated wordmark for dark bg) ---------- */
+.vbt-logo {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.18em;
+  line-height: 1;
+  user-select: none;
+}
+.vbt-logo .word {
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  color: #fff;
+  font-size: var(--logo-size, 30px);
+  line-height: 0.8;
+}
+.vbt-logo .bar {
+  position: relative;
+  height: calc(var(--logo-size, 30px) * 0.34);
+  border-radius: 2px;
+  background: var(--grad-bar);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.vbt-logo .bar .yr {
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight: 900;
+  font-size: calc(var(--logo-size, 30px) * 0.30);
+  color: rgba(0,0,0,0.78);
+  padding-right: 0.35em;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Gradient pill CTA ---------- */
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  padding: 0.95em 1.8em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  text-decoration: none;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease), filter .25s var(--ease);
+}
+.btn-grad {
+  background: var(--grad-1);
+  color: #fff;
+  box-shadow: 0 8px 30px -8px rgba(131,46,220,0.6);
+}
+.btn-grad:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 14px 40px -10px rgba(255,84,226,0.55); }
+.btn-ghost {
+  background: rgba(255,255,255,0.04);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.09); transform: translateY(-2px); }
+
+/* gradient border wrapper */
+.grad-border {
+  position: relative;
+  border-radius: var(--r-lg);
+  background: var(--bg-2);
+}
+.grad-border::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--grad-1);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+::selection { background: rgba(186,119,255,0.4); color: #fff; }

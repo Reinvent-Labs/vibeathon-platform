@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(prisma:*)",
+      "Bash(supabase:*)",
+      "Bash(tsc:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(echo:*)",
+      "Bash(sed:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(curl:*)",
+      "Bash(playwright:*)",
+      "Read(//Users/user/Documents/Projects/vibethon/**)",
+      "Read(//tmp/vibe-design/**)",
+      "Edit(//Users/user/Documents/Projects/vibethon/**)",
+      "Write(//Users/user/Documents/Projects/vibethon/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Read(.env)",
+      "Read(.env.*)"
+    ]
+  }
+}

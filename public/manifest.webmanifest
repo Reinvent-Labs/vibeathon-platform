@@ -1,0 +1,16 @@
+{
+  "name": "VIBEATHON 2026 Scanner",
+  "short_name": "VBT Scanner",
+  "start_url": "/scan",
+  "display": "standalone",
+  "background_color": "#050807",
+  "theme_color": "#07851D",
+  "icons": [
+    {
+      "src": "/logo-color.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

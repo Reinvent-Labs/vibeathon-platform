@@ -1,65 +1,233 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Menu } from "lucide-react";
+import { Logo } from "@/components/Logo";
+import { EVENT, JUDGING_CRITERIA } from "@/lib/constants";
 
-export default function Home() {
+const activities = [
+  ["01", "Keynotes", "Des voix qui inspirent : visionnaires de la tech africaine et experts de l'IA."],
+  ["02", "Compétition du Vibecoding", "100 compétiteurs, une journée pour concevoir une solution IA à fort impact environnemental."],
+  ["03", "Ateliers de formation", "Six sessions pratiques pour maîtriser les outils du vibecoding et les bonnes pratiques de l'IA."],
+  ["04", "Studio d'expérience IA", "Deux espaces immersifs, photo et musique, pour expérimenter l'IA créative."],
+  ["05", "Panels", "Débats croisés entre acteurs de la tech, de l'environnement et de l'entrepreneuriat."],
+] as const;
+
+const schedule = [
+  ["07:30", "Accueil des participants", "Café, networking et remise des badges."],
+  ["09:00", "Keynotes d'ouverture", "Lancement officiel et interventions inspirantes."],
+  ["10:30", "Panels", "IA, environnement et innovation inclusive."],
+  ["12:00", "Déjeuner & networking", ""],
+  ["13:30", "Compétition vibecoding", "Le grand sprint créatif démarre, avec ateliers et Studio IA en parallèle."],
+  ["17:30", "Pitch des 10 finalistes", "Les meilleurs projets passent devant le jury."],
+  ["19:00", "Remise des prix & clôture", "Célébration des lauréats et photo de groupe."],
+] as const;
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <div className="ticker">
+        <div className="track">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <span key={index}>
+              Candidatures ouvertes · {EVENT.date} · {EVENT.venue} ·{" "}
+            </span>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+      <nav className="nav-bar" aria-label="Navigation principale">
+        <Logo size={150} />
+        <div className="links">
+          <Link href="#concept">Le concept</Link>
+          <Link href="#activites">Activités</Link>
+          <Link href="#programme">Programme</Link>
+          <Link href="#prix">Prix</Link>
         </div>
+        <div className="nav-cta">
+          <Link href="/statut">Mon statut</Link>
+          <Link href="/candidature" className="btn btn-grad">
+            Je candidate
+          </Link>
+        </div>
+        <Link className="menu-btn" href="/candidature" aria-label="Candidater">
+          <Menu />
+        </Link>
+      </nav>
+
+      <header className="hero-home">
+        <div className="ring" />
+        <div className="mesh" aria-hidden="true">
+          <span className="blob-g" />
+          <span className="blob-p" />
+          <span className="blob-k" />
+          <span className="blob-m" />
+        </div>
+        <div className="grain" />
+        <div className="vignette" />
+        <div className="chip-float cf1"><span className="ic" style={{ background: "#75FF8D" }} /> Keynotes</div>
+        <div className="chip-float cf2"><span className="ic" style={{ background: "#BA77FF" }} /> Compétition Vibecoding</div>
+        <div className="chip-float cf3"><span className="ic" style={{ background: "#FF57E3" }} /> Studio IA</div>
+        <div className="chip-float cf4"><span className="ic" style={{ background: "#82C880" }} /> 6 Ateliers</div>
+
+        <div className="eyebrow-pill"><span className="tag">2026</span> IA × Environnement · Abidjan</div>
+        <h1 className="display">Pense. Crée.<br /><span className="shine">Lance.</span></h1>
+        <p className="sub">
+          Intelligence artificielle et environnement : innover pour un avenir
+          durable et inclusif. Créer, sans coder, avec l&apos;IA.
+        </p>
+        <div className="pill-date"><span className="dot" /> {EVENT.date} · {EVENT.venue}</div>
+        <div className="cta-row">
+          <Link href="/candidature" className="btn btn-grad">
+            Je candidate <ArrowRight size={18} />
+          </Link>
+          <Link href="#programme" className="btn btn-ghost">Découvrir le programme</Link>
+        </div>
+        <div className="hero-stats wrap">
+          {[
+            ["400", "Participants"],
+            ["100", "Compétiteurs"],
+            ["20", "Solutions"],
+            ["3", "Lauréats primés"],
+          ].map(([value, label]) => (
+            <div className="st" key={label}>
+              <b className="grad-text-lt">{value}</b><span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      <main>
+        <section id="concept" className="sec-pad">
+          <div className="wrap concept">
+            <div>
+              <span className="eyebrow">Le concept</span>
+              <p className="lead">Le vibecoding, c&apos;est créer sans coder, en dialoguant avec l&apos;IA.</p>
+              <p className="body">
+                VIBEATHON réunit étudiants, jeunes diplômés, entrepreneurs et
+                professionnels autour d&apos;un même pari : transformer une idée en
+                solution concrète en une seule journée.
+              </p>
+            </div>
+            <div className="grad-border quote">
+              <div className="mark">&ldquo;</div>
+              <p>Pas besoin d&apos;être développeur. Il suffit de penser, décrire et laisser l&apos;IA construire.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="activites" className="sec-pad" style={{ background: "var(--bg-0)" }}>
+          <div className="wrap">
+            <div className="section-head">
+              <span className="eyebrow">Au programme</span>
+              <h2 className="display">Cinq façons<br />de vibrer.</h2>
+            </div>
+            <div className="act-grid">
+              {activities.map(([number, title, description], index) => (
+                <article className={`act-card ${index === 1 || index === 4 ? "wide" : ""}`} key={number}>
+                  <div className="swatch" style={{ background: index % 2 ? "var(--grad-lt)" : "var(--grad-1)" }} />
+                  <div className="num">{number}</div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="programme" className="sec-pad">
+          <div className="wrap">
+            <div className="section-head">
+              <span className="eyebrow">Le jour J · 11 juillet</span>
+              <h2 className="display">Déroulé de<br />la journée.</h2>
+            </div>
+            <div className="timeline">
+              {schedule.map(([time, title, description]) => (
+                <div className="tl-row" key={time}>
+                  <div className="time">{time}</div><div className="dot" />
+                  <div className="body"><h4>{title}</h4>{description ? <p>{description}</p> : null}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="prix" className="sec-pad" style={{ background: "var(--bg-0)" }}>
+          <div className="wrap">
+            <div className="section-head">
+              <span className="eyebrow">Récompenses</span>
+              <h2 className="display">Plus qu&apos;un prix,<br />un tremplin.</h2>
+            </div>
+            <div className="prize-grid">
+              {[
+                ["1er prix", "500 000"],
+                ["2e prix", "300 000"],
+                ["3e prix", "150 000"],
+              ].map(([rank, amount], index) => (
+                <div className={`prize ${index === 0 ? "gold" : ""}`} key={rank}>
+                  <div className="rank">{rank}</div>
+                  <div className={`amt ${index === 0 ? "grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
+                </div>
+              ))}
+            </div>
+            <div className="perks">
+              <div className="perk"><b className="grad-text">90 jours</b> d&apos;incubation pour les 3 lauréats.</div>
+              <div className="perk"><b className="grad-text">30 jours</b> d&apos;accompagnement pour les 5 finalistes.</div>
+              <div className="perk"><b className="grad-text">1 journée</b> avec un champion de la tech ivoirienne.</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="sec-pad">
+          <div className="wrap criteria">
+            <div>
+              <span className="eyebrow">Le jury évalue</span>
+              <h2 className="display" style={{ fontSize: "clamp(36px,4.5vw,64px)", marginTop: 18 }}>Comment<br />on est noté.</h2>
+            </div>
+            <div>
+              {JUDGING_CRITERIA.map((criterion) => (
+                <div className="crit-row" key={criterion.id}>
+                  <div className="lab"><span className="name">{criterion.name}</span><span className="pct grad-text-lt">{criterion.weight}%</span></div>
+                  <div className="bar"><i style={{ width: `${(criterion.weight / 30) * 100}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
+          <div className="wrap">
+            <div className="section-head"><span className="eyebrow">Pour qui ?</span><h2 className="display">Ouvert à tous<br />les bâtisseurs.</h2></div>
+            <div className="aud-row">
+              {["Étudiants", "Jeunes diplômés", "Entrepreneurs", "Professionnels"].map((audience) => <div className="aud-chip" key={audience}>{audience}</div>)}
+            </div>
+          </div>
+        </section>
+
+        <section className="sec-pad">
+          <div className="wrap">
+            <div className="final-cta">
+              <div className="mesh" aria-hidden="true"><span className="blob-g" /><span className="blob-p" /><span className="blob-k" /><span className="blob-m" /></div>
+              <h2 className="display">Prêt à <span className="grad-text-lt">lancer</span> ?</h2>
+              <div className="cta-row">
+                <Link href="/candidature" className="btn btn-grad">Je candidate <ArrowRight size={18} /></Link>
+                <Link href="/statut" className="btn btn-ghost">Vérifier mon statut</Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+
+      <footer className="foot">
+        <div className="wrap">
+          <div className="foot-top">
+            <Logo size={170} />
+            <div className="foot-links"><Link href="#concept">Concept</Link><Link href="#programme">Programme</Link><Link href="/candidature">Candidature</Link></div>
+          </div>
+          <div className="foot-bottom">
+            <span className="copy">© 2026 VIBEATHON · vibeathonci.com</span>
+            <div className="cluster"><span className="copy">Accès staff :</span><Link href="/admin" className="copy">Admin</Link><Link href="/jury" className="copy">Jury</Link><Link href="/scan" className="copy">Scanner</Link></div>
+            <span className="copy">{EVENT.date} · {EVENT.venue}</span>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
