@@ -13,3 +13,6 @@
 - Made database seeding non-destructive: existing event sessions, scan history, and administrator credentials are preserved across updates.
 - Separated one-time CSV bootstrap from routine database setup and preserved official team assignments when an import is deliberately rerun.
 - Reworked the responsive public navigation and footer, kept the candidature action visible on small screens, and applied Roboto Condensed and Inter consistently.
+- Hardened staff authentication with strict signed sessions, active database-user checks, role validation, login throttling, safe redirects, and explicit logout on admin, jury, and scanner surfaces.
+- Added additive audit logging, staff login timestamps, and reversible event-session archiving fields for operational traceability.
+- Replaced fake staff users with super-admin account management for Admin, Jury, and Scanner roles, including one-time passwords, forced first-login password changes, role updates, deactivation, and secure password resets.

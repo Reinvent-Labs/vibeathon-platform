@@ -65,7 +65,7 @@ export function SiteNav() {
           </div>
 
           <div className="nav-cta">
-            <Link href="/statut">Mon statut</Link>
+            <Link href="/statut" className="btn btn-ghost">Mon statut</Link>
             <Link href="/candidature" className="btn btn-grad">
               Je candidate
             </Link>

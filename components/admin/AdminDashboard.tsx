@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Check,
+  Copy,
   Download,
   Mail,
   Search,
@@ -18,6 +19,7 @@ import { EVENT, EVENT_SESSIONS, JUDGING_CRITERIA } from "@/lib/constants";
 
 type AdminDashboardProps = {
   section: string;
+  currentRole: "SUPER_ADMIN" | "ADMIN";
 };
 
 type AdminTeam = {
@@ -46,7 +48,10 @@ const statusLabels: Record<DemoParticipantStatus, string> = {
   REJECTED: "Non retenu",
 };
 
-export function AdminDashboard({ section }: AdminDashboardProps) {
+export function AdminDashboard({
+  section,
+  currentRole,
+}: AdminDashboardProps) {
   const [participants, setParticipants] = useState<DemoParticipant[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -128,7 +133,7 @@ export function AdminDashboard({ section }: AdminDashboardProps) {
         ) : section === "parametres" ? (
           <SettingsPanel />
         ) : section === "utilisateurs" ? (
-          <UsersPanel />
+          currentRole === "SUPER_ADMIN" ? <UsersPanel /> : null
         ) : (
           <Overview counts={counts} participants={participants} />
         )}
@@ -338,7 +343,10 @@ function Communications() {
 type AdminSession = {
   id: string;
   name: string;
+  description: string | null;
+  location: string | null;
   active: boolean;
+  archivedAt: string | null;
   startsAt: string | null;
   endsAt: string | null;
   scanCount: number;
@@ -347,7 +355,10 @@ type AdminSession = {
 function SessionsManager() {
   const [sessions, setSessions] = useState<AdminSession[]>([]);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
   const [loading, setLoading] = useState(true);
 
   function refresh(payload: { success: boolean; data?: AdminSession[]; error?: string }) {
@@ -384,11 +395,21 @@ function SessionsManager() {
     if (!name.trim()) return;
     await send(
       "POST",
-      { name: name.trim(), startsAt: startsAt || null, active: sessions.length === 0 },
+      {
+        name: name.trim(),
+        description: description.trim() || null,
+        location: location.trim() || null,
+        startsAt: startsAt || null,
+        endsAt: endsAt || null,
+        active: sessions.filter((session) => !session.archivedAt).length === 0,
+      },
       "Session créée.",
     );
     setName("");
+    setDescription("");
+    setLocation("");
     setStartsAt("");
+    setEndsAt("");
   }
 
   return (
@@ -396,7 +417,8 @@ function SessionsManager() {
       <h2>Sessions de l&apos;événement</h2>
       <p>
         Les sessions (conférences, ateliers, entrée…) créées ici alimentent
-        directement le scanner de présence.
+        directement le scanner de présence. Une session archivée disparaît du
+        scanner, mais ses présences restent conservées.
       </p>
       <form className="stack" onSubmit={createSession}>
         <label>
@@ -409,15 +431,28 @@ function SessionsManager() {
             required
           />
         </label>
-        <label>
-          Heure de début (optionnel)
-          <input
-            className="input"
-            type="datetime-local"
-            value={startsAt}
-            onChange={(event) => setStartsAt(event.target.value)}
-          />
-        </label>
+        <label>Description<textarea className="textarea" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Objectif ou contenu de la session" /></label>
+        <label>Lieu<input className="input" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Ex. Auditorium principal" /></label>
+        <div className="field two">
+          <label>
+            Début (optionnel)
+            <input
+              className="input"
+              type="datetime-local"
+              value={startsAt}
+              onChange={(event) => setStartsAt(event.target.value)}
+            />
+          </label>
+          <label>
+            Fin (optionnel)
+            <input
+              className="input"
+              type="datetime-local"
+              value={endsAt}
+              onChange={(event) => setEndsAt(event.target.value)}
+            />
+          </label>
+        </div>
         <button className="btn btn-grad" type="submit">
           Ajouter la session
         </button>
@@ -440,6 +475,7 @@ function SessionsManager() {
                 <tr key={session.id}>
                   <td>
                     <b>{session.name}</b>
+                    {session.location ? <><br /><small>{session.location}</small></> : null}
                     {session.startsAt ? (
                       <>
                         <br />
@@ -456,26 +492,42 @@ function SessionsManager() {
                   </td>
                   <td>{session.scanCount}</td>
                   <td>
-                    <button
-                      className={`status-pill ${session.active ? "confirmed" : ""}`}
-                      onClick={() =>
-                        void send(
-                          "PATCH",
-                          { id: session.id, active: !session.active },
-                          session.active ? "Session désactivée." : "Session activée.",
-                        )
-                      }
-                    >
-                      {session.active ? "En cours" : "Activer"}
-                    </button>
+                    {session.archivedAt ? (
+                      <span className="status-pill">Archivée</span>
+                    ) : (
+                      <button
+                        className={`status-pill ${session.active ? "confirmed" : ""}`}
+                        onClick={() =>
+                          void send(
+                            "PATCH",
+                            { id: session.id, active: !session.active },
+                            session.active
+                              ? "Session désactivée."
+                              : "Session activée.",
+                          )
+                        }
+                      >
+                        {session.active ? "En cours" : "Activer"}
+                      </button>
+                    )}
                   </td>
                   <td>
                     <button
-                      className="row-act"
-                      aria-label="Supprimer"
-                      onClick={() => void send("DELETE", { id: session.id }, "Session supprimée.")}
+                      className="btn btn-ghost"
+                      onClick={() =>
+                        void send(
+                          "PATCH",
+                          {
+                            id: session.id,
+                            archived: !Boolean(session.archivedAt),
+                          },
+                          session.archivedAt
+                            ? "Session restaurée."
+                            : "Session archivée sans supprimer ses présences.",
+                        )
+                      }
                     >
-                      <X size={16} />
+                      {session.archivedAt ? "Restaurer" : "Archiver"}
                     </button>
                   </td>
                 </tr>
@@ -501,5 +553,304 @@ function SettingsPanel() {
 }
 
 function UsersPanel() {
-  return <div className="surface stack" style={{ padding: 24 }}><div className="cluster" style={{ justifyContent: "space-between" }}><h2>Utilisateurs staff</h2><button className="btn btn-grad"><UserPlus size={16} /> Inviter</button></div>{[["Nelly Ossey", "SUPER_ADMIN"], ["Ruben Ipote", "JURY"], ["Aminata K.", "SCANNER"]].map(([name, role]) => <div className="cluster" style={{ justifyContent: "space-between", borderBottom: "1px solid var(--line-2)", paddingBlock: 12 }} key={name}><span>{name}</span><span className="status-pill">{role}</span></div>)}</div>;
+  type StaffRole = "SUPER_ADMIN" | "ADMIN" | "JURY" | "SCANNER";
+  type StaffUser = {
+    id: string;
+    email: string;
+    fullName: string;
+    role: StaffRole;
+    active: boolean;
+    mustChangePassword: boolean;
+    lastLoginAt: string | null;
+    createdAt: string;
+  };
+  type Credentials = {
+    email: string;
+    temporaryPassword: string;
+  };
+
+  const [users, setUsers] = useState<StaffUser[]>([]);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<StaffRole>("JURY");
+  const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/users")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error ?? "Chargement impossible.");
+        }
+        setUsers(payload.data);
+      })
+      .catch((error) =>
+        toast.error(
+          error instanceof Error ? error.message : "Chargement impossible.",
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function createUser(event: FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email, role }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error ?? "Création impossible.");
+      }
+      setUsers(payload.data.users);
+      setCredentials(payload.data.credentials);
+      setFullName("");
+      setEmail("");
+      setRole("JURY");
+      toast.success("Compte staff créé.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Création impossible.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function updateUser(
+    body:
+      | { action: "set-active"; userId: string; active: boolean }
+      | { action: "set-role"; userId: string; role: StaffRole }
+      | { action: "reset-password"; userId: string },
+  ) {
+    const response = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) {
+      return toast.error(payload.error ?? "Modification impossible.");
+    }
+    setUsers(payload.data.users);
+    if (payload.data.credentials) {
+      setCredentials(payload.data.credentials);
+    }
+    toast.success(
+      body.action === "reset-password"
+        ? "Mot de passe temporaire généré."
+        : "Accès mis à jour.",
+    );
+  }
+
+  async function copyCredentials() {
+    if (!credentials) return;
+    await navigator.clipboard.writeText(
+      `VIBEATHON\nEmail : ${credentials.email}\nMot de passe temporaire : ${credentials.temporaryPassword}\nConnexion : ${window.location.origin}/login`,
+    );
+    toast.success("Identifiants copiés.");
+  }
+
+  const roleLabels: Record<StaffRole, string> = {
+    SUPER_ADMIN: "Super admin",
+    ADMIN: "Admin",
+    JURY: "Jury",
+    SCANNER: "Scanner",
+  };
+
+  return (
+    <div className="stack">
+      <form className="surface stack staff-create" onSubmit={createUser}>
+        <div>
+          <span className="eyebrow">Accès staff</span>
+          <h2>Créer un utilisateur</h2>
+          <p>
+            Le mot de passe temporaire est affiché une seule fois. Le nouvel
+            utilisateur devra le remplacer lors de sa première connexion.
+          </p>
+        </div>
+        <div className="settings-grid">
+          <label>
+            Nom complet
+            <input
+              className="input"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Email
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Rôle
+            <select
+              className="select"
+              value={role}
+              onChange={(event) => setRole(event.target.value as StaffRole)}
+            >
+              {Object.entries(roleLabels).map(([value, label]) => (
+                <option value={value} key={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <button className="btn btn-grad" disabled={submitting}>
+          <UserPlus size={16} />
+          {submitting ? "Création…" : "Créer le compte"}
+        </button>
+      </form>
+
+      {credentials ? (
+        <section className="surface credential-card" aria-live="polite">
+          <div>
+            <span className="eyebrow">À transmettre maintenant</span>
+            <h2>Identifiants temporaires</h2>
+            <p>
+              Email : <strong>{credentials.email}</strong>
+            </p>
+            <p>
+              Mot de passe :{" "}
+              <code>{credentials.temporaryPassword}</code>
+            </p>
+            <small>
+              Ce mot de passe n&apos;est pas conservé en clair et ne pourra pas être
+              réaffiché.
+            </small>
+          </div>
+          <div className="cluster">
+            <button
+              type="button"
+              className="btn btn-grad"
+              onClick={() => void copyCredentials()}
+            >
+              <Copy size={16} /> Copier
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => setCredentials(null)}
+            >
+              Masquer
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      <div className="panel">
+        <div className="phead">
+          <h3>Utilisateurs staff</h3>
+          <span>{users.filter((user) => user.active).length} actifs</span>
+        </div>
+        {loading ? (
+          <div className="empty-state">Chargement des comptes…</div>
+        ) : (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Rôle</th>
+                  <th>État</th>
+                  <th>Dernière connexion</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      <b>{user.fullName}</b>
+                      <br />
+                      <small>{user.email}</small>
+                    </td>
+                    <td>
+                      <select
+                        className="select compact-select"
+                        value={user.role}
+                        onChange={(event) =>
+                          void updateUser({
+                            action: "set-role",
+                            userId: user.id,
+                            role: event.target.value as StaffRole,
+                          })
+                        }
+                      >
+                        {Object.entries(roleLabels).map(([value, label]) => (
+                          <option value={value} key={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <span
+                        className={`status-pill ${
+                          user.active ? "confirmed" : "rejected"
+                        }`}
+                      >
+                        {user.active
+                          ? user.mustChangePassword
+                            ? "Invitation envoyée"
+                            : "Actif"
+                          : "Désactivé"}
+                      </span>
+                    </td>
+                    <td>
+                      {user.lastLoginAt
+                        ? new Date(user.lastLoginAt).toLocaleString("fr-FR")
+                        : "Jamais"}
+                    </td>
+                    <td>
+                      <div className="cluster staff-actions">
+                        <button
+                          className="btn btn-ghost"
+                          type="button"
+                          onClick={() =>
+                            void updateUser({
+                              action: "reset-password",
+                              userId: user.id,
+                            })
+                          }
+                        >
+                          Réinitialiser
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          type="button"
+                          onClick={() =>
+                            void updateUser({
+                              action: "set-active",
+                              userId: user.id,
+                              active: !user.active,
+                            })
+                          }
+                        >
+                          {user.active ? "Désactiver" : "Réactiver"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

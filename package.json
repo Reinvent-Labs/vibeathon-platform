@@ -10,15 +10,18 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
+    "db:safe-migrate": "prisma db execute --file prisma/safe-migrations/20260609_operational_security.sql",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:import": "tsx scripts/import-registered-users.ts",
-    "db:setup": "npm run db:push && npm run db:seed",
+    "db:setup": "npm run db:safe-migrate && npm run db:push && npm run db:seed",
     "db:bootstrap": "npm run db:setup && npm run db:import",
-    "test:data-preservation": "node scripts/verify-preservation.mjs"
+    "test:data-preservation": "node scripts/verify-preservation.mjs",
+    "test:scan-lifecycle": "tsx scripts/verify-scan-lifecycle.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/outfit": "^5.2.8",
     "@fontsource/roboto-condensed": "^5.2.8",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

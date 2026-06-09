@@ -21,12 +21,9 @@ export async function POST(request: Request) {
   const database = prisma;
   const session = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
   if (!session) return apiError("Non autorisé.", 401);
-  const jury =
-    session.userId === "development-user"
-      ? await database.adminUser.findFirst({
-          where: { role: { in: ["SUPER_ADMIN", "ADMIN", "JURY"] }, active: true },
-        })
-      : await database.adminUser.findUnique({ where: { id: session.userId } });
+  const jury = await database.adminUser.findUnique({
+    where: { id: session.userId },
+  });
   if (!jury) return apiError("Compte jury introuvable.", 403);
 
   const criteria = await database.judgingCriteria.findMany({

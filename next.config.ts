@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+const isDevelopment = process.env.NODE_ENV !== "production";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "worker-src 'self' blob:",
+  `connect-src 'self'${isDevelopment ? " ws: wss:" : ""} https://api.wassenger.com https://www.paiementpro.net`,
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   output: "standalone",
   turbopack: {
@@ -19,8 +35,12 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://api.wassenger.com https://www.paiementpro.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            value: contentSecurityPolicy,
+          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
           },
         ],
       },

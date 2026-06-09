@@ -12,6 +12,13 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  
+  const url = new URL(event.request.url);
+  // Ignore Next.js internals, API routes, and HMR
+  if (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/")) {
+    return;
+  }
+  
   event.respondWith(
     fetch(event.request).catch(() =>
       caches.match(event.request).then((response) => response || caches.match("/scan")),

@@ -5,6 +5,8 @@ import { Lock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { JUDGING_CRITERIA } from "@/lib/constants";
+import { LogoutButton } from "@/components/auth/LogoutButton";
+import type { SessionPayload } from "@/lib/auth";
 
 type Scores = Record<string, number>;
 type JuryTeam = {
@@ -17,7 +19,11 @@ type JuryTeam = {
   scored: boolean;
 };
 
-export function JuryPortal() {
+export function JuryPortal({
+  user,
+}: {
+  user: SessionPayload & { fullName: string };
+}) {
   const [teams, setTeams] = useState<JuryTeam[]>([]);
   const [teamIndex, setTeamIndex] = useState(0);
   const [completed, setCompleted] = useState<string[]>([]);
@@ -75,8 +81,13 @@ export function JuryPortal() {
       <aside className="jury-sidebar stack">
         <Logo size={150} />
         <span className="eyebrow">Espace jury</span>
+        <p className="staff-context">
+          <strong>{user.fullName}</strong>
+          <span>{user.email}</span>
+        </p>
         <div><small>Progression</small><strong style={{ float: "right" }}>{completed.length}/{teams.length}</strong><div className="bar" style={{ marginTop: 8 }}><i style={{ width: `${(completed.length / teams.length) * 100}%` }} /></div></div>
         <nav className="stack">{teams.map((item, index) => <button className={`btn ${index === teamIndex ? "btn-grad" : "btn-ghost"}`} onClick={() => { setTeamIndex(index); setComment(""); }} key={item.id}>{completed.includes(item.id) ? "✓ " : ""}{item.name}</button>)}</nav>
+        <LogoutButton />
       </aside>
       <main className="jury-main">
         <div className="cluster" style={{ justifyContent: "space-between" }}><div><span className="eyebrow">{team.tableNumber}</span><h1 className="display">{team.name}</h1></div><span className={`status-pill ${locked ? "confirmed" : "selected"}`}>{locked ? <><Lock size={14} /> Verrouillé</> : `En cours · ${total}/100`}</span></div>

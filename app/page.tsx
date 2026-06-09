@@ -132,9 +132,9 @@ export default function HomePage() {
             </div>
             <div className="prize-grid">
               {[
-                ["1er prix", "500 000"],
-                ["2e prix", "300 000"],
-                ["3e prix", "150 000"],
+                ["1er prix", "1 000 000"],
+                ["2e prix", "500 000"],
+                ["3e prix", "300 000"],
               ].map(([rank, amount], index) => (
                 <div className={`prize ${index === 0 ? "gold" : ""}`} key={rank}>
                   <div className="rank">{rank}</div>

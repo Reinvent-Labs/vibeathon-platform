@@ -3,7 +3,7 @@ export const EVENT = {
   date: "Samedi 11 juillet 2026",
   shortDate: "11 juillet 2026",
   venue: "CSCTICAO, Abidjan",
-  fee: 5_000,
+  fee: 20_000,
   currency: "FCFA",
   capacity: 400,
   competitorCapacity: 100,

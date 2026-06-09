@@ -51,6 +51,10 @@ docker compose up -d db
 npm run db:bootstrap
 ```
 
+Routine updates use `npm run db:setup`. It runs only idempotent additive SQL,
+verifies schema parity with Prisma, and preserves existing imports, sessions,
+scan history, team assignments, and staff credentials.
+
 4. Start the app:
 
 ```bash
@@ -77,7 +81,7 @@ public domain.
 
 The files in `deploy/labtest/` define a systemd timer that checks the GitHub
 `main` branch every two minutes. When the revision changes it pulls the commit,
-rebuilds the app image, runs the database setup/import idempotently, and
+rebuilds the app image, runs the non-destructive database setup, and
 restarts only the VIBEATHON app service.
 
 The server deployment uses `APP_PORT=3003` to avoid the existing services on
@@ -85,9 +89,9 @@ ports 3000–3002.
 
 ## Staff authentication
 
-Set `AUTH_REQUIRED=true` in production. The seed command creates the first
-admin using `ADMIN_EMAIL` and `ADMIN_INITIAL_PASSWORD`. Change that password
-before exposing the server.
+The seed command creates the first admin using `ADMIN_EMAIL` and
+`ADMIN_INITIAL_PASSWORD`. Staff authentication cannot be bypassed. Configure
+a random `SESSION_SECRET` of at least 32 characters before starting the app.
 
 Roles:
 
@@ -95,8 +99,8 @@ Roles:
 - `JURY`: `/jury`
 - `SCANNER`: `/scan`
 
-Sessions use signed, HTTP-only cookies with 12-hour expiry. Sensitive APIs
-repeat role checks server-side.
+Sessions use signed, HTTP-only, same-site cookies with an 8-hour expiry.
+Sensitive pages and APIs revalidate the active database account and role.
 
 ## PaiementPro
 

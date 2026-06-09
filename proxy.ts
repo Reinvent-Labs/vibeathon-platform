@@ -3,15 +3,32 @@ import type { NextRequest } from "next/server";
 import { readSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export async function proxy(request: NextRequest) {
-  // Secure by default: staff areas are protected unless auth is explicitly
-  // disabled (AUTH_REQUIRED="false"), e.g. for a local UI walkthrough.
-  if (process.env.AUTH_REQUIRED === "false") return NextResponse.next();
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await readSessionToken(token) : null;
   const path = request.nextUrl.pathname;
+  if (session?.mustChangePassword && path !== "/change-password") {
+    return NextResponse.redirect(new URL("/change-password", request.url));
+  }
+  if (
+    session &&
+    !session.mustChangePassword &&
+    path === "/change-password"
+  ) {
+    const destination =
+      session.role === "JURY"
+        ? "/jury"
+        : session.role === "SCANNER"
+          ? "/scan"
+          : "/admin";
+    return NextResponse.redirect(new URL(destination, request.url));
+  }
   const permitted =
     session &&
-    (path.startsWith("/admin")
+    (path.startsWith("/change-password")
+      ? Boolean(session.mustChangePassword)
+      : session.mustChangePassword
+        ? false
+        : path.startsWith("/admin")
       ? ["SUPER_ADMIN", "ADMIN"].includes(session.role)
       : path.startsWith("/jury")
         ? ["SUPER_ADMIN", "ADMIN", "JURY"].includes(session.role)
@@ -25,5 +42,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/jury/:path*", "/scan/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/jury/:path*",
+    "/scan/:path*",
+    "/change-password",
+  ],
 };

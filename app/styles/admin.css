@@ -18,11 +18,16 @@
 .side .user { margin-top:auto; display:flex; align-items:center; gap:10px; padding:12px; border-radius:12px; border:1px solid var(--line-2); }
 .side .user .av { width:34px; height:34px; border-radius:50%; background:var(--grad-1); display:grid; place-items:center; font-weight:700; font-size:13px; color:#fff; }
 .side .user b { font-size:13px; display:block; } .side .user span { font-size:11.5px; color:var(--ink-faint); }
+.side .staff-identity { flex:1; min-width:0; }
+.side .staff-identity b,
+.side .staff-identity span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.staff-context { display:flex; flex-direction:column; gap:3px; margin:0; color:var(--ink-soft); font-size:.82rem; }
+.staff-context strong { color:var(--ink); }
 
 /* main */
 .main { padding:0; min-width:0; }
 .topbar { display:flex; align-items:center; justify-content:space-between; padding:20px 34px; border-bottom:1px solid var(--line-2); position:sticky; top:0; background:rgba(10,15,13,.85); backdrop-filter:blur(12px); z-index:20; }
-.topbar h1 { font-family:'Roboto Condensed',sans-serif; font-weight:900; text-transform:uppercase; font-size:26px; margin:0; white-space:nowrap; }
+.topbar h1 { font-family:'Outfit',sans-serif; font-weight:900; text-transform:uppercase; font-size:26px; margin:0; white-space:nowrap; }
 .topbar .sub { font-size:13px; color:var(--ink-faint); margin-top:2px; }
 .topbar .tb-actions { display:flex; gap:10px; align-items:center; }
 .icon-btn { width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:var(--bg-2); color:var(--ink-soft); display:grid; place-items:center; cursor:pointer; }
@@ -43,7 +48,7 @@
 .kpi { padding:22px; border-radius:var(--r-lg); background:var(--bg-2); border:1px solid var(--line-2); position:relative; overflow:hidden; }
 .kpi .lab { font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:8px; }
 .kpi .lab .dot { width:8px; height:8px; border-radius:50%; }
-.kpi .val { font-family:'Roboto Condensed',sans-serif; font-weight:900; font-size:44px; line-height:1; margin:14px 0 6px; }
+.kpi .val { font-family:'Outfit',sans-serif; font-weight:900; font-size:44px; line-height:1; margin:14px 0 6px; }
 .kpi .delta { font-size:12.5px; color:var(--mint); } .kpi .delta.flat { color:var(--ink-faint); }
 .kpi .spark { position:absolute; right:14px; bottom:14px; opacity:.5; }
 
@@ -83,7 +88,7 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
 .bar-row .nm { width:120px; color:var(--ink-soft); }
 .bar-row .tk { flex:1; height:8px; border-radius:var(--r-pill); background:rgba(255,255,255,.06); overflow:hidden; }
 .bar-row .tk i { display:block; height:100%; border-radius:var(--r-pill); background:var(--grad-1); }
-.bar-row .vv { width:42px; text-align:right; font-weight:600; font-family:'Roboto Condensed'; }
+.bar-row .vv { width:42px; text-align:right; font-weight:600; font-family:'Outfit'; }
 
 .feed { display:flex; flex-direction:column; gap:0; }
 .feed .ev { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-2); font-size:13px; }
@@ -91,5 +96,36 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
 .feed .ev .t { width:7px; height:7px; border-radius:50%; margin-top:5px; flex:none; }
 .feed .ev .tm { margin-left:auto; color:var(--ink-faint); font-size:12px; white-space:nowrap; }
 
+.staff-create { padding:24px; }
+.staff-create .settings-grid { align-items:end; }
+.staff-create .btn { align-self:flex-start; }
+.credential-card {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  padding:24px;
+  border-color:rgba(117,255,141,.35);
+  background:linear-gradient(135deg,rgba(7,133,29,.15),rgba(131,46,220,.1));
+}
+.credential-card h2 { margin:.4rem 0 1rem; }
+.credential-card p { margin:.4rem 0; }
+.credential-card code {
+  display:inline-block;
+  padding:.35rem .55rem;
+  border-radius:8px;
+  color:var(--green-lt);
+  background:rgba(0,0,0,.35);
+  font-size:.9rem;
+  word-break:break-all;
+}
+.compact-select { min-width:140px; padding-block:9px; }
+.staff-actions { flex-wrap:nowrap; }
+.staff-actions .btn { padding:.65rem .85rem; font-size:.78rem; white-space:nowrap; }
+
 @media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,1fr);} .two-col{grid-template-columns:1fr;} }
-@media (max-width:860px){ .app{grid-template-columns:1fr;} .side{display:none;} }
+@media (max-width:860px){
+  .app{grid-template-columns:1fr;}
+  .side{display:none;}
+  .credential-card { align-items:flex-start; flex-direction:column; }
+}

@@ -76,11 +76,16 @@ model Session {
   id             String       @id @default(cuid())
   competitionId  String
   name           String
+  description    String?
+  location       String?
   startsAt       DateTime?
   endsAt         DateTime?
   active         Boolean      @default(false)
+  archivedAt     DateTime?
   competition    Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   scans           ScanRecord[]
+
+  @@index([competitionId, archivedAt, startsAt])
 }
 
 model Participant {
@@ -132,6 +137,7 @@ model ScanRecord {
   sessionId      String
   scannedById    String?
   qrCode         String
+  acceptedKey    String?      @unique
   result         ScanResult
   note           String?
   participant    Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
@@ -212,11 +218,30 @@ model AdminUser {
   fullName       String
   role           AdminRole
   passwordHash   String?
+  mustChangePassword Boolean   @default(false)
   active         Boolean      @default(true)
+  lastLoginAt    DateTime?
   scans          ScanRecord[]
   scores         JuryScore[]
+  auditLogs      AuditLog[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  actorId     String?
+  action      String
+  entityType  String?
+  entityId    String?
+  ipAddress   String?
+  metadata    Json?
+  actor       AdminUser? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
 }
 
 model EmailLog {

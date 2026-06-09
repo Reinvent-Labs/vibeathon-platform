@@ -109,8 +109,10 @@ export async function findParticipantById(id: string) {
 
 export async function findParticipantByQrCode(qrCode: string) {
   if (prisma) {
-    return prisma.participant.findUnique({
-      where: { qrCode },
+    return prisma.participant.findFirst({
+      where: {
+        OR: [{ qrCode }, { reference: qrCode }],
+      },
       include: { team: true },
     });
   }
@@ -155,49 +157,145 @@ export async function updateParticipantStatus(
   return participant;
 }
 
-export async function recordScan(qrCode: string, sessionId: string) {
-  const participant = await findParticipantByQrCode(qrCode);
-  if (!participant) {
-    return { result: "REJECTED" as const, participant: null };
-  }
-  if (!["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
-    return { result: "REJECTED" as const, participant };
-  }
-
+export async function recordScan(
+  rawQrCode: string,
+  sessionId: string,
+  scannedById: string,
+) {
+  const qrCode = rawQrCode.trim();
   if (prisma) {
-    const requestedSession = await prisma.session.findUnique({
-      where: { id: sessionId },
-    });
-    const session =
-      requestedSession ??
-      (await prisma.session.findFirst({
-        where: { active: true },
-        orderBy: { startsAt: "asc" },
-      }));
-    if (!session) {
-      throw new Error("Aucune session de scan n'est configurée.");
-    }
-    const previous = await prisma.scanRecord.findFirst({
-      where: { qrCode, sessionId: session.id, result: "ACCEPTED" },
-    });
-    if (previous) return { result: "DUPLICATE" as const, participant };
-    await prisma.scanRecord.create({
-      data: {
-        qrCode,
-        sessionId: session.id,
-        participantId: participant.id,
-        result: "ACCEPTED",
+    const session = await prisma.session.findFirst({
+      where: {
+        id: sessionId,
+        archivedAt: null,
+        competition: { slug: "vibeathon-2026" },
       },
     });
+    if (!session) throw new Error("Session de scan introuvable ou archivée.");
+
+    const participant = await findParticipantByQrCode(qrCode);
+    if (!participant) {
+      await prisma.scanRecord.create({
+        data: {
+          qrCode,
+          sessionId: session.id,
+          scannedById,
+          result: "REJECTED",
+          note: "QR code inconnu",
+        },
+      });
+      return {
+        result: "REJECTED" as const,
+        participant: null,
+        reason: "QR code inconnu",
+        sessionCount: await acceptedScanCount(session.id),
+      };
+    }
+    if (!["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
+      await prisma.scanRecord.create({
+        data: {
+          qrCode,
+          sessionId: session.id,
+          scannedById,
+          participantId: participant.id,
+          result: "REJECTED",
+          note: `Statut non admissible: ${participant.status}`,
+        },
+      });
+      return {
+        result: "REJECTED" as const,
+        participant,
+        reason: "Participation non confirmée",
+        sessionCount: await acceptedScanCount(session.id),
+      };
+    }
+
+    const acceptedKey = `${session.id}:${participant.id}`;
+    try {
+      await prisma.scanRecord.create({
+        data: {
+          qrCode: participant.qrCode,
+          sessionId: session.id,
+          scannedById,
+          participantId: participant.id,
+          acceptedKey,
+          result: "ACCEPTED",
+        },
+      });
+      return {
+        result: "ACCEPTED" as const,
+        participant,
+        reason: null,
+        sessionCount: await acceptedScanCount(session.id),
+      };
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "P2002"
+      ) {
+        await prisma.scanRecord.create({
+          data: {
+            qrCode: participant.qrCode,
+            sessionId: session.id,
+            scannedById,
+            participantId: participant.id,
+            result: "DUPLICATE",
+            note: "Présence déjà enregistrée pour cette session",
+          },
+        });
+        return {
+          result: "DUPLICATE" as const,
+          participant,
+          reason: "Présence déjà enregistrée",
+          sessionCount: await acceptedScanCount(session.id),
+        };
+      }
+      throw error;
+    }
   } else {
+    const participant = await findParticipantByQrCode(qrCode);
+    if (!participant) {
+      return {
+        result: "REJECTED" as const,
+        participant: null,
+        reason: "QR code inconnu",
+        sessionCount: 0,
+      };
+    }
+    if (!["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
+      return {
+        result: "REJECTED" as const,
+        participant,
+        reason: "Participation non confirmée",
+        sessionCount: 0,
+      };
+    }
     const key = `${sessionId}:${qrCode}`;
     if (runtimeScans.has(key)) {
-      return { result: "DUPLICATE" as const, participant };
+      return {
+        result: "DUPLICATE" as const,
+        participant,
+        reason: "Présence déjà enregistrée",
+        sessionCount: runtimeScans.size,
+      };
     }
     runtimeScans.add(key);
+    return {
+      result: "ACCEPTED" as const,
+      participant,
+      reason: null,
+      sessionCount: runtimeScans.size,
+    };
   }
+}
 
-  return { result: "ACCEPTED" as const, participant };
+async function acceptedScanCount(sessionId: string) {
+  if (!prisma) return 0;
+  return prisma.scanRecord.count({
+    where: { sessionId, result: "ACCEPTED" },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -207,7 +305,10 @@ export async function recordScan(qrCode: string, sessionId: string) {
 export type SessionRecord = {
   id: string;
   name: string;
+  description: string | null;
+  location: string | null;
   active: boolean;
+  archivedAt: string | null;
   startsAt: string | null;
   endsAt: string | null;
   scanCount: number;
@@ -222,19 +323,27 @@ async function activeCompetitionId() {
   return competition?.id ?? null;
 }
 
-export async function listSessions(): Promise<SessionRecord[]> {
+export async function listSessions(options?: {
+  includeArchived?: boolean;
+}): Promise<SessionRecord[]> {
   if (!prisma) return [];
   const competitionId = await activeCompetitionId();
   if (!competitionId) return [];
   const sessions = await prisma.session.findMany({
-    where: { competitionId },
+    where: {
+      competitionId,
+      ...(options?.includeArchived ? {} : { archivedAt: null }),
+    },
     orderBy: [{ startsAt: "asc" }, { name: "asc" }],
     include: { _count: { select: { scans: true } } },
   });
   return sessions.map((session) => ({
     id: session.id,
     name: session.name,
+    description: session.description,
+    location: session.location,
     active: session.active,
+    archivedAt: session.archivedAt ? session.archivedAt.toISOString() : null,
     startsAt: session.startsAt ? session.startsAt.toISOString() : null,
     endsAt: session.endsAt ? session.endsAt.toISOString() : null,
     scanCount: session._count.scans,
@@ -243,6 +352,8 @@ export async function listSessions(): Promise<SessionRecord[]> {
 
 export async function createSession(input: {
   name: string;
+  description?: string | null;
+  location?: string | null;
   startsAt?: string | null;
   endsAt?: string | null;
   active?: boolean;
@@ -250,38 +361,75 @@ export async function createSession(input: {
   if (!prisma) throw new Error("Base de données indisponible.");
   const competitionId = await activeCompetitionId();
   if (!competitionId) throw new Error("La compétition n'est pas configurée.");
-  return prisma.session.create({
-    data: {
-      competitionId,
-      name: input.name,
-      startsAt: input.startsAt ? new Date(input.startsAt) : null,
-      endsAt: input.endsAt ? new Date(input.endsAt) : null,
-      active: input.active ?? false,
-    },
+  return prisma.$transaction(async (transaction) => {
+    if (input.active) {
+      await transaction.session.updateMany({
+        where: { competitionId, active: true },
+        data: { active: false },
+      });
+    }
+    return transaction.session.create({
+      data: {
+        competitionId,
+        name: input.name,
+        description: input.description,
+        location: input.location,
+        startsAt: input.startsAt ? new Date(input.startsAt) : null,
+        endsAt: input.endsAt ? new Date(input.endsAt) : null,
+        active: input.active ?? false,
+      },
+    });
   });
 }
 
 export async function updateSession(
   id: string,
-  data: { name?: string; active?: boolean; startsAt?: string | null; endsAt?: string | null },
+  data: {
+    name?: string;
+    description?: string | null;
+    location?: string | null;
+    active?: boolean;
+    archived?: boolean;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  },
 ) {
   if (!prisma) throw new Error("Base de données indisponible.");
-  return prisma.session.update({
-    where: { id },
-    data: {
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(data.active !== undefined ? { active: data.active } : {}),
-      ...(data.startsAt !== undefined
-        ? { startsAt: data.startsAt ? new Date(data.startsAt) : null }
-        : {}),
-      ...(data.endsAt !== undefined
-        ? { endsAt: data.endsAt ? new Date(data.endsAt) : null }
-        : {}),
-    },
+  const current = await prisma.session.findUnique({ where: { id } });
+  if (!current) throw new Error("Session introuvable.");
+  return prisma.$transaction(async (transaction) => {
+    if (data.active) {
+      await transaction.session.updateMany({
+        where: {
+          competitionId: current.competitionId,
+          id: { not: id },
+          active: true,
+        },
+        data: { active: false },
+      });
+    }
+    return transaction.session.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.description !== undefined
+          ? { description: data.description }
+          : {}),
+        ...(data.location !== undefined ? { location: data.location } : {}),
+        ...(data.active !== undefined ? { active: data.active } : {}),
+        ...(data.archived !== undefined
+          ? {
+              archivedAt: data.archived ? new Date() : null,
+              ...(data.archived ? { active: false } : {}),
+            }
+          : {}),
+        ...(data.startsAt !== undefined
+          ? { startsAt: data.startsAt ? new Date(data.startsAt) : null }
+          : {}),
+        ...(data.endsAt !== undefined
+          ? { endsAt: data.endsAt ? new Date(data.endsAt) : null }
+          : {}),
+      },
+    });
   });
-}
-
-export async function deleteSession(id: string) {
-  if (!prisma) throw new Error("Base de données indisponible.");
-  await prisma.session.delete({ where: { id } });
 }

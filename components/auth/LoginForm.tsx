@@ -14,16 +14,34 @@ export function LoginForm() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const payload = await response.json();
-    setLoading(false);
-    if (!payload.success) return toast.error(payload.error);
-    router.replace(searchParams.get("next") ?? payload.data.destination);
-    router.refresh();
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error ?? "Connexion impossible.");
+      }
+      const requested = searchParams.get("next");
+      const destination =
+        requested &&
+        requested.startsWith("/") &&
+        !requested.startsWith("//") &&
+        (requested === payload.data.destination ||
+          requested.startsWith(`${payload.data.destination}/`))
+          ? requested
+          : payload.data.destination;
+      router.replace(destination);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Connexion impossible.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
