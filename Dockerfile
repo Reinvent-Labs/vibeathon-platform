@@ -3,6 +3,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 FROM base AS deps
+RUN npm install --global npm@11.16.0
 COPY package.json package-lock.json ./
 RUN npm ci
 
