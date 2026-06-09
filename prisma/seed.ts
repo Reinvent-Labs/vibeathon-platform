@@ -2,11 +2,31 @@ import "dotenv/config";
 import { hash } from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-import {
-  EVENT,
-  EVENT_SESSIONS,
-  JUDGING_CRITERIA,
-} from "../lib/constants.ts";
+
+const EVENT = {
+  name: "VIBEATHON 2026",
+  venue: "CSCTICAO, Abidjan",
+  fee: 5_000,
+  capacity: 400,
+  competitorCapacity: 100,
+} as const;
+
+const EVENT_SESSIONS = [
+  "Entrée principale",
+  "Keynotes d'ouverture",
+  "Ateliers & Studio IA",
+  "Compétition vibecoding",
+  "Pitch des finalistes",
+  "Remise des prix",
+] as const;
+
+const JUDGING_CRITERIA = [
+  { id: "impact", name: "Impact problème / solution", weight: 30 },
+  { id: "feasibility", name: "Faisabilité", weight: 20 },
+  { id: "ai", name: "Usage pertinent de l'IA", weight: 20 },
+  { id: "innovation", name: "Innovation", weight: 15 },
+  { id: "pitch", name: "Qualité du pitch & clarté", weight: 15 },
+] as const;
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required.");
