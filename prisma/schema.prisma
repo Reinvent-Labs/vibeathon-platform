@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ParticipantStatus {
+  PENDING
+  SELECTED
+  REJECTED
+  PAID
+  CONFIRMED
+  CHECKED_IN
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  JURY
+  SCANNER
+}
+
+enum ScanResult {
+  ACCEPTED
+  DUPLICATE
+  REJECTED
+}
+
+enum MessageChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+model Competition {
+  id                  String       @id @default(cuid())
+  name                String
+  slug                String       @unique
+  eventDate           DateTime
+  venue               String
+  participationFee   Int          @default(5000)
+  capacity            Int          @default(400)
+  competitorCapacity  Int          @default(100)
+  registrationOpen   Boolean      @default(true)
+  phases              Phase[]
+  sessions            Session[]
+  participants        Participant[]
+  teams               Team[]
+  criteria            JudgingCriteria[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model Phase {
+  id             String      @id @default(cuid())
+  competitionId  String
+  name           String
+  order          Int
+  active         Boolean     @default(false)
+  startsAt       DateTime?
+  endsAt         DateTime?
+  competition    Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@unique([competitionId, order])
+}
+
+model Session {
+  id             String       @id @default(cuid())
+  competitionId  String
+  name           String
+  startsAt       DateTime?
+  endsAt         DateTime?
+  active         Boolean      @default(false)
+  competition    Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  scans           ScanRecord[]
+}
+
+model Participant {
+  id             String             @id @default(cuid())
+  competitionId  String
+  reference      String             @unique
+  fullName       String
+  email          String
+  phone          String
+  city           String
+  profile        String
+  motivation     String
+  source         String?
+  age            String?
+  gender         String?
+  profession     String?
+  technicalLevel String?
+  aiExperience   String?
+  aiTools        String?
+  otherAiTools   String?
+  registrationMode String?
+  proposedTeamName String?
+  preferredDomain String?
+  fullProgramAvailable Boolean?
+  incubationCommitment Boolean?
+  conditionsAccepted Boolean @default(false)
+  declarationAccepted Boolean @default(false)
+  rawApplication Json?
+  importedAt     DateTime?
+  status         ParticipantStatus  @default(PENDING)
+  qrCode         String             @unique
+  paidAt         DateTime?
+  confirmedAt    DateTime?
+  teamId         String?
+  competition    Competition        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  team           Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  scans          ScanRecord[]
+  emailLogs      EmailLog[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([competitionId, email])
+  @@index([competitionId, status])
+}
+
+model ScanRecord {
+  id             String       @id @default(cuid())
+  participantId  String?
+  sessionId      String
+  scannedById    String?
+  qrCode         String
+  result         ScanResult
+  note           String?
+  participant    Participant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scannedBy      AdminUser?   @relation(fields: [scannedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+
+  @@index([sessionId, qrCode])
+}
+
+model Team {
+  id              String         @id @default(cuid())
+  competitionId   String
+  name            String
+  tableNumber     String?
+  problem         String
+  demoUrl         String?
+  repositoryUrl   String?
+  isFinalist      Boolean        @default(false)
+  rank            Int?
+  competition     Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  members         Participant[]
+  scores          JuryScore[]
+  aiEvaluation    AIEvaluation?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([competitionId, name])
+}
+
+model JudgingCriteria {
+  id             String       @id @default(cuid())
+  competitionId  String
+  name           String
+  key            String
+  weight         Int
+  order          Int
+  competition    Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  scores         JuryScore[]
+
+  @@unique([competitionId, key])
+}
+
+model JuryScore {
+  id          String            @id @default(cuid())
+  teamId      String
+  criteriaId  String
+  juryId      String
+  score       Int
+  comment     String?
+  lockedAt    DateTime?
+  team        Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  criteria    JudgingCriteria   @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+  jury        AdminUser         @relation(fields: [juryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([teamId, criteriaId, juryId])
+}
+
+model AIEvaluation {
+  id          String   @id @default(cuid())
+  teamId      String   @unique
+  provider    String?
+  model       String?
+  score       Float?
+  summary     String?
+  raw         Json?
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminUser {
+  id             String       @id @default(cuid())
+  authUserId     String       @unique
+  email          String       @unique
+  fullName       String
+  role           AdminRole
+  passwordHash   String?
+  active         Boolean      @default(true)
+  scans          ScanRecord[]
+  scores         JuryScore[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model EmailLog {
+  id             String          @id @default(cuid())
+  participantId  String?
+  channel        MessageChannel
+  template       String
+  recipient      String
+  subject        String?
+  status         MessageStatus   @default(QUEUED)
+  providerId     String?
+  error          String?
+  participant    Participant?    @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  createdAt      DateTime        @default(now())
+}
