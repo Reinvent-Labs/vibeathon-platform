@@ -1,0 +1,10 @@
+[Unit]
+Description=Deploy the latest VIBEATHON platform revision
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=APP_DIR=/home/user/vibeathon-platform
+Environment=DEPLOY_BRANCH=main
+ExecStart=/home/user/vibeathon-platform/deploy/labtest/deploy.sh

@@ -1,0 +1,12 @@
+[Unit]
+Description=Check GitHub for VIBEATHON deployments every two minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+RandomizedDelaySec=20s
+Persistent=true
+Unit=vibeathon-deploy.service
+
+[Install]
+WantedBy=timers.target

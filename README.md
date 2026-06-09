@@ -73,6 +73,16 @@ docker compose --profile production up -d
 Caddy listens on ports 80 and 443 and provisions TLS automatically for a valid
 public domain.
 
+### Automatic deployment on `labtest`
+
+The files in `deploy/labtest/` define a systemd timer that checks the GitHub
+`main` branch every two minutes. When the revision changes it pulls the commit,
+rebuilds the app image, runs the database setup/import idempotently, and
+restarts only the VIBEATHON app service.
+
+The server deployment uses `APP_PORT=3003` to avoid the existing services on
+ports 3000–3002.
+
 ## Staff authentication
 
 Set `AUTH_REQUIRED=true` in production. The seed command creates the first
