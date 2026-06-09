@@ -1,5 +1,6 @@
 services:
   app:
+    image: vibeathon-platform:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -38,9 +39,7 @@ services:
       - vibeathon
 
   migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: vibeathon-platform:latest
     profiles: ["tools"]
     env_file:
       - .env
