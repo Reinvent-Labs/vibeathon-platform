@@ -2,7 +2,11 @@ import "dotenv/config";
 import { hash } from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
-import { EVENT, EVENT_SESSIONS, JUDGING_CRITERIA } from "../lib/constants";
+import {
+  EVENT,
+  EVENT_SESSIONS,
+  JUDGING_CRITERIA,
+} from "../lib/constants.ts";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required.");
