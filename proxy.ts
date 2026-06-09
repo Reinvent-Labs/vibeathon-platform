@@ -3,7 +3,9 @@ import type { NextRequest } from "next/server";
 import { readSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export async function proxy(request: NextRequest) {
-  if (process.env.AUTH_REQUIRED !== "true") return NextResponse.next();
+  // Secure by default: staff areas are protected unless auth is explicitly
+  // disabled (AUTH_REQUIRED="false"), e.g. for a local UI walkthrough.
+  if (process.env.AUTH_REQUIRED === "false") return NextResponse.next();
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await readSessionToken(token) : null;
   const path = request.nextUrl.pathname;

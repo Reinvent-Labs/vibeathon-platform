@@ -41,7 +41,8 @@ export async function getSession() {
 export async function requireRole(
   allowed: SessionPayload["role"][],
 ): Promise<SessionPayload | null> {
-  if (process.env.AUTH_REQUIRED !== "true") {
+  // Secure by default: only bypass when auth is explicitly disabled.
+  if (process.env.AUTH_REQUIRED === "false") {
     return {
       userId: "development-user",
       email: "dev@localhost",
