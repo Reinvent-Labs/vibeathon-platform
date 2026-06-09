@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Menu } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { SiteNav } from "@/components/public/SiteNav";
 import { EVENT, JUDGING_CRITERIA } from "@/lib/constants";
 
 const activities = [
@@ -33,24 +34,7 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-      <nav className="nav-bar" aria-label="Navigation principale">
-        <Logo size={150} />
-        <div className="links">
-          <Link href="#concept">Le concept</Link>
-          <Link href="#activites">Activités</Link>
-          <Link href="#programme">Programme</Link>
-          <Link href="#prix">Prix</Link>
-        </div>
-        <div className="nav-cta">
-          <Link href="/statut">Mon statut</Link>
-          <Link href="/candidature" className="btn btn-grad">
-            Je candidate
-          </Link>
-        </div>
-        <Link className="menu-btn" href="/candidature" aria-label="Candidater">
-          <Menu />
-        </Link>
-      </nav>
+      <SiteNav />
 
       <header className="hero-home">
         <div className="ring" />
