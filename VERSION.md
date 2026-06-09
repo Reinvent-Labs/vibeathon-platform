@@ -12,3 +12,4 @@
 - Configured the labtest deployment service to run under its dedicated deployment user and GitHub key.
 - Made database seeding non-destructive: existing event sessions, scan history, and administrator credentials are preserved across updates.
 - Separated one-time CSV bootstrap from routine database setup and preserved official team assignments when an import is deliberately rerun.
+- Reworked the responsive public navigation and footer, kept the candidature action visible on small screens, and applied Roboto Condensed and Inter consistently.

@@ -193,13 +193,23 @@ export default function HomePage() {
       <footer className="foot">
         <div className="wrap">
           <div className="foot-top">
-            <Logo size={170} />
-            <div className="foot-links"><Link href="#concept">Concept</Link><Link href="#programme">Programme</Link><Link href="/candidature">Candidature</Link></div>
+            <div className="foot-brand">
+              <Logo size={170} />
+              <p>Créer avec l&apos;IA pour un avenir durable et inclusif.</p>
+            </div>
+            <nav className="foot-links" aria-label="Navigation de pied de page">
+              <Link href="#concept">Concept</Link>
+              <Link href="#programme">Programme</Link>
+              <Link href="/candidature">Candidature</Link>
+              <Link href="/statut">Mon statut</Link>
+            </nav>
           </div>
           <div className="foot-bottom">
             <span className="copy">© 2026 VIBEATHON · vibeathonci.com</span>
-            <div className="cluster"><span className="copy">Accès staff :</span><Link href="/admin" className="copy">Admin</Link><Link href="/jury" className="copy">Jury</Link><Link href="/scan" className="copy">Scanner</Link></div>
-            <span className="copy">{EVENT.date} · {EVENT.venue}</span>
+            <a className="copy foot-contact" href="mailto:contact@vibeathonci.com">
+              contact@vibeathonci.com
+            </a>
+            <span className="copy foot-event">{EVENT.date} · {EVENT.venue}</span>
           </div>
         </div>
       </footer>

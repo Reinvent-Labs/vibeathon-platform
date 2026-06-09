@@ -61,6 +61,23 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Roboto Condensed', 'Inter', sans-serif;
+  font-weight: 700;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
 /* ---------- Type helpers ---------- */
 .display {
   font-family: 'Roboto Condensed', 'Inter', sans-serif;
