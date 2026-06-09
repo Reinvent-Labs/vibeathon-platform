@@ -199,3 +199,89 @@ export async function recordScan(qrCode: string, sessionId: string) {
 
   return { result: "ACCEPTED" as const, participant };
 }
+
+// ---------------------------------------------------------------------------
+// Sessions (event conferences / activities) — created in admin, read by scanner
+// ---------------------------------------------------------------------------
+
+export type SessionRecord = {
+  id: string;
+  name: string;
+  active: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  scanCount: number;
+};
+
+async function activeCompetitionId() {
+  if (!prisma) return null;
+  const competition = await prisma.competition.findUnique({
+    where: { slug: "vibeathon-2026" },
+    select: { id: true },
+  });
+  return competition?.id ?? null;
+}
+
+export async function listSessions(): Promise<SessionRecord[]> {
+  if (!prisma) return [];
+  const competitionId = await activeCompetitionId();
+  if (!competitionId) return [];
+  const sessions = await prisma.session.findMany({
+    where: { competitionId },
+    orderBy: [{ startsAt: "asc" }, { name: "asc" }],
+    include: { _count: { select: { scans: true } } },
+  });
+  return sessions.map((session) => ({
+    id: session.id,
+    name: session.name,
+    active: session.active,
+    startsAt: session.startsAt ? session.startsAt.toISOString() : null,
+    endsAt: session.endsAt ? session.endsAt.toISOString() : null,
+    scanCount: session._count.scans,
+  }));
+}
+
+export async function createSession(input: {
+  name: string;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  active?: boolean;
+}) {
+  if (!prisma) throw new Error("Base de données indisponible.");
+  const competitionId = await activeCompetitionId();
+  if (!competitionId) throw new Error("La compétition n'est pas configurée.");
+  return prisma.session.create({
+    data: {
+      competitionId,
+      name: input.name,
+      startsAt: input.startsAt ? new Date(input.startsAt) : null,
+      endsAt: input.endsAt ? new Date(input.endsAt) : null,
+      active: input.active ?? false,
+    },
+  });
+}
+
+export async function updateSession(
+  id: string,
+  data: { name?: string; active?: boolean; startsAt?: string | null; endsAt?: string | null },
+) {
+  if (!prisma) throw new Error("Base de données indisponible.");
+  return prisma.session.update({
+    where: { id },
+    data: {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.active !== undefined ? { active: data.active } : {}),
+      ...(data.startsAt !== undefined
+        ? { startsAt: data.startsAt ? new Date(data.startsAt) : null }
+        : {}),
+      ...(data.endsAt !== undefined
+        ? { endsAt: data.endsAt ? new Date(data.endsAt) : null }
+        : {}),
+    },
+  });
+}
+
+export async function deleteSession(id: string) {
+  if (!prisma) throw new Error("Base de données indisponible.");
+  await prisma.session.delete({ where: { id } });
+}

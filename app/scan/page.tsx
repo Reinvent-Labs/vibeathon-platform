@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
 import { ScannerApp } from "@/components/scanner/ScannerApp";
+import { listSessions } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Scanner" };
 
-export default function ScanPage() {
-  return <ScannerApp />;
+// Always read live session data created in the admin.
+export const dynamic = "force-dynamic";
+
+export default async function ScanPage() {
+  const sessions = await listSessions();
+  return (
+    <ScannerApp
+      sessions={sessions.map((session) => ({
+        id: session.id,
+        name: session.name,
+        active: session.active,
+      }))}
+    />
+  );
 }

@@ -335,8 +335,169 @@ function Communications() {
   return <div className="communications-grid"><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Email ajouté à la file d'envoi."); }}><Mail /><h2>Campagne email</h2><select className="select"><option>Sélectionnés</option><option>Confirmés</option><option>Tous les candidats</option></select><input className="input" placeholder="Objet" /><textarea className="textarea" placeholder="Message" /><button className="btn btn-grad"><Send size={16} /> Envoyer</button></form><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("WhatsApp ajouté à la file d'envoi."); }}><Send /><h2>WhatsApp</h2><select className="select"><option>Rappel de paiement</option><option>Badge disponible</option></select><textarea className="textarea" placeholder="Message du modèle" /><button className="btn btn-grad">Préparer l&apos;envoi</button></form></div>;
 }
 
+type AdminSession = {
+  id: string;
+  name: string;
+  active: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  scanCount: number;
+};
+
+function SessionsManager() {
+  const [sessions, setSessions] = useState<AdminSession[]>([]);
+  const [name, setName] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  function refresh(payload: { success: boolean; data?: AdminSession[]; error?: string }) {
+    if (payload.success && payload.data) setSessions(payload.data);
+    else if (payload.error) toast.error(payload.error);
+  }
+
+  useEffect(() => {
+    fetch("/api/admin/sessions")
+      .then((response) => response.json())
+      .then((payload) => {
+        refresh(payload);
+        setLoading(false);
+      })
+      .catch(() => {
+        toast.error("Impossible de charger les sessions.");
+        setLoading(false);
+      });
+  }, []);
+
+  async function send(method: string, body: Record<string, unknown>, ok: string) {
+    const response = await fetch("/api/admin/sessions", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    refresh(payload);
+    if (payload.success) toast.success(ok);
+  }
+
+  async function createSession(event: FormEvent) {
+    event.preventDefault();
+    if (!name.trim()) return;
+    await send(
+      "POST",
+      { name: name.trim(), startsAt: startsAt || null, active: sessions.length === 0 },
+      "Session créée.",
+    );
+    setName("");
+    setStartsAt("");
+  }
+
+  return (
+    <div className="surface stack" style={{ padding: 24 }}>
+      <h2>Sessions de l&apos;événement</h2>
+      <p>
+        Les sessions (conférences, ateliers, entrée…) créées ici alimentent
+        directement le scanner de présence.
+      </p>
+      <form className="stack" onSubmit={createSession}>
+        <label>
+          Nom de la session
+          <input
+            className="input"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Ex. Keynotes d'ouverture"
+            required
+          />
+        </label>
+        <label>
+          Heure de début (optionnel)
+          <input
+            className="input"
+            type="datetime-local"
+            value={startsAt}
+            onChange={(event) => setStartsAt(event.target.value)}
+          />
+        </label>
+        <button className="btn btn-grad" type="submit">
+          Ajouter la session
+        </button>
+      </form>
+      {loading ? (
+        <p>Chargement…</p>
+      ) : sessions.length ? (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Scans</th>
+                <th>Active</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map((session) => (
+                <tr key={session.id}>
+                  <td>
+                    <b>{session.name}</b>
+                    {session.startsAt ? (
+                      <>
+                        <br />
+                        <small>
+                          {new Date(session.startsAt).toLocaleString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </small>
+                      </>
+                    ) : null}
+                  </td>
+                  <td>{session.scanCount}</td>
+                  <td>
+                    <button
+                      className={`status-pill ${session.active ? "confirmed" : ""}`}
+                      onClick={() =>
+                        void send(
+                          "PATCH",
+                          { id: session.id, active: !session.active },
+                          session.active ? "Session désactivée." : "Session activée.",
+                        )
+                      }
+                    >
+                      {session.active ? "En cours" : "Activer"}
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      className="row-act"
+                      aria-label="Supprimer"
+                      onClick={() => void send("DELETE", { id: session.id }, "Session supprimée.")}
+                    >
+                      <X size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state">Aucune session. Ajoute la première ci-dessus.</div>
+      )}
+    </div>
+  );
+}
+
 function SettingsPanel() {
-  return <div className="settings-grid"><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Paramètres enregistrés."); }}><h2>Compétition</h2><label>Nom<input className="input" defaultValue="VIBEATHON 2026" /></label><label>Date<input className="input" type="date" defaultValue="2026-07-11" /></label><label>Frais<input className="input" type="number" defaultValue={EVENT.fee} /></label><button className="btn btn-grad">Enregistrer</button></form><div className="surface stack" style={{ padding: 24 }}><h2>Critères du jury</h2>{JUDGING_CRITERIA.map((criterion) => <div className="cluster" style={{ justifyContent: "space-between" }} key={criterion.id}><span>{criterion.name}</span><b>{criterion.weight}%</b></div>)}<strong>Total : 100%</strong></div></div>;
+  return (
+    <div className="settings-grid">
+      <form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Paramètres enregistrés."); }}><h2>Compétition</h2><label>Nom<input className="input" defaultValue="VIBEATHON 2026" /></label><label>Date<input className="input" type="date" defaultValue="2026-07-11" /></label><label>Frais<input className="input" type="number" defaultValue={EVENT.fee} /></label><button className="btn btn-grad">Enregistrer</button></form>
+      <SessionsManager />
+      <div className="surface stack" style={{ padding: 24 }}><h2>Critères du jury</h2>{JUDGING_CRITERIA.map((criterion) => <div className="cluster" style={{ justifyContent: "space-between" }} key={criterion.id}><span>{criterion.name}</span><b>{criterion.weight}%</b></div>)}<strong>Total : 100%</strong></div>
+    </div>
+  );
 }
 
 function UsersPanel() {
