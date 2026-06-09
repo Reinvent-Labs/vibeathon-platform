@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VIBEATHON 2026 Platform
 
-## Getting Started
+Self-hosted event-management platform for the VIBEATHON 2026 lifecycle:
 
-First, run the development server:
+`candidature → sélection → paiement → badge → scan → jury`
+
+## Stack
+
+- Next.js 16, React 19, strict TypeScript
+- PostgreSQL 17 and Prisma 7
+- Docker Compose with optional Caddy HTTPS proxy
+- PaiementPro hosted checkout
+- SMTP email and optional Wassenger WhatsApp
+- QR badge generation, camera scanner PWA, jury scoring portal
+
+The visual implementation follows the complete design bundle in
+`../Design/vibethon`, using Roboto Condensed for display type and Inter for UI
+and body copy.
+
+## Existing registrations
+
+The source file is committed at `data/registered-users.csv`.
+
+- 408 source submissions
+- 395 unique email addresses
+- 13 duplicate submissions collapsed to the latest row for each email
+- Proposed group names are retained on applications, but are not treated as
+  official competition teams.
+
+Every imported participant keeps the original Google Forms row in
+`Participant.rawApplication` for auditability.
+
+Official teams are created later by administrators from selected participants.
+Selection is globally capped at 100 people regardless of their
+application mode. Admins can form and rebalance teams of up to 5 selected
+participants, including individual applicants. Only official teams whose
+members have all paid or been confirmed appear in the jury portal.
+
+## Local Docker setup
+
+1. Review `.env` and replace all production secrets.
+2. Start PostgreSQL:
+
+```bash
+docker compose up -d db
+```
+
+3. Create the schema, seed event configuration, and import the CSV:
+
+```bash
+npm run db:setup
+```
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Full server deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env` from `.env.example`, set `DOMAIN`, `NEXT_PUBLIC_APP_URL`,
+database credentials, `SESSION_SECRET`, admin credentials, and provider keys.
 
-## Learn More
+```bash
+docker compose build app
+docker compose run --rm migrate
+docker compose --profile production up -d
+```
 
-To learn more about Next.js, take a look at the following resources:
+Caddy listens on ports 80 and 443 and provisions TLS automatically for a valid
+public domain.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Staff authentication
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Set `AUTH_REQUIRED=true` in production. The seed command creates the first
+admin using `ADMIN_EMAIL` and `ADMIN_INITIAL_PASSWORD`. Change that password
+before exposing the server.
 
-## Deploy on Vercel
+Roles:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `SUPER_ADMIN` / `ADMIN`: `/admin`
+- `JURY`: `/jury`
+- `SCANNER`: `/scan`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sessions use signed, HTTP-only cookies with 12-hour expiry. Sensitive APIs
+repeat role checks server-side.
+
+## PaiementPro
+
+Set:
+
+```env
+PAIEMENTPRO_MERCHANT_ID=PP-F92248
+PAIEMENTPRO_WEBHOOK_SECRET=...
+PAIEMENTPRO_DEMO_MODE=false
+```
+
+Configure the provider webhook to:
+
+```text
+https://your-domain.example/api/webhooks/paiementpro
+```
+
+The webhook must send the shared secret in `x-paiementpro-secret`. Confirm the
+exact production signature contract with PaiementPro before launch.
+
+## Notifications
+
+SMTP is optional in development. Without SMTP credentials, email sends are
+recorded as `QUEUED` in `EmailLog` rather than discarded. Wassenger behaves the
+same way until its API key and device ID are configured.
+
+## Backups
+
+Create a compressed PostgreSQL backup:
+
+```bash
+./scripts/backup.sh
+```
+
+Restore:
+
+```bash
+docker compose exec -T db pg_restore \
+  -U vibeathon -d vibeathon --clean --if-exists \
+  < backups/vibeathon-YYYYMMDD-HHMMSS.dump
+```
+
+## Quality checks
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+## Important routes
+
+- `/` landing page
+- `/candidature`
+- `/statut`
+- `/badge/[qrCode]`
+- `/admin`
+- `/scan`
+- `/jury`
+- `/login`
