@@ -76,10 +76,14 @@ export default function HomePage() {
               <span className="eyebrow">Le concept</span>
               <p className="lead">Le vibecoding, c&apos;est créer sans coder, en dialoguant avec l&apos;IA.</p>
               <p className="body">
-                VIBEATHON réunit étudiants, jeunes diplômés, entrepreneurs et
-                professionnels autour d&apos;un même pari : transformer une idée en
-                solution concrète en une seule journée.
+                VIBEATHON réunit étudiants, jeunes diplômés, entrepreneurs et professionnels, avec des <strong>profils non techniques fortement encouragés</strong>. 100 participants répartis en 20 équipes de 5 personnes imagineront des solutions dans les secteurs :
               </p>
+              <ul className="body" style={{ listStyle: "none", padding: 0, marginTop: 10 }}>
+                <li>🌱 Agriculture</li>
+                <li>⚡ Énergie</li>
+                <li>🚛 Transport</li>
+                <li>🌍 Ressources naturelles</li>
+              </ul>
             </div>
             <div className="grad-border quote">
               <div className="mark">&ldquo;</div>
@@ -143,9 +147,9 @@ export default function HomePage() {
               ))}
             </div>
             <div className="perks">
-              <div className="perk"><b className="grad-text">90 jours</b> d&apos;incubation pour les 3 lauréats.</div>
-              <div className="perk"><b className="grad-text">30 jours</b> d&apos;accompagnement pour les 5 finalistes.</div>
-              <div className="perk"><b className="grad-text">1 journée</b> avec un champion de la tech ivoirienne.</div>
+              <div className="perk"><b className="grad-text">Bootcamp de 3 jours</b> : Initiation au Vibe Coding et préparation au pitch.</div>
+              <div className="perk"><b className="grad-text">Mentorat & Accompagnement</b> pour transformer votre idée en startup.</div>
+              <div className="perk"><b className="grad-text">Opportunités d'incubation</b> et accès à des investisseurs stratégiques.</div>
             </div>
           </div>
         </section>

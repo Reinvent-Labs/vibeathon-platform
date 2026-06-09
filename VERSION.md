@@ -16,3 +16,4 @@
 - Hardened staff authentication with strict signed sessions, active database-user checks, role validation, login throttling, safe redirects, and explicit logout on admin, jury, and scanner surfaces.
 - Added additive audit logging, staff login timestamps, and reversible event-session archiving fields for operational traceability.
 - Replaced fake staff users with super-admin account management for Admin, Jury, and Scanner roles, including one-time passwords, forced first-login password changes, role updates, deactivation, and secure password resets.
+- Added a test-database-only QR badge fixture for repeatable end-to-end scanner validation without modifying registered participant data.
