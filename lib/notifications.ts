@@ -88,41 +88,103 @@ export async function sendEmail(input: EmailInput) {
   return { status, providerId, error };
 }
 
+/** Meta WhatsApp Cloud API recipients must be digits only, with country code. */
+function normalizeWhatsAppNumber(phone: string) {
+  let digits = phone.replace(/[^\d]/g, "");
+  // Local Ivorian numbers (10 digits, e.g. 07xxxxxxxx) → prefix +225.
+  if (digits.length === 10 && digits.startsWith("0")) digits = `225${digits.slice(1)}`;
+  return digits;
+}
+
+/**
+ * Send a WhatsApp message via the Meta WhatsApp Cloud API.
+ *
+ * `message` is a free-form text body (only delivered inside the 24h customer
+ * service window). For business-initiated notifications pass `waTemplate` with
+ * an approved template name; Meta rejects free-form text outside the window.
+ */
 export async function sendWhatsApp({
   participantId,
   phone,
   message,
   template,
+  waTemplate,
 }: {
   participantId?: string;
   phone: string;
   message: string;
   template: string;
+  waTemplate?: {
+    name: string;
+    languageCode?: string;
+    bodyParams?: string[];
+  };
 }) {
-  const apiKey = process.env.WASSENGER_API_KEY;
-  const device = process.env.WASSENGER_DEVICE_ID;
+  const token = process.env.WHATSAPP_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const version = process.env.WHATSAPP_API_VERSION ?? "v21.0";
+  const to = normalizeWhatsAppNumber(phone);
+
   let status: "SENT" | "QUEUED" | "FAILED" =
-    apiKey && device ? "SENT" : "QUEUED";
+    token && phoneNumberId && to ? "SENT" : "QUEUED";
   let providerId: string | undefined;
   let error: string | undefined;
 
   try {
-    if (apiKey && device) {
-      const response = await fetch("https://api.wassenger.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Token: apiKey,
+    if (token && phoneNumberId && to) {
+      const body = waTemplate
+        ? {
+            messaging_product: "whatsapp",
+            to,
+            type: "template",
+            template: {
+              name: waTemplate.name,
+              language: { code: waTemplate.languageCode ?? "fr" },
+              ...(waTemplate.bodyParams?.length
+                ? {
+                    components: [
+                      {
+                        type: "body",
+                        parameters: waTemplate.bodyParams.map((text) => ({
+                          type: "text",
+                          text,
+                        })),
+                      },
+                    ],
+                  }
+                : {}),
+            },
+          }
+        : {
+            messaging_product: "whatsapp",
+            to,
+            type: "text",
+            text: { body: message, preview_url: true },
+          };
+
+      const response = await fetch(
+        `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify({ phone, message, device }),
-      });
-      const payload = (await response.json()) as { id?: string; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Wassenger error");
-      providerId = payload.id;
+      );
+      const payload = (await response.json()) as {
+        messages?: { id: string }[];
+        error?: { message?: string };
+      };
+      if (!response.ok) {
+        throw new Error(payload.error?.message ?? "WhatsApp Cloud API error");
+      }
+      providerId = payload.messages?.[0]?.id;
     }
   } catch (caught) {
     status = "FAILED";
-    error = caught instanceof Error ? caught.message : "Wassenger error";
+    error = caught instanceof Error ? caught.message : "WhatsApp Cloud API error";
   }
 
   if (prisma) {
@@ -131,7 +193,7 @@ export async function sendWhatsApp({
         participantId,
         channel: "WHATSAPP",
         template,
-        recipient: phone,
+        recipient: to || phone,
         status,
         providerId,
         error,
