@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   description:
     "Le hackathon de vibecoding dédié à l'intelligence artificielle et à l'environnement, le 11 juillet 2026 à Abidjan.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {

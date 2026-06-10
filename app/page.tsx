@@ -149,7 +149,7 @@ export default function HomePage() {
             <div className="perks">
               <div className="perk"><b className="grad-text">Bootcamp de 3 jours</b> : Initiation au Vibe Coding et préparation au pitch.</div>
               <div className="perk"><b className="grad-text">Mentorat & Accompagnement</b> pour transformer votre idée en startup.</div>
-              <div className="perk"><b className="grad-text">Opportunités d'incubation</b> et accès à des investisseurs stratégiques.</div>
+              <div className="perk"><b className="grad-text">Opportunités d&apos;incubation</b> et accès à des investisseurs stratégiques.</div>
             </div>
           </div>
         </section>
