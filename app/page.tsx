@@ -214,6 +214,14 @@ export default function HomePage() {
               contact@vibeathonci.com
             </a>
             <span className="copy foot-event">{EVENT.date} · {EVENT.venue}</span>
+            <a
+              className="copy foot-made"
+              href="https://www.reinvent-labs.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Made with <span aria-label="heart">♥</span> by Reinvent Labs
+            </a>
           </div>
         </div>
       </footer>

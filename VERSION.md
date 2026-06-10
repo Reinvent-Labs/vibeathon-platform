@@ -22,3 +22,4 @@
 - Reworked the admin overview around four real operational queues and added a complete candidate-review panel with imported answers, eligibility checks, and clear selection/rejection actions.
 - Clarified the lifecycle as registered, accepted with payment pending, then official after payment; team, bootcamp, badge, scanner, and competition access now require payment.
 - Configured Hostinger SMTP delivery for contact@vibeathonci.com and enforced STARTTLS for transactional emails.
+- Rebuilt the browser and installable-app icons directly from the VIBEATHON logo and added the Reinvent Labs credit to the public footer.

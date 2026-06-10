@@ -199,6 +199,12 @@ section { position: relative; }
 .foot-bottom a:hover { color:var(--ink); }
 .foot-contact { text-align:center; }
 .foot-event { text-align:right; }
+.foot-made {
+  grid-column:1 / -1;
+  justify-self:center;
+  padding-top:2px;
+}
+.foot-made span { color:#ff57e3; }
 
 @media (max-width: 900px) {
   .concept, .criteria { grid-template-columns: 1fr; gap:40px; }
@@ -241,6 +247,7 @@ section { position: relative; }
   .foot-bottom { grid-template-columns:1fr; gap:12px; align-items:start; }
   .foot-contact,
   .foot-event { text-align:left; }
+  .foot-made { justify-self:start; }
 }
 
 @media (max-width: 360px) {
