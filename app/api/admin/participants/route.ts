@@ -2,9 +2,11 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { listParticipants, updateParticipantStatus } from "@/lib/repository";
 import type { DemoParticipantStatus } from "@/lib/demo-data";
 import { isSameOrigin, requireRole } from "@/lib/auth";
-import { sendEmail } from "@/lib/notifications";
+import { sendEmail, sendWhatsApp } from "@/lib/notifications";
 import { emailTemplates } from "@/emails/templates";
 import { requestIp, writeAuditLog } from "@/lib/audit";
+import { appBaseUrl, statusUrlFor } from "@/lib/campaigns";
+import { whatsAppMessages } from "@/lib/whatsapp-templates";
 
 export async function GET() {
   if (!(await requireRole(["SUPER_ADMIN", "ADMIN"]))) {
@@ -94,9 +96,15 @@ export async function PATCH(request: Request) {
 
   // Notify candidates when a decision is taken.
   if (nextStatus === "SELECTED" || nextStatus === "REJECTED") {
+    const appUrl = appBaseUrl();
     await Promise.all(
-      targets.map((participant) =>
-        sendEmail({
+      targets.map(async (participant) => {
+        const statusUrl = statusUrlFor(participant);
+        const selectedWhatsapp = whatsAppMessages.accepted(
+          participant.fullName,
+          statusUrl,
+        );
+        await sendEmail({
           participantId: participant.id,
           to: participant.email,
           subject:
@@ -105,11 +113,20 @@ export async function PATCH(request: Request) {
               : "Résultat de ta candidature VIBEATHON 2026",
           html:
             nextStatus === "SELECTED"
-              ? emailTemplates.selection(participant.fullName)
-              : emailTemplates.rejection(participant.fullName),
+              ? emailTemplates.selection(participant.fullName, statusUrl, appUrl)
+              : emailTemplates.rejection(participant.fullName, statusUrl, appUrl),
           template: nextStatus === "SELECTED" ? "selection" : "rejection",
-        }),
-      ),
+        });
+        if (nextStatus === "SELECTED") {
+          await sendWhatsApp({
+            participantId: participant.id,
+            phone: participant.phone,
+            message: selectedWhatsapp.message,
+            template: "selection",
+            waTemplate: selectedWhatsapp.waTemplate,
+          });
+        }
+      }),
     );
   }
 

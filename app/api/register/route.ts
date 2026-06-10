@@ -5,6 +5,7 @@ import { registrationSchema } from "@/lib/validation";
 import { allowRequest } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/notifications";
 import { emailTemplates } from "@/emails/templates";
+import { appBaseUrl } from "@/lib/campaigns";
 
 export async function POST(request: Request) {
   const headerStore = await headers();
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       html: emailTemplates.registration(
         participant.fullName,
         participant.reference,
+        appBaseUrl(),
       ),
       template: "registration",
     });

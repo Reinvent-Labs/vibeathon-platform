@@ -8,6 +8,12 @@ type EmailInput = {
   subject: string;
   html: string;
   template: string;
+  attachments?: {
+    filename: string;
+    content: Buffer;
+    contentType: string;
+    cid?: string;
+  }[];
 };
 
 function emailFrom() {
@@ -58,6 +64,7 @@ export async function sendEmail(input: EmailInput) {
         to: input.to,
         subject: input.subject,
         html: input.html,
+        attachments: input.attachments,
       });
       if (result.error) throw new Error(result.error.message);
       providerId = result.data?.id;
@@ -67,6 +74,7 @@ export async function sendEmail(input: EmailInput) {
         to: input.to,
         subject: input.subject,
         html: input.html,
+        attachments: input.attachments,
       });
       providerId = result.messageId;
     }
@@ -123,6 +131,7 @@ export async function sendWhatsApp({
     name: string;
     languageCode?: string;
     bodyParams?: string[];
+    buttonUrlParams?: string[];
   };
 }) {
   const token = process.env.WHATSAPP_TOKEN;
@@ -155,9 +164,28 @@ export async function sendWhatsApp({
                           text,
                         })),
                       },
+                      ...(waTemplate.buttonUrlParams ?? []).map(
+                        (text, index) => ({
+                          type: "button",
+                          sub_type: "url",
+                          index: String(index),
+                          parameters: [{ type: "text", text }],
+                        }),
+                      ),
                     ],
                   }
-                : {}),
+                : waTemplate.buttonUrlParams?.length
+                  ? {
+                      components: waTemplate.buttonUrlParams.map(
+                        (text, index) => ({
+                          type: "button",
+                          sub_type: "url",
+                          index: String(index),
+                          parameters: [{ type: "text", text }],
+                        }),
+                      ),
+                    }
+                  : {}),
             },
           }
         : {

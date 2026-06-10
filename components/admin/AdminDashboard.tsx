@@ -549,7 +549,195 @@ function JuryAdmin() {
 }
 
 function Communications() {
-  return <div className="communications-grid"><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Email ajouté à la file d'envoi."); }}><Mail /><h2>Campagne email</h2><select className="select"><option>Acceptés · paiement attendu</option><option>Participants officiels</option><option>Tous les inscrits</option></select><input className="input" placeholder="Objet" /><textarea className="textarea" placeholder="Message" /><button className="btn btn-grad"><Send size={16} /> Envoyer</button></form><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("WhatsApp ajouté à la file d'envoi."); }}><Send /><h2>WhatsApp</h2><select className="select"><option>Rappel de paiement</option><option>Badge disponible</option></select><textarea className="textarea" placeholder="Message du modèle" /><button className="btn btn-grad">Préparer l&apos;envoi</button></form></div>;
+  const [emailAudience, setEmailAudience] = useState("selected");
+  const [emailTemplate, setEmailTemplate] = useState("payment-reminder");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [whatsappAudience, setWhatsappAudience] = useState("selected");
+  const [whatsappTemplate, setWhatsappTemplate] = useState("payment-reminder");
+  const [whatsappMessage, setWhatsappMessage] = useState("");
+  const [sending, setSending] = useState<"email" | "whatsapp" | null>(null);
+
+  async function sendCampaign(
+    event: FormEvent,
+    channel: "email" | "whatsapp",
+  ) {
+    event.preventDefault();
+    setSending(channel);
+    const body =
+      channel === "email"
+        ? {
+            audience: emailAudience,
+            templateKey: emailTemplate,
+            subject: emailSubject,
+            message: emailMessage,
+          }
+        : {
+            audience: whatsappAudience,
+            templateKey: whatsappTemplate,
+            message: whatsappMessage,
+          };
+    try {
+      const response = await fetch(`/api/communications/${channel}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json();
+      if (!payload.success) {
+        toast.error(payload.error ?? "Envoi impossible.");
+        return;
+      }
+      toast.success(
+        `${payload.data.sent} envoyé(s), ${payload.data.queued} en file, ${payload.data.failed} échec(s).`,
+      );
+    } catch {
+      toast.error("Impossible de contacter le serveur.");
+    } finally {
+      setSending(null);
+    }
+  }
+
+  const audienceOptions = [
+    { value: "selected", label: "Acceptés · paiement attendu" },
+    { value: "official", label: "Participants officiels" },
+    { value: "pending", label: "Inscrits à examiner" },
+    { value: "rejected", label: "Non retenus" },
+    { value: "all", label: "Tous les inscrits" },
+  ];
+  const emailTemplateOptions = [
+    { value: "results-available", label: "Résultats disponibles" },
+    { value: "accepted-payment", label: "Accepté + paiement à faire" },
+    { value: "payment-reminder", label: "Rappel paiement" },
+    { value: "payment-confirmed", label: "Badge QR après paiement" },
+    { value: "bootcamp-info", label: "Infos pratiques bootcamp" },
+    { value: "event-reminder", label: "Rappel événement" },
+    { value: "custom", label: "Message personnalisé" },
+  ];
+  const whatsappTemplateOptions = [
+    ...emailTemplateOptions.filter((option) => option.value !== "custom"),
+    { value: "team-assignment", label: "Équipe confirmée" },
+    { value: "custom", label: "Message libre 24h" },
+  ];
+
+  return (
+    <div className="communications-grid">
+      <form
+        className="surface stack"
+        style={{ padding: 24 }}
+        onSubmit={(event) => void sendCampaign(event, "email")}
+      >
+        <Mail />
+        <h2>Campagne email</h2>
+        <p>
+          Les modèles sont déjà rédigés dans le style VIBEATHON. Utilise
+          “personnalisé” seulement pour une annonce spécifique.
+        </p>
+        <label>
+          Audience
+          <select
+            className="select"
+            value={emailAudience}
+            onChange={(event) => setEmailAudience(event.target.value)}
+          >
+            {audienceOptions.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Modèle
+          <select
+            className="select"
+            value={emailTemplate}
+            onChange={(event) => setEmailTemplate(event.target.value)}
+          >
+            {emailTemplateOptions.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {emailTemplate === "custom" ? (
+          <>
+            <input
+              className="input"
+              value={emailSubject}
+              onChange={(event) => setEmailSubject(event.target.value)}
+              placeholder="Objet"
+              required
+            />
+            <textarea
+              className="textarea"
+              value={emailMessage}
+              onChange={(event) => setEmailMessage(event.target.value)}
+              placeholder="Message"
+              required
+            />
+          </>
+        ) : null}
+        <button className="btn btn-grad" disabled={sending === "email"}>
+          <Send size={16} /> {sending === "email" ? "Envoi..." : "Envoyer"}
+        </button>
+      </form>
+      <form
+        className="surface stack"
+        style={{ padding: 24 }}
+        onSubmit={(event) => void sendCampaign(event, "whatsapp")}
+      >
+        <Send />
+        <h2>WhatsApp</h2>
+        <p>
+          Les envois automatiques utilisent les templates Meta configurés dans
+          l&apos;environnement. Le message libre sert uniquement aux contacts
+          encore dans la fenêtre WhatsApp de 24h.
+        </p>
+        <label>
+          Audience
+          <select
+            className="select"
+            value={whatsappAudience}
+            onChange={(event) => setWhatsappAudience(event.target.value)}
+          >
+            {audienceOptions.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Modèle
+          <select
+            className="select"
+            value={whatsappTemplate}
+            onChange={(event) => setWhatsappTemplate(event.target.value)}
+          >
+            {whatsappTemplateOptions.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {whatsappTemplate === "custom" ? (
+          <textarea
+            className="textarea"
+            value={whatsappMessage}
+            onChange={(event) => setWhatsappMessage(event.target.value)}
+            placeholder="Message libre"
+            required
+          />
+        ) : null}
+        <button className="btn btn-grad" disabled={sending === "whatsapp"}>
+          {sending === "whatsapp" ? "Envoi..." : "Préparer l'envoi"}
+        </button>
+      </form>
+    </div>
+  );
 }
 
 type AdminSession = {

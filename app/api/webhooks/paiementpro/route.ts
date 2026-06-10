@@ -1,8 +1,11 @@
 import { timingSafeEqual } from "node:crypto";
+import QRCode from "qrcode";
 import { apiError, apiSuccess } from "@/lib/api";
 import { findParticipantById, updateParticipantStatus } from "@/lib/repository";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
 import { emailTemplates } from "@/emails/templates";
+import { appBaseUrl, badgeUrlFor } from "@/lib/campaigns";
+import { whatsAppMessages } from "@/lib/whatsapp-templates";
 
 function validWebhookSecret(request: Request) {
   const expected = process.env.PAIEMENTPRO_WEBHOOK_SECRET;
@@ -33,23 +36,47 @@ export async function POST(request: Request) {
   const participant = await findParticipantById(participantId);
   if (!participant) return apiError("Participant introuvable.", 404);
   await updateParticipantStatus(participant.id, "CONFIRMED");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = appBaseUrl();
+  const badgeUrl = badgeUrlFor(participant);
+  const qrBuffer = await QRCode.toBuffer(participant.qrCode, {
+    width: 480,
+    margin: 1,
+    color: {
+      dark: "#050807",
+      light: "#ffffff",
+    },
+  });
+  const paymentWhatsapp = whatsAppMessages.paymentConfirmed(
+    participant.fullName,
+    badgeUrl,
+  );
   await Promise.all([
     sendEmail({
       participantId: participant.id,
       to: participant.email,
       subject: "Ton badge VIBEATHON 2026 est prêt",
-      html: emailTemplates.badge(
-        participant.fullName,
-        `${appUrl}/badge/${participant.qrCode}`,
-      ),
+      html: emailTemplates.paymentConfirmed({
+        name: participant.fullName,
+        reference: participant.reference,
+        badgeUrl,
+        appUrl,
+      }),
       template: "payment-badge",
+      attachments: [
+        {
+          filename: "badge-qr-vibeathon.png",
+          content: qrBuffer,
+          contentType: "image/png",
+          cid: "vibeathon-qr",
+        },
+      ],
     }),
     sendWhatsApp({
       participantId: participant.id,
       phone: participant.phone,
-      message: `Paiement confirmé. Ton badge VIBEATHON est disponible ici : ${appUrl}/badge/${participant.qrCode}`,
+      message: paymentWhatsapp.message,
       template: "payment-badge",
+      waTemplate: paymentWhatsapp.waTemplate,
     }),
   ]);
   return apiSuccess({ received: true, updated: true });
