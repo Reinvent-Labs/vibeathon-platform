@@ -22,7 +22,9 @@ const prisma = new PrismaClient({
 
 const scannerEmail = "scanner-demo@vibeathon.invalid";
 const juryEmail = "jury-demo@vibeathon.invalid";
+const adminEmail = "admin-demo@vibeathon.invalid";
 const badgeEmail = "badge-demo@vibeathon.invalid";
+const reviewEmail = "candidate-review-demo@vibeathon.invalid";
 const badgeCode = "VBT-2026-C-DEMO";
 
 async function main() {
@@ -71,6 +73,25 @@ async function main() {
       role: "JURY",
     },
   });
+  const adminPassword = `Vbt!${randomBytes(12).toString("base64url")}`;
+  const admin = await prisma.adminUser.upsert({
+    where: { email: adminEmail },
+    update: {
+      active: true,
+      fullName: "Admin Démo VIBEATHON",
+      mustChangePassword: false,
+      passwordHash: await hash(adminPassword, 12),
+      role: "ADMIN",
+    },
+    create: {
+      authUserId: "admin-demo",
+      email: adminEmail,
+      fullName: "Admin Démo VIBEATHON",
+      mustChangePassword: false,
+      passwordHash: await hash(adminPassword, 12),
+      role: "ADMIN",
+    },
+  });
 
   const participant = await prisma.participant.upsert({
     where: { competitionId_email: { competitionId: competition.id, email: badgeEmail } },
@@ -93,6 +114,48 @@ async function main() {
       motivation: "Participant de démonstration pour valider le scanner QR.",
       status: "CONFIRMED",
       confirmedAt: new Date(),
+    },
+  });
+  const reviewCandidate = await prisma.participant.upsert({
+    where: {
+      competitionId_email: {
+        competitionId: competition.id,
+        email: reviewEmail,
+      },
+    },
+    update: {
+      status: "PENDING",
+      fullName: "Koffi Candidat Démo",
+      motivation:
+        "Je souhaite construire un prototype utile pour réduire le gaspillage énergétique.",
+      fullProgramAvailable: true,
+      incubationCommitment: true,
+      conditionsAccepted: true,
+      declarationAccepted: true,
+    },
+    create: {
+      competitionId: competition.id,
+      reference: "VBT-2026-REVIEW-DEMO",
+      qrCode: "VBT-2026-C-REVIEW-DEMO",
+      fullName: "Koffi Candidat Démo",
+      email: reviewEmail,
+      phone: "+225 01 23 45 67 89",
+      city: "Abidjan",
+      profile: "Étudiant·e",
+      profession: "Étudiant en informatique",
+      technicalLevel: "Intermédiaire",
+      aiExperience: "Oui",
+      aiTools: "ChatGPT, Claude",
+      registrationMode: "Individuel",
+      preferredDomain: "Énergie et environnement",
+      motivation:
+        "Je souhaite construire un prototype utile pour réduire le gaspillage énergétique.",
+      source: "Fixture de test",
+      fullProgramAvailable: true,
+      incubationCommitment: true,
+      conditionsAccepted: true,
+      declarationAccepted: true,
+      status: "PENDING",
     },
   });
 
@@ -161,6 +224,9 @@ async function main() {
       juryEmail: jury.email,
       juryPassword,
       juryTeam: team.name,
+      adminEmail: admin.email,
+      adminPassword,
+      reviewCandidate: reviewCandidate.fullName,
       sessionId: session.id,
     }),
   );

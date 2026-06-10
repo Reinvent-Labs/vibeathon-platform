@@ -22,7 +22,10 @@ export const emailTemplates = {
   registration: (name: string, reference: string) =>
     frame("Candidature reçue", `<p>Bonjour ${escapeHtml(name)}, ta candidature est enregistrée sous la référence <strong>${escapeHtml(reference)}</strong>.</p>`),
   selection: (name: string) =>
-    frame("Tu es sélectionné·e", `<p>Félicitations ${escapeHtml(name)}. Confirme maintenant ta place depuis la page de suivi.</p>`),
+    frame(
+      "Ton dossier est accepté",
+      `<p>Félicitations ${escapeHtml(name)}. Ton dossier est validé, mais ta participation au bootcamp et à la compétition sera confirmée uniquement après paiement depuis la page de suivi.</p>`,
+    ),
   rejection: (name: string) =>
     frame("Résultat de ta candidature", `<p>Bonjour ${escapeHtml(name)}. Ta candidature n'a pas été retenue pour la compétition cette année.</p>`),
   badge: (name: string, badgeUrl: string) =>

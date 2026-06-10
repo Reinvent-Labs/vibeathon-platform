@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
   Check,
   Copy,
   Download,
+  Eye,
   Mail,
   Search,
   Send,
@@ -41,10 +43,11 @@ type EligibleMember = {
 };
 
 const statusLabels: Record<DemoParticipantStatus, string> = {
-  PENDING: "En attente",
-  SELECTED: "Sélectionné",
-  PAID: "Payé",
-  CONFIRMED: "Confirmé",
+  PENDING: "Inscrit · à examiner",
+  SELECTED: "Accepté · paiement en attente",
+  PAID: "Accepté · paiement validé",
+  CONFIRMED: "Accepté · participant officiel",
+  CHECKED_IN: "Présent",
   REJECTED: "Non retenu",
 };
 
@@ -55,6 +58,8 @@ export function AdminDashboard({
   const [participants, setParticipants] = useState<DemoParticipant[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [focusedParticipant, setFocusedParticipant] =
+    useState<DemoParticipant | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/participants")
@@ -72,19 +77,31 @@ export function AdminDashboard({
     );
   }, [participants, query]);
 
-  async function changeStatus(status: DemoParticipantStatus) {
-    if (!selected.length) return toast.error("Sélectionne au moins une candidature.");
+  async function changeStatus(
+    status: DemoParticipantStatus,
+    participantIds = selected,
+  ) {
+    if (!participantIds.length) {
+      return toast.error("Sélectionne au moins une candidature.");
+    }
     const response = await fetch("/api/admin/participants", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: selected, status }),
+      body: JSON.stringify({ ids: participantIds, status }),
     });
     const payload = await response.json();
     if (!payload.success) return toast.error(payload.error);
     setParticipants((current) =>
       current.map((participant) =>
-        selected.includes(participant.id) ? { ...participant, status } : participant,
+        participantIds.includes(participant.id)
+          ? { ...participant, status }
+          : participant,
       ),
+    );
+    setFocusedParticipant((current) =>
+      current && participantIds.includes(current.id)
+        ? { ...current, status }
+        : current,
     );
     setSelected([]);
     toast.success(`${payload.data.updated} dossier(s) mis à jour.`);
@@ -92,8 +109,13 @@ export function AdminDashboard({
 
   const counts = {
     total: participants.length,
+    pending: participants.filter((item) => item.status === "PENDING").length,
     selected: participants.filter((item) => item.status === "SELECTED").length,
-    confirmed: participants.filter((item) => ["PAID", "CONFIRMED"].includes(item.status)).length,
+    paid: participants.filter((item) => item.status === "PAID").length,
+    confirmed: participants.filter((item) =>
+      ["CONFIRMED", "CHECKED_IN"].includes(item.status),
+    ).length,
+    rejected: participants.filter((item) => item.status === "REJECTED").length,
   };
 
   return (
@@ -118,6 +140,7 @@ export function AdminDashboard({
             onQuery={setQuery}
             onSelected={setSelected}
             onStatus={changeStatus}
+            onOpen={setFocusedParticipant}
             confirmedOnly={section === "participants"}
           />
         ) : section === "equipes" ? (
@@ -138,6 +161,15 @@ export function AdminDashboard({
           <Overview counts={counts} participants={participants} />
         )}
       </div>
+      {focusedParticipant ? (
+        <ParticipantReview
+          participant={focusedParticipant}
+          onClose={() => setFocusedParticipant(null)}
+          onStatus={(status) =>
+            void changeStatus(status, [focusedParticipant.id])
+          }
+        />
+      ) : null}
     </>
   );
 }
@@ -162,22 +194,70 @@ function Overview({
   counts,
   participants,
 }: {
-  counts: { total: number; selected: number; confirmed: number };
+  counts: {
+    total: number;
+    pending: number;
+    selected: number;
+    paid: number;
+    confirmed: number;
+    rejected: number;
+  };
   participants: DemoParticipant[];
 }) {
-  const metrics = [
-    ["Total inscrits", counts.total || 412, "+38 cette semaine"],
-    ["Sélectionnés", counts.selected || 100, "objectif 100"],
-    ["Payés / confirmés", counts.confirmed || 73, "+11 aujourd'hui"],
-    ["Équipes formées", demoTeams.length, "objectif 20"],
+  const workflow = [
+    {
+      label: "1. Inscrits à examiner",
+      value: counts.pending,
+      note: "Ouvrir chaque dossier puis accepter ou ne pas retenir.",
+      href: "/admin/candidatures",
+    },
+    {
+      label: "2. Acceptés · paiement attendu",
+      value: counts.selected,
+      note: `${Math.max(0, 100 - counts.selected - counts.paid - counts.confirmed)} place(s) encore disponible(s) sur 100. Pas encore au bootcamp.`,
+      href: "/admin/candidatures",
+    },
+    {
+      label: "3. Participants officiels",
+      value: counts.paid + counts.confirmed,
+      note: "Paiement validé: badge, bootcamp et compétition autorisés.",
+      href: "/admin/participants",
+    },
+    {
+      label: "4. Équipes du bootcamp",
+      value: counts.paid + counts.confirmed,
+      note: "Former des équipes uniquement avec les participants ayant payé.",
+      href: "/admin/equipes",
+    },
   ];
   return (
     <div className="stack">
-      <div className="phases">
-        {["Inscriptions", "Sélection", "Paiement", "Bootcamp", "Compétition", "Finale"].map((phase, index) => <button className={index === 0 ? "done" : index === 1 ? "active" : ""} key={phase}><span className="n">{index === 0 ? "✓" : index + 1}</span>{phase}</button>)}
+      <div className="surface workflow-help">
+        <span className="eyebrow">Comment utiliser le dashboard</span>
+        <h2>Le parcours d&apos;un candidat</h2>
+        <p>
+          Un inscrit devient accepté après validation de son dossier, mais il
+          reste en attente de paiement. Il devient participant officiel
+          uniquement après paiement et peut alors rejoindre le bootcamp et la
+          compétition.
+        </p>
+        <div className="phases" aria-label="Parcours global VIBEATHON">
+          {["Inscrit", "Accepté · paiement attendu", "Paiement validé", "Bootcamp", "Compétition", "Finale"].map((phase, index) => (
+            <div className={index === 0 ? "done" : index === 1 ? "active" : ""} key={phase}>
+              <span className="n">{index === 0 ? "✓" : index + 1}</span>{phase}
+            </div>
+          ))}
+        </div>
       </div>
       <div className="metric-grid">
-        {metrics.map(([label, value, note]) => <div className="metric-card" key={label}><span>{label}</span><strong className="grad-text-lt">{value}</strong><small>{note}</small></div>)}
+        {workflow.map((item) => (
+          <Link className="metric-card workflow-card" href={item.href} key={item.label}>
+            <span>{item.label}</span>
+            <strong className="grad-text-lt">{item.value}</strong>
+            <small>{item.note}</small>
+            <b>Ouvrir <ArrowRight size={14} /></b>
+          </Link>
+        ))}
       </div>
       <div className="dashboard-grid">
         <div className="panel span-8">
@@ -185,11 +265,12 @@ function Overview({
           <SimpleParticipantRows participants={participants.slice(0, 5)} />
         </div>
         <div className="mini-panel span-4">
-          <h3>Activité récente</h3>
+          <h3>État actuel</h3>
           <div className="feed">
-            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> 12 candidatures sélectionnées <span className="tm">il y a 14 min</span></div>
-            <div className="ev"><span className="t" style={{ background: "#FF57E3" }} /> Paiement confirmé · M. Traoré <span className="tm">il y a 32 min</span></div>
-            <div className="ev"><span className="t" style={{ background: "#BA77FF" }} /> Équipe EcoVibe créée <span className="tm">il y a 1 h</span></div>
+            <div className="ev"><span className="t" style={{ background: "#F5C842" }} /> {counts.pending} inscrit(s) à examiner</div>
+            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> {counts.selected} accepté(s), paiement attendu</div>
+            <div className="ev"><span className="t" style={{ background: "#BA77FF" }} /> {counts.paid + counts.confirmed} participant(s) officiel(s)</div>
+            <div className="ev"><span className="t" style={{ background: "#FF57E3" }} /> {counts.rejected} dossier(s) non retenu(s)</div>
           </div>
         </div>
       </div>
@@ -204,6 +285,7 @@ function ParticipantTable({
   onQuery,
   onSelected,
   onStatus,
+  onOpen,
   confirmedOnly,
 }: {
   participants: DemoParticipant[];
@@ -212,6 +294,7 @@ function ParticipantTable({
   onQuery: (value: string) => void;
   onSelected: (value: string[]) => void;
   onStatus: (status: DemoParticipantStatus) => void;
+  onOpen: (participant: DemoParticipant) => void;
   confirmedOnly: boolean;
 }) {
   const rows = confirmedOnly
@@ -224,14 +307,14 @@ function ParticipantTable({
         <label className="cluster"><Search size={16} /><input className="input" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Rechercher..." /></label>
       </div>
       <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
-        <span className="cnt"><b>{selected.length}</b> sélectionné(s)</span>
-        <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Sélectionner</button>
+        <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
+        <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
         <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
         <button className="btn btn-ghost"><Mail size={16} /> Notifier</button>
       </div>
       <div className="table-wrap">
         <table className="data-table">
-          <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Profil</th><th>Ville</th><th>Statut</th><th>Référence</th></tr></thead>
+          <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Profil</th><th>Ville</th><th>Statut</th><th>Référence</th><th>Dossier</th></tr></thead>
           <tbody>{rows.map((participant) => (
             <tr key={participant.id}>
               <td><input type="checkbox" checked={selected.includes(participant.id)} onChange={(event) => onSelected(event.target.checked ? [...selected, participant.id] : selected.filter((id) => id !== participant.id))} /></td>
@@ -239,10 +322,139 @@ function ParticipantTable({
               <td>{participant.profile}</td><td>{participant.city}</td>
               <td><span className={`status-pill ${participant.status.toLowerCase()}`}>{statusLabels[participant.status]}</span></td>
               <td>{participant.reference}</td>
+              <td><button className="btn btn-ghost review-button" onClick={() => onOpen(participant)}><Eye size={16} /> Voir</button></td>
             </tr>
           ))}</tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function ParticipantReview({
+  participant,
+  onClose,
+  onStatus,
+}: {
+  participant: DemoParticipant;
+  onClose: () => void;
+  onStatus: (status: DemoParticipantStatus) => void;
+}) {
+  const canDecide =
+    participant.status === "PENDING" || participant.status === "REJECTED";
+  const canReset =
+    participant.status === "SELECTED" || participant.status === "REJECTED";
+  const details = [
+    ["Téléphone", participant.phone],
+    ["Ville", participant.city],
+    ["Âge", participant.age],
+    ["Genre", participant.gender],
+    ["Profession", participant.profession || participant.profile],
+    ["Niveau technique", participant.technicalLevel],
+    ["Expérience IA", participant.aiExperience],
+    ["Outils IA", [participant.aiTools, participant.otherAiTools].filter(Boolean).join(" · ")],
+    ["Mode d'inscription", participant.registrationMode],
+    ["Équipe proposée", participant.proposedTeamName || "Candidature individuelle"],
+    ["Domaine préféré", participant.preferredDomain],
+    ["Source", participant.source],
+  ].filter(([, value]) => Boolean(value));
+
+  return (
+    <div className="review-backdrop" role="presentation" onMouseDown={onClose}>
+      <aside
+        className="participant-review"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="participant-review-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header>
+          <div>
+            <span className="eyebrow">Dossier {participant.reference}</span>
+            <h2 id="participant-review-title">{participant.fullName}</h2>
+            <p>{participant.email}</p>
+          </div>
+          <button className="icon-btn" aria-label="Fermer le dossier" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </header>
+
+        <div className="review-status">
+          <span className={`status-pill ${participant.status.toLowerCase()}`}>
+            {statusLabels[participant.status]}
+          </span>
+          <small>
+            Candidature reçue le{" "}
+            {new Date(participant.createdAt).toLocaleDateString("fr-FR")}
+          </small>
+        </div>
+
+        <section>
+          <h3>Informations du candidat</h3>
+          <dl className="review-grid">
+            {details.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{String(value)}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section>
+          <h3>Motivation</h3>
+          <p className="review-motivation">{participant.motivation}</p>
+        </section>
+
+        <section>
+          <h3>Vérifications avant sélection</h3>
+          <div className="review-checks">
+            <span className={participant.conditionsAccepted ? "ok" : "warning"}>
+              {participant.conditionsAccepted ? "✓" : "!"} Conditions acceptées
+            </span>
+            <span className={participant.declarationAccepted ? "ok" : "warning"}>
+              {participant.declarationAccepted ? "✓" : "!"} Déclaration confirmée
+            </span>
+            <span className={participant.fullProgramAvailable ? "ok" : "warning"}>
+              {participant.fullProgramAvailable ? "✓" : "!"} Disponible pour tout le programme
+            </span>
+            <span className={participant.incubationCommitment ? "ok" : "warning"}>
+              {participant.incubationCommitment ? "✓" : "!"} Engagement incubation
+            </span>
+          </div>
+        </section>
+
+        <footer>
+          {canDecide ? (
+            <>
+              <button className="btn btn-grad" onClick={() => onStatus("SELECTED")}>
+                <Check size={16} /> Accepter · paiement attendu
+              </button>
+              <button className="btn btn-ghost" onClick={() => onStatus("REJECTED")}>
+                <X size={16} /> Ne pas retenir
+              </button>
+            </>
+          ) : null}
+          {canReset ? (
+            <button className="btn btn-ghost" onClick={() => onStatus("PENDING")}>
+              Remettre en attente
+            </button>
+          ) : null}
+          {participant.status === "SELECTED" ? (
+            <p>
+              Cette personne est acceptée, mais ne participe pas encore au
+              bootcamp. Elle doit payer depuis sa page de statut. Après
+              paiement, elle devient participante officielle et reçoit son
+              badge.
+            </p>
+          ) : null}
+          {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? (
+            <Link className="btn btn-ghost" href={`/badge/${participant.qrCode}`}>
+              Voir le badge
+            </Link>
+          ) : null}
+        </footer>
+      </aside>
     </div>
   );
 }
@@ -305,7 +517,7 @@ function Teams() {
     <form className="surface stack" style={{ padding: 24 }} onSubmit={createTeam}>
       <span className="eyebrow">Équipe officielle</span>
       <h2>Former une équipe</h2>
-      <p>Les 100 personnes sélectionnées peuvent être réparties en équipes de 1 à 5 membres. Les candidatures individuelles peuvent rejoindre une équipe plus tard.</p>
+      <p>Seuls les participants acceptés ayant payé peuvent être répartis en équipes de 1 à 5 membres pour le bootcamp et la compétition. Les candidatures individuelles peuvent rejoindre une équipe plus tard.</p>
       <input className="input" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nom de l'équipe" required />
       <textarea className="textarea" value={problem} onChange={(event) => setProblem(event.target.value)} placeholder="Problème adressé" required />
       <div className="table-wrap">
@@ -337,7 +549,7 @@ function JuryAdmin() {
 }
 
 function Communications() {
-  return <div className="communications-grid"><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Email ajouté à la file d'envoi."); }}><Mail /><h2>Campagne email</h2><select className="select"><option>Sélectionnés</option><option>Confirmés</option><option>Tous les candidats</option></select><input className="input" placeholder="Objet" /><textarea className="textarea" placeholder="Message" /><button className="btn btn-grad"><Send size={16} /> Envoyer</button></form><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("WhatsApp ajouté à la file d'envoi."); }}><Send /><h2>WhatsApp</h2><select className="select"><option>Rappel de paiement</option><option>Badge disponible</option></select><textarea className="textarea" placeholder="Message du modèle" /><button className="btn btn-grad">Préparer l&apos;envoi</button></form></div>;
+  return <div className="communications-grid"><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Email ajouté à la file d'envoi."); }}><Mail /><h2>Campagne email</h2><select className="select"><option>Acceptés · paiement attendu</option><option>Participants officiels</option><option>Tous les inscrits</option></select><input className="input" placeholder="Objet" /><textarea className="textarea" placeholder="Message" /><button className="btn btn-grad"><Send size={16} /> Envoyer</button></form><form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("WhatsApp ajouté à la file d'envoi."); }}><Send /><h2>WhatsApp</h2><select className="select"><option>Rappel de paiement</option><option>Badge disponible</option></select><textarea className="textarea" placeholder="Message du modèle" /><button className="btn btn-grad">Préparer l&apos;envoi</button></form></div>;
 }
 
 type AdminSession = {

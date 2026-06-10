@@ -9,7 +9,7 @@ export async function GET() {
   if (!prisma) return apiError("Base de données indisponible.", 503);
   const participants = await prisma.participant.findMany({
     where: {
-      status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
+      status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },
     select: {

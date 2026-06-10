@@ -99,13 +99,13 @@ export async function POST(request: Request) {
   const eligibleMembers = await prisma.participant.findMany({
     where: {
       id: { in: body.memberIds },
-      status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
+      status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },
   });
   if (eligibleMembers.length !== new Set(body.memberIds).size) {
     return apiError(
-      "Tous les membres doivent être sélectionnés et sans équipe.",
+      "Tous les membres doivent avoir payé et être sans équipe.",
       409,
     );
   }
@@ -156,13 +156,13 @@ export async function PATCH(request: Request) {
     const eligible = await prisma.participant.count({
       where: {
         id: { in: addMemberIds },
-        status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
+        status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
         teamId: null,
       },
     });
     if (eligible !== addMemberIds.length) {
       return apiError(
-        "Les nouveaux membres doivent être sélectionnés et sans équipe.",
+        "Les nouveaux membres doivent avoir payé et être sans équipe.",
         409,
       );
     }

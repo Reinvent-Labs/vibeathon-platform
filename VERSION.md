@@ -19,3 +19,5 @@
 - Added a test-database-only QR badge fixture for repeatable end-to-end scanner validation without modifying registered participant data.
 - Fixed the jury portal empty/error states, per-juror score locking and restoration, eligible-team validation, and reliable score submission feedback.
 - Replaced the generic browser icon with the official VIBEATHON gradient monogram and wired it into site metadata and the installable scanner manifest.
+- Reworked the admin overview around four real operational queues and added a complete candidate-review panel with imported answers, eligibility checks, and clear selection/rejection actions.
+- Clarified the lifecycle as registered, accepted with payment pending, then official after payment; team, bootcamp, badge, scanner, and competition access now require payment.

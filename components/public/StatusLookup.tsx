@@ -26,18 +26,26 @@ const statusCopy = {
     icon: "…",
   },
   SELECTED: {
-    label: "Tu es sélectionné·e !",
-    description: "Confirme ta place en réglant les frais de participation avant le 5 juillet.",
+    label: "Tu es accepté·e ! Paiement en attente",
+    description:
+      "Ton dossier est validé. Règle les frais pour devenir participant·e officiel·le et accéder au bootcamp.",
     icon: "★",
   },
   PAID: {
-    label: "Paiement reçu",
-    description: "Ta place est réservée. Ton badge est maintenant disponible.",
+    label: "Accepté·e · paiement validé",
+    description:
+      "Tu es participant·e officiel·le. Ton badge est disponible pour le bootcamp et la compétition.",
     icon: "✓",
   },
   CONFIRMED: {
-    label: "Participation confirmée",
-    description: "Tout est prêt. Présente ton badge à l'entrée le jour J.",
+    label: "Participant·e officiel·le",
+    description:
+      "Paiement validé. Tout est prêt pour le bootcamp et la compétition.",
+    icon: "✓",
+  },
+  CHECKED_IN: {
+    label: "Présence enregistrée",
+    description: "Ton arrivée au VIBEATHON a bien été enregistrée.",
     icon: "✓",
   },
   REJECTED: {
@@ -148,7 +156,7 @@ export function StatusLookup() {
             ) : null}
             <div className="actions">
               {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : "Payer 5 000 FCFA →"}</button> : null}
-              {participant.status === "PAID" || participant.status === "CONFIRMED" ? <Link href={`/badge/${participant.qrCode}`} className="btn btn-grad">Voir mon badge →</Link> : null}
+              {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? <Link href={`/badge/${participant.qrCode}`} className="btn btn-grad">Voir mon badge →</Link> : null}
               <button className="btn btn-ghost" onClick={() => setParticipant(null)}>Vérifier un autre email</button>
             </div>
           </div>

@@ -3,6 +3,7 @@ export type DemoParticipantStatus =
   | "SELECTED"
   | "PAID"
   | "CONFIRMED"
+  | "CHECKED_IN"
   | "REJECTED";
 
 export type DemoParticipant = {
@@ -19,6 +20,20 @@ export type DemoParticipant = {
   qrCode: string;
   teamName?: string;
   createdAt: string;
+  age?: string | null;
+  gender?: string | null;
+  profession?: string | null;
+  technicalLevel?: string | null;
+  aiExperience?: string | null;
+  aiTools?: string | null;
+  otherAiTools?: string | null;
+  registrationMode?: string | null;
+  proposedTeamName?: string | null;
+  preferredDomain?: string | null;
+  fullProgramAvailable?: boolean | null;
+  incubationCommitment?: boolean | null;
+  conditionsAccepted?: boolean;
+  declarationAccepted?: boolean;
 };
 
 export const demoParticipants: DemoParticipant[] = [

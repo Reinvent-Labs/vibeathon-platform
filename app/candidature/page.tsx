@@ -21,8 +21,9 @@ export default function CandidaturePage() {
             <span className="eyebrow">Candidature</span>
             <h1>Fais vibrer<br /><span className="grad-text-lt">ton idée.</span></h1>
             <p className="lede">
-              400 places, 100 compétiteurs. Dépose ta candidature en 2 minutes :
-              la sélection se fait sur la motivation et le profil.
+              Dépose ta candidature en 2 minutes. Après étude du dossier, les
+              personnes acceptées devront payer pour confirmer leur place parmi
+              les 100 participants du bootcamp et de la compétition.
             </p>
           </div>
           <div className="facts">
