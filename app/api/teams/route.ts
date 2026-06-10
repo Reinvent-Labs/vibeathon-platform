@@ -34,9 +34,16 @@ export async function GET(request: Request) {
         },
       },
       scores: {
+        where: juryScope ? { juryId: session.userId } : undefined,
         select: {
           juryId: true,
+          criteria: {
+            select: {
+              key: true,
+            },
+          },
           score: true,
+          comment: true,
           lockedAt: true,
         },
       },
@@ -53,6 +60,10 @@ export async function GET(request: Request) {
       repositoryUrl: team.repositoryUrl ?? "",
       members: team.members,
       scored: team.scores.some((score) => Boolean(score.lockedAt)),
+      scores: Object.fromEntries(
+        team.scores.map((score) => [score.criteria.key, score.score]),
+      ),
+      comment: team.scores.find((score) => score.comment)?.comment ?? "",
       averageScore: team.scores.length
         ? Math.round(
             team.scores.reduce((sum, score) => sum + score.score, 0) /

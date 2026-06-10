@@ -21,6 +21,7 @@ const prisma = new PrismaClient({
 });
 
 const scannerEmail = "scanner-demo@vibeathon.invalid";
+const juryEmail = "jury-demo@vibeathon.invalid";
 const badgeEmail = "badge-demo@vibeathon.invalid";
 const badgeCode = "VBT-2026-C-DEMO";
 
@@ -49,6 +50,25 @@ async function main() {
       mustChangePassword: false,
       passwordHash: await hash(password, 12),
       role: "SCANNER",
+    },
+  });
+  const juryPassword = `Vbt!${randomBytes(12).toString("base64url")}`;
+  const jury = await prisma.adminUser.upsert({
+    where: { email: juryEmail },
+    update: {
+      active: true,
+      fullName: "Jury Démo VIBEATHON",
+      mustChangePassword: false,
+      passwordHash: await hash(juryPassword, 12),
+      role: "JURY",
+    },
+    create: {
+      authUserId: "jury-demo",
+      email: juryEmail,
+      fullName: "Jury Démo VIBEATHON",
+      mustChangePassword: false,
+      passwordHash: await hash(juryPassword, 12),
+      role: "JURY",
     },
   });
 
@@ -107,6 +127,29 @@ async function main() {
       OR: [{ participantId: participant.id }, { qrCode: badgeCode }],
     },
   });
+  const team = await prisma.team.upsert({
+    where: { id: "jury-demo-team" },
+    update: {
+      name: "Équipe Démo",
+      problem: "Simplifier l'accès aux services numériques locaux.",
+      demoUrl: "https://example.com/demo",
+      repositoryUrl: "https://github.com/example/vibeathon-demo",
+      members: { connect: { id: participant.id } },
+    },
+    create: {
+      id: "jury-demo-team",
+      competitionId: competition.id,
+      name: "Équipe Démo",
+      tableNumber: "Table Démo",
+      problem: "Simplifier l'accès aux services numériques locaux.",
+      demoUrl: "https://example.com/demo",
+      repositoryUrl: "https://github.com/example/vibeathon-demo",
+      members: { connect: { id: participant.id } },
+    },
+  });
+  await prisma.juryScore.deleteMany({
+    where: { teamId: team.id, juryId: jury.id },
+  });
 
   console.log(
     JSON.stringify({
@@ -115,6 +158,9 @@ async function main() {
       participant: participant.fullName,
       scannerEmail: scanner.email,
       scannerPassword: password,
+      juryEmail: jury.email,
+      juryPassword,
+      juryTeam: team.name,
       sessionId: session.id,
     }),
   );

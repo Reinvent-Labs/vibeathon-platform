@@ -6,9 +6,8 @@ import { isSameOrigin, requireRole } from "@/lib/auth";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
-  if (!(await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]))) {
-    return apiError("Non autorisé.", 401);
-  }
+  const session = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
+  if (!session) return apiError("Non autorisé.", 401);
   const body = await readJson<unknown>(request);
   const parsed = scoreSubmissionSchema.safeParse(body);
   if (!parsed.success) return apiError("Scores invalides.");
@@ -19,20 +18,40 @@ export async function POST(request: Request) {
 
   if (!prisma) return apiError("Base de données indisponible.", 503);
   const database = prisma;
-  const session = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
-  if (!session) return apiError("Non autorisé.", 401);
-  const jury = await database.adminUser.findUnique({
-    where: { id: session.userId },
+  const team = await database.team.findFirst({
+    where: {
+      id: parsed.data.teamId,
+      competition: { slug: "vibeathon-2026" },
+      members: {
+        some: {},
+        every: {
+          status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
+        },
+      },
+    },
+    select: { id: true, competitionId: true },
   });
-  if (!jury) return apiError("Compte jury introuvable.", 403);
+  if (!team) {
+    return apiError(
+      "Cette équipe n'est pas admissible à l'évaluation.",
+      409,
+    );
+  }
 
   const criteria = await database.judgingCriteria.findMany({
+    where: { competitionId: team.competitionId },
     orderBy: { order: "asc" },
   });
+  if (
+    criteria.length !== JUDGING_CRITERIA.length ||
+    criteria.some((criterion) => !(criterion.key in parsed.data.scores))
+  ) {
+    return apiError("Tous les critères doivent être renseignés.", 400);
+  }
   const previous = await database.juryScore.findFirst({
     where: {
-      teamId: parsed.data.teamId,
-      juryId: jury.id,
+      teamId: team.id,
+      juryId: session.userId,
       lockedAt: { not: null },
     },
   });
@@ -44,9 +63,9 @@ export async function POST(request: Request) {
       database.juryScore.upsert({
         where: {
           teamId_criteriaId_juryId: {
-            teamId: parsed.data.teamId,
+            teamId: team.id,
             criteriaId: criterion.id,
-            juryId: jury.id,
+            juryId: session.userId,
           },
         },
         update: {
@@ -55,9 +74,9 @@ export async function POST(request: Request) {
           lockedAt,
         },
         create: {
-          teamId: parsed.data.teamId,
+          teamId: team.id,
           criteriaId: criterion.id,
-          juryId: jury.id,
+          juryId: session.userId,
           score: parsed.data.scores[criterion.key] ?? 0,
           comment: parsed.data.comment,
           lockedAt,
