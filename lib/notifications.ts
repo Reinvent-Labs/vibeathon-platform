@@ -21,10 +21,15 @@ function emailFrom() {
 /** Optional SMTP fallback when Resend is not configured. */
 function smtpTransport() {
   if (!process.env.SMTP_HOST) return null;
+  const port = Number(process.env.SMTP_PORT ?? 587);
+  const secure = process.env.SMTP_SECURE === "true";
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
+    port,
+    secure,
+    // Port 587 starts unencrypted and must upgrade before credentials are sent.
+    requireTLS:
+      !secure && (process.env.SMTP_REQUIRE_TLS ?? "true") === "true",
     auth: process.env.SMTP_USER
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
       : undefined,

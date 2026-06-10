@@ -127,6 +127,21 @@ SMTP is optional in development. Without SMTP credentials, email sends are
 recorded as `QUEUED` in `EmailLog` rather than discarded. Wassenger behaves the
 same way until its API key and device ID are configured.
 
+Hostinger Email uses STARTTLS on the port that is reachable from `labtest`:
+
+```env
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_REQUIRE_TLS=true
+SMTP_USER=contact@vibeathonci.com
+SMTP_PASSWORD=your-mailbox-password
+EMAIL_FROM=VIBEATHON CI <contact@vibeathonci.com>
+```
+
+Keep `SMTP_REQUIRE_TLS=true` so credentials are never sent over an unencrypted
+SMTP connection.
+
 ## Backups
 
 Create a compressed PostgreSQL backup:
