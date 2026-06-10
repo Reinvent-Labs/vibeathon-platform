@@ -224,7 +224,7 @@ function Overview({
       href: "/admin/participants",
     },
     {
-      label: "4. Équipes du bootcamp",
+      label: "4. Participants à mettre en équipe",
       value: counts.paid + counts.confirmed,
       note: "Former des équipes uniquement avec les participants ayant payé.",
       href: "/admin/equipes",
