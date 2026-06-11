@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
+import { z } from "zod";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required.");
@@ -77,9 +78,14 @@ async function main() {
   if (!competition) throw new Error("Run npm run db:seed before importing.");
 
   const latestByEmail = new Map<string, { row: CsvRow; sourceIndex: number }>();
+  const invalidRows: { sourceRow: number; value: string }[] = [];
   rows.forEach((row, sourceIndex) => {
     const email = clean(row[columns.email]).toLowerCase();
-    if (email) latestByEmail.set(email, { row, sourceIndex });
+    if (!email || !z.string().email().safeParse(email).success) {
+      invalidRows.push({ sourceRow: sourceIndex + 2, value: email });
+      return;
+    }
+    latestByEmail.set(email, { row, sourceIndex });
   });
 
   let imported = 0;
@@ -157,6 +163,7 @@ async function main() {
         sourceRows: rows.length,
         uniqueEmails: latestByEmail.size,
         duplicatesCollapsed: rows.length - latestByEmail.size,
+        invalidRows,
         imported,
         proposedTeamNames: [...latestByEmail.values()].filter(
           ({ row }) => Boolean(clean(row[columns.teamName])),

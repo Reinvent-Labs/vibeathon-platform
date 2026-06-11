@@ -9,6 +9,8 @@ export async function GET() {
   if (!prisma) return apiError("Base de données indisponible.", 503);
   const participants = await prisma.participant.findMany({
     where: {
+      category: "HACKATHON",
+      isTest: false,
       status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },

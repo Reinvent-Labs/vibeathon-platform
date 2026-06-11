@@ -26,3 +26,5 @@
 - Added branded transactional email templates, WhatsApp template mappings, admin campaign sends, and QR badge attachments after confirmed payment.
 - Improved email deliverability with multipart text/HTML messages and an explicit reply address.
 - Connected the production configuration to `www.vibeathonci.com` and documented the Hostinger DNS plus labtest Caddy setup.
+- Added automatic branded staff invitation and password-reset emails with delivery feedback in the admin interface.
+- Added a dry-run-first, transactional competition decision importer that preserves paid participants, records an audit entry, separates test data from real capacity, and applies the 99 unique selections, 35 eliminations, and remaining waitlist safely.

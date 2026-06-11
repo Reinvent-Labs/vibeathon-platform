@@ -36,6 +36,7 @@ export type DemoParticipant = {
   incubationCommitment?: boolean | null;
   conditionsAccepted?: boolean;
   declarationAccepted?: boolean;
+  isTest?: boolean;
 };
 
 export const demoParticipants: DemoParticipant[] = [

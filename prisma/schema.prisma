@@ -124,6 +124,7 @@ model Participant {
   declarationAccepted Boolean @default(false)
   rawApplication Json?
   importedAt     DateTime?
+  isTest         Boolean            @default(false)
   status         ParticipantStatus  @default(PENDING)
   qrCode         String             @unique
   paidAt         DateTime?

@@ -72,11 +72,17 @@ export async function PATCH(request: Request) {
   }
   // Enforce the 100-slot cap when selecting / promoting from the waitlist.
   if (nextStatus === "SELECTED") {
-    const alreadyActive = participants.filter((participant) =>
-      ACTIVE.includes(participant.status),
+    const alreadyActive = participants.filter(
+      (participant) =>
+        participant.category === "HACKATHON" &&
+        !participant.isTest &&
+        ACTIVE.includes(participant.status),
     ).length;
     const newlyActive = targets.filter(
-      (participant) => !ACTIVE.includes(participant.status),
+      (participant) =>
+        participant.category === "HACKATHON" &&
+        !participant.isTest &&
+        !ACTIVE.includes(participant.status),
     ).length;
     if (alreadyActive + newlyActive > 100) {
       return apiError(
@@ -136,7 +142,7 @@ export async function PATCH(request: Request) {
                   text: `Bonjour ${name}, votre candidature a été placée sur liste d'attente. Si une place se libère, nous vous contacterons. ${statusUrl}`,
                 }
               : {
-                  subject: "Résultat de votre candidature - compétition de vibe coding",
+                  subject: "Résultat de votre candidature à la compétition de Vibe Coding",
                   html: emailTemplates.competitionRejected(name, statusUrl, appUrl),
                   text: `Bonjour ${name}, votre candidature n'a pas été retenue pour la compétition cette édition. Rejoignez-nous pour les keynotes, panels et ateliers : ${appUrl}`,
                 };
