@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SiteNav } from "@/components/public/SiteNav";
 import { EVENT, JUDGING_CRITERIA } from "@/lib/constants";
+import { CATEGORIES, OPEN_CATEGORIES, formatFee } from "@/lib/categories";
 
 const activities = [
   ["01", "Keynotes", "Des voix qui inspirent : visionnaires de la tech africaine et experts de l'IA."],
@@ -50,8 +51,8 @@ export default function HomePage() {
         </p>
         <div className="pill-date"><span className="dot" /> {EVENT.date} · {EVENT.venue}</div>
         <div className="cta-row">
-          <Link href="/candidature" className="btn btn-grad">
-            Je candidate <ArrowRight size={18} />
+          <Link href="#billets" className="btn btn-grad">
+            Prendre mon billet <ArrowRight size={18} />
           </Link>
           <Link href="#programme" className="btn btn-ghost">Découvrir le programme</Link>
         </div>
@@ -154,6 +155,49 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section id="billets" className="sec-pad">
+          <div className="wrap">
+            <div className="section-head">
+              <span className="eyebrow">Participer</span>
+              <h2 className="display">Choisis<br />ton pass.</h2>
+              <p className="body" style={{ marginTop: 14, maxWidth: 560 }}>
+                Les candidatures à la compétition sont closes, mais
+                l&apos;événement reste ouvert : viens en visiteur ou inscris-toi
+                à une formation. Badge reçu par email et WhatsApp.
+              </p>
+            </div>
+            <div className="ticket-grid">
+              {OPEN_CATEGORIES.map((value) => {
+                const category = CATEGORIES[value];
+                return (
+                  <article
+                    className="ticket-card"
+                    key={value}
+                    style={{ ["--cat" as string]: category.color }}
+                  >
+                    <div className="ticket-bar" />
+                    <h3 style={{ color: category.color }}>{category.label}</h3>
+                    <div className="ticket-price">{formatFee(category.fee)}</div>
+                    <p className="ticket-tag">{category.tagline}</p>
+                    <ul className="ticket-list">
+                      {category.perks.map((perk) => (
+                        <li key={perk}>{perk}</li>
+                      ))}
+                    </ul>
+                    <Link
+                      href={`/billet?type=${category.slug}`}
+                      className="btn btn-grad btn-block"
+                    >
+                      {category.fee === 0 ? "S'inscrire gratuitement" : "Réserver"}{" "}
+                      <ArrowRight size={16} />
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         <section className="sec-pad">
           <div className="wrap criteria">
             <div>
@@ -186,7 +230,7 @@ export default function HomePage() {
               <div className="mesh" aria-hidden="true"><span className="blob-g" /><span className="blob-p" /><span className="blob-k" /><span className="blob-m" /></div>
               <h2 className="display">Prêt à <span className="grad-text-lt">lancer</span> ?</h2>
               <div className="cta-row">
-                <Link href="/candidature" className="btn btn-grad">Je candidate <ArrowRight size={18} /></Link>
+                <Link href="/billet" className="btn btn-grad">Prendre mon billet <ArrowRight size={18} /></Link>
                 <Link href="/statut" className="btn btn-ghost">Vérifier mon statut</Link>
               </div>
             </div>
@@ -204,7 +248,7 @@ export default function HomePage() {
             <nav className="foot-links" aria-label="Navigation de pied de page">
               <Link href="#concept">Concept</Link>
               <Link href="#programme">Programme</Link>
-              <Link href="/candidature">Candidature</Link>
+              <Link href="#billets">Billets</Link>
               <Link href="/statut">Mon statut</Link>
             </nav>
           </div>

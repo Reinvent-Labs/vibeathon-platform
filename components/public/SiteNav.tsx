@@ -9,7 +9,7 @@ const LINKS = [
   ["#concept", "Le concept"],
   ["#activites", "Activités"],
   ["#programme", "Programme"],
-  ["#prix", "Prix"],
+  ["#billets", "Billets"],
 ] as const;
 
 /**
@@ -66,8 +66,8 @@ export function SiteNav() {
 
           <div className="nav-cta">
             <Link href="/statut" className="btn btn-ghost">Mon statut</Link>
-            <Link href="/candidature" className="btn btn-grad">
-              Je candidate
+            <Link href="/billet" className="btn btn-grad">
+              Prendre mon billet
             </Link>
           </div>
 
@@ -111,11 +111,11 @@ export function SiteNav() {
             </Link>
           </div>
           <Link
-            href="/candidature"
+            href="/billet"
             className="btn btn-grad btn-block"
             onClick={() => setOpen(false)}
           >
-            Je candidate
+            Prendre mon billet
           </Link>
         </div>
       ) : null}

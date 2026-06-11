@@ -114,3 +114,28 @@
 .auth-card form .input { font-family:'Inter',sans-serif; }
 .auth-card .btn-block { margin-top:8px; }
 .auth-card p { font-family:'Inter',sans-serif; color:var(--ink-soft); }
+
+/* ---- Ticket registration (/billet) ---- */
+.ticket-pick { display:flex; flex-direction:column; gap:14px; margin-top:20px; }
+.ticket-pick-card {
+  display:flex; flex-direction:column; gap:4px; text-align:left; cursor:pointer;
+  padding: 18px 20px; border-radius: var(--r-md); background: var(--bg-2);
+  border:1px solid var(--line); transition: border-color .2s ease, transform .2s ease;
+}
+.ticket-pick-card:hover { transform: translateY(-2px); border-color: var(--cat); }
+.ticket-pick-name { font-family:'Outfit',sans-serif; font-weight:900; text-transform:uppercase; font-size:18px; }
+.ticket-pick-fee { font-family:'Inter',sans-serif; font-weight:700; font-size:15px; color:var(--ink); }
+.ticket-pick-tag { font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink-soft); }
+
+.ticket-chosen {
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding: 16px 18px; border-radius: var(--r-md); background: var(--bg-2);
+  border:1px solid color-mix(in srgb, var(--cat) 45%, var(--line)); margin-bottom:18px;
+}
+.ticket-chosen-name { display:block; font-family:'Outfit',sans-serif; font-weight:900; text-transform:uppercase; font-size:18px; }
+.ticket-chosen-fee { display:block; margin-top:3px; font-family:'Inter',sans-serif; font-weight:700; font-size:14px; color:var(--ink); }
+.ticket-perks { list-style:none; padding:0; margin: 0 0 24px; display:flex; flex-direction:column; gap:9px; }
+.ticket-perks li { position:relative; padding-left: 22px; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink-soft); }
+.ticket-perks li::before { content:"✓"; position:absolute; left:0; top:0; color:var(--cat); font-weight:800; }
+.link-btn { background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--ink-soft); text-decoration:underline; }
+.link-btn:hover { color:var(--ink); }
