@@ -116,7 +116,10 @@ export async function initializePaiementPro(
     success: false,
   };
 
-  if (process.env.PAIEMENTPRO_DEMO_MODE !== "false") {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.PAIEMENTPRO_DEMO_MODE === "true"
+  ) {
     return {
       success: true,
       demo: true,

@@ -2,7 +2,10 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { findParticipantById, updateParticipantStatus } from "@/lib/repository";
 
 export async function POST(request: Request) {
-  if (process.env.PAIEMENTPRO_DEMO_MODE === "false") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.PAIEMENTPRO_DEMO_MODE !== "true"
+  ) {
     return apiError("Mode démonstration désactivé.", 403);
   }
   const body = await readJson<{ participantId?: string }>(request);

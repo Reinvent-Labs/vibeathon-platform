@@ -29,3 +29,4 @@
 - Added automatic branded staff invitation and password-reset emails with delivery feedback in the admin interface.
 - Added a dry-run-first, transactional competition decision importer that preserves paid participants, records an audit entry, separates test data from real capacity, and applies the 99 unique selections, 35 eliminations, and remaining waitlist safely.
 - Fixed PaiementPro production checkout initialization, unique transaction references, signed callbacks, idempotent confirmation, and the payment return experience.
+- Made payment demo confirmation impossible in production, even if the demo environment flag is accidentally enabled.
