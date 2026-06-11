@@ -131,8 +131,9 @@ Configure the provider webhook to:
 https://your-domain.example/api/webhooks/paiementpro
 ```
 
-The webhook must send the shared secret in `x-paiementpro-secret`. Confirm the
-exact production signature contract with PaiementPro before launch.
+The application signs every PaiementPro callback URL with
+`PAIEMENTPRO_WEBHOOK_SECRET`; PaiementPro must call the exact notification URL
+provided during initialization. Use a random secret of at least 32 characters.
 
 ## Notifications
 

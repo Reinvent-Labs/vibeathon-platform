@@ -63,7 +63,9 @@ const statusCopy = {
 
 export function StatusLookup() {
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const paymentResult = searchParams.get("payment");
+  const returnedEmail = searchParams.get("email");
+  const [email, setEmail] = useState(returnedEmail ?? "");
   const [participant, setParticipant] = useState<StatusParticipant | null>(null);
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -101,6 +103,20 @@ export function StatusLookup() {
         }
       });
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!paymentResult || !returnedEmail) return;
+    queueMicrotask(() => void lookup(returnedEmail));
+    if (paymentResult === "success") {
+      toast.success("Paiement confirmé. Ton badge est prêt.");
+    } else {
+      toast.info(
+        "Paiement en cours de vérification. Actualise ton statut dans quelques instants.",
+      );
+    }
+    // Search params are stable for this page load; lookup must run once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentResult, returnedEmail]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -161,7 +177,7 @@ export function StatusLookup() {
               <div className="pay-box"><div><b>{EVENT.fee.toLocaleString("fr-FR")} {EVENT.currency}</b><br /><span>Frais de participation · échéance 5 juillet</span></div></div>
             ) : null}
             <div className="actions">
-              {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : "Payer 5 000 FCFA →"}</button> : null}
+              {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${EVENT.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
               {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? <Link href={`/badge/${participant.qrCode}`} className="btn btn-grad">Voir mon badge →</Link> : null}
               <button className="btn btn-ghost" onClick={() => setParticipant(null)}>Vérifier un autre email</button>
             </div>

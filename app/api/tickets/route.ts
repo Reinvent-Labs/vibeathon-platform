@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     // Paid pass → start a PaiementPro checkout.
-    const payment = await initializePaiementPro(participant, "", {
+    const payment = await initializePaiementPro(participant, "WAVE", {
       amount: config.fee,
       description: `${config.label} · VIBEATHON 2026`,
     });
