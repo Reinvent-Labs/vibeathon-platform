@@ -93,6 +93,56 @@ function infoCard(label: string, value: string) {
 }
 
 export const emailTemplates = {
+  staffInvitation: ({
+    name,
+    role,
+    email,
+    temporaryPassword,
+    loginUrl,
+    appUrl,
+  }: {
+    name: string;
+    role: string;
+    email: string;
+    temporaryPassword: string;
+    loginUrl: string;
+    appUrl: string;
+  }) =>
+    frame({
+      appUrl,
+      eyebrow: "Accès équipe VIBEATHON",
+      title: "Votre compte staff est prêt",
+      introduction: `Bonjour ${name}, un accès ${role} vient d'être créé pour vous sur la plateforme VIBEATHON 2026.`,
+      content: `${infoCard("Adresse de connexion", email)}
+        ${infoCard("Mot de passe temporaire", temporaryPassword)}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.65">Pour votre sécurité, ce mot de passe doit être remplacé dès la première connexion. Ne le transférez à personne.</p>`,
+      action: { label: "Se connecter", url: loginUrl },
+    }),
+
+  staffPasswordReset: ({
+    name,
+    email,
+    temporaryPassword,
+    loginUrl,
+    appUrl,
+  }: {
+    name: string;
+    email: string;
+    temporaryPassword: string;
+    loginUrl: string;
+    appUrl: string;
+  }) =>
+    frame({
+      appUrl,
+      eyebrow: "Sécurité du compte",
+      title: "Votre accès a été réinitialisé",
+      introduction: `Bonjour ${name}, un nouveau mot de passe temporaire a été généré pour votre compte VIBEATHON.`,
+      content: `${infoCard("Adresse de connexion", email)}
+        ${infoCard("Nouveau mot de passe temporaire", temporaryPassword)}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.65">L'ancien mot de passe ne fonctionne plus. Vous devrez choisir un nouveau mot de passe personnel après connexion.</p>`,
+      action: { label: "Se connecter", url: loginUrl },
+    }),
+
   registration: (name: string, reference: string, appUrl: string) =>
     frame({
       appUrl,

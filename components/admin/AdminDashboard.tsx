@@ -1062,6 +1062,10 @@ function UsersPanel() {
     email: string;
     temporaryPassword: string;
   };
+  type EmailDelivery = {
+    status: "SENT" | "QUEUED" | "FAILED";
+    error?: string;
+  };
 
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [fullName, setFullName] = useState("");
@@ -1106,7 +1110,14 @@ function UsersPanel() {
       setFullName("");
       setEmail("");
       setRole("JURY");
-      toast.success("Compte staff créé.");
+      const delivery = payload.data.emailDelivery as EmailDelivery;
+      if (delivery.status === "SENT") {
+        toast.success("Compte créé et invitation envoyée par email.");
+      } else {
+        toast.warning(
+          "Compte créé, mais l'email n'a pas été envoyé. Transmets les identifiants affichés.",
+        );
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Création impossible.",
@@ -1135,11 +1146,18 @@ function UsersPanel() {
     if (payload.data.credentials) {
       setCredentials(payload.data.credentials);
     }
-    toast.success(
-      body.action === "reset-password"
-        ? "Mot de passe temporaire généré."
-        : "Accès mis à jour.",
-    );
+    if (body.action === "reset-password") {
+      const delivery = payload.data.emailDelivery as EmailDelivery;
+      if (delivery.status === "SENT") {
+        toast.success("Mot de passe réinitialisé et envoyé par email.");
+      } else {
+        toast.warning(
+          "Mot de passe réinitialisé, mais l'email n'a pas été envoyé.",
+        );
+      }
+      return;
+    }
+    toast.success("Accès mis à jour.");
   }
 
   async function copyCredentials() {
@@ -1164,8 +1182,9 @@ function UsersPanel() {
           <span className="eyebrow">Accès staff</span>
           <h2>Créer un utilisateur</h2>
           <p>
-            Le mot de passe temporaire est affiché une seule fois. Le nouvel
-            utilisateur devra le remplacer lors de sa première connexion.
+            Une invitation est envoyée automatiquement par email. Le mot de
+            passe temporaire reste affiché une seule fois ici comme solution
+            de secours et devra être remplacé à la première connexion.
           </p>
         </div>
         <div className="settings-grid">

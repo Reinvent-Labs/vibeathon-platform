@@ -4,7 +4,10 @@ import { z } from "zod";
 import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { requestIp, writeAuditLog } from "@/lib/audit";
 import { isSameOrigin, requireRole } from "@/lib/auth";
+import { appBaseUrl } from "@/lib/campaigns";
+import { sendEmail } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { emailTemplates } from "@/emails/templates";
 
 const roleSchema = z.enum(["SUPER_ADMIN", "ADMIN", "JURY", "SCANNER"]);
 const createUserSchema = z.object({
@@ -31,6 +34,56 @@ const updateUserSchema = z.discriminatedUnion("action", [
 
 function temporaryPassword() {
   return `Vbt!${randomBytes(12).toString("base64url")}9a`;
+}
+
+const roleLabels = {
+  SUPER_ADMIN: "Super administrateur",
+  ADMIN: "Administrateur",
+  JURY: "Membre du jury",
+  SCANNER: "Agent de contrôle",
+} as const;
+
+async function sendStaffAccessEmail({
+  user,
+  password,
+  reset,
+}: {
+  user: {
+    fullName: string;
+    email: string;
+    role: keyof typeof roleLabels;
+  };
+  password: string;
+  reset: boolean;
+}) {
+  const appUrl = appBaseUrl();
+  const loginUrl = `${appUrl}/login`;
+  return sendEmail({
+    to: user.email,
+    subject: reset
+      ? "Votre accès VIBEATHON a été réinitialisé"
+      : "Votre compte staff VIBEATHON est prêt",
+    text: reset
+      ? `Bonjour ${user.fullName}, votre accès VIBEATHON a été réinitialisé. Email : ${user.email}. Mot de passe temporaire : ${password}. Connexion : ${loginUrl}. Vous devrez modifier ce mot de passe après connexion.`
+      : `Bonjour ${user.fullName}, votre compte ${roleLabels[user.role]} VIBEATHON est prêt. Email : ${user.email}. Mot de passe temporaire : ${password}. Connexion : ${loginUrl}. Vous devrez modifier ce mot de passe après connexion.`,
+    html: reset
+      ? emailTemplates.staffPasswordReset({
+          name: user.fullName,
+          email: user.email,
+          temporaryPassword: password,
+          loginUrl,
+          appUrl,
+        })
+      : emailTemplates.staffInvitation({
+          name: user.fullName,
+          role: roleLabels[user.role],
+          email: user.email,
+          temporaryPassword: password,
+          loginUrl,
+          appUrl,
+        }),
+    template: reset ? "staff-password-reset" : "staff-invitation",
+  });
 }
 
 async function authorize(request: Request) {
@@ -89,13 +142,22 @@ export async function POST(request: Request) {
       active: true,
     },
   });
+  const emailDelivery = await sendStaffAccessEmail({
+    user: created,
+    password,
+    reset: false,
+  });
   await writeAuditLog({
     actorId: authorization.user.userId,
     action: "STAFF_USER_CREATED",
     entityType: "AdminUser",
     entityId: created.id,
     ipAddress: requestIp(request),
-    metadata: { role: created.role, email: created.email },
+    metadata: {
+      role: created.role,
+      email: created.email,
+      emailDelivery: emailDelivery.status,
+    },
   });
   return apiSuccess(
     {
@@ -104,6 +166,7 @@ export async function POST(request: Request) {
         email: created.email,
         temporaryPassword: password,
       },
+      emailDelivery,
     },
     { status: 201 },
   );
@@ -152,6 +215,9 @@ export async function PATCH(request: Request) {
   let credentials:
     | { email: string; temporaryPassword: string }
     | undefined;
+  let emailDelivery:
+    | Awaited<ReturnType<typeof sendStaffAccessEmail>>
+    | undefined;
   if (parsed.data.action === "set-active") {
     await prisma.adminUser.update({
       where: { id: target.id },
@@ -175,6 +241,11 @@ export async function PATCH(request: Request) {
       email: target.email,
       temporaryPassword: password,
     };
+    emailDelivery = await sendStaffAccessEmail({
+      user: target,
+      password,
+      reset: true,
+    });
   }
 
   await writeAuditLog({
@@ -195,7 +266,9 @@ export async function PATCH(request: Request) {
         ? { role: parsed.data.role }
         : parsed.data.action === "set-active"
           ? { active: parsed.data.active }
-          : undefined,
+          : parsed.data.action === "reset-password"
+            ? { emailDelivery: emailDelivery?.status ?? "FAILED" }
+            : undefined,
   });
-  return apiSuccess({ users: await listUsers(), credentials });
+  return apiSuccess({ users: await listUsers(), credentials, emailDelivery });
 }
