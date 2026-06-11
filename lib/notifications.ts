@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
 type EmailInput = {
@@ -19,13 +18,13 @@ type EmailInput = {
 
 function emailFrom() {
   return (
-    process.env.RESEND_FROM_EMAIL ??
     process.env.EMAIL_FROM ??
-    "VIBEATHON 2026 <onboarding@resend.dev>"
+    process.env.SMTP_FROM ??
+    "VIBEATHON 2026 <contact@vibeathonci.com>"
   );
 }
 
-/** Optional SMTP fallback when Resend is not configured. */
+/** SMTP transport (single provider). Null when SMTP is not configured. */
 function smtpTransport() {
   if (!process.env.SMTP_HOST) return null;
   const port = Number(process.env.SMTP_PORT ?? 587);
@@ -44,34 +43,19 @@ function smtpTransport() {
 }
 
 /**
- * Send a transactional email.
- * Provider priority: Resend (if RESEND_API_KEY) → SMTP (if SMTP_HOST) →
- * queued (logged, no provider configured). Every attempt is recorded in EmailLog.
+ * Send a transactional email over SMTP.
+ * When SMTP is not configured the message is recorded as QUEUED (logged only).
+ * Every attempt is recorded in EmailLog.
  */
 export async function sendEmail(input: EmailInput) {
-  const resendKey = process.env.RESEND_API_KEY;
-  const transport = resendKey ? null : smtpTransport();
+  const transport = smtpTransport();
 
-  let status: "SENT" | "QUEUED" | "FAILED" =
-    resendKey || transport ? "SENT" : "QUEUED";
+  let status: "SENT" | "QUEUED" | "FAILED" = transport ? "SENT" : "QUEUED";
   let providerId: string | undefined;
   let error: string | undefined;
 
   try {
-    if (resendKey) {
-      const resend = new Resend(resendKey);
-      const result = await resend.emails.send({
-        from: emailFrom(),
-        to: input.to,
-        replyTo: process.env.SMTP_USER,
-        subject: input.subject,
-        text: input.text,
-        html: input.html,
-        attachments: input.attachments,
-      });
-      if (result.error) throw new Error(result.error.message);
-      providerId = result.data?.id;
-    } else if (transport) {
+    if (transport) {
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
