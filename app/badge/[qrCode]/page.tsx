@@ -7,6 +7,7 @@ import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { BadgeActions } from "@/components/public/BadgeActions";
 import { EVENT } from "@/lib/constants";
+import { CATEGORIES } from "@/lib/categories";
 import { findParticipantByQrCode } from "@/lib/repository";
 
 export const metadata: Metadata = { title: "Mon badge" };
@@ -21,6 +22,7 @@ export default async function BadgePage({
   if (!participant || !["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) notFound();
   const teamName =
     "team" in participant ? participant.team?.name : participant.teamName;
+  const category = CATEGORIES[participant.category ?? "HACKATHON"];
 
   const qrDataUrl = await QRCode.toDataURL(qrCode, {
     width: 260,
@@ -37,15 +39,15 @@ export default async function BadgePage({
       </div>
       <div className="badge-wrap">
         <div className="badge-intro"><span className="eyebrow">Confirmé·e</span><h1 className="display">Ton pass pour<br /><span className="grad-text-lt">le jour J.</span></h1></div>
-        <div className="badge" id="participant-badge">
+        <div className="badge" id="participant-badge" style={{ ["--cat" as string]: category.color }}>
           <div className="lanyard-hole" />
           <div className="inner">
             <div className="bmesh"><span className="bg1" /><span className="bg2" /><span className="bg3" /></div>
             <div className="content">
               <div className="topbar"><Logo size={125} /></div>
-              <div className="role-pill">● Compétiteur officiel</div>
-              <h2 className="pname">{participant.fullName}</h2>
-              <p className="ptag">{teamName ? `Équipe · ${teamName} · ` : ""}{participant.city}</p>
+              <div className="role-pill role-pill-cat">● {category.label}</div>
+              <h2 className="pname pname-cat">{participant.fullName}</h2>
+              <p className="ptag">{teamName ? `Équipe · ${teamName}` : category.tagline}</p>
               <div className="qr-box"><Image src={qrDataUrl} alt={`QR code ${qrCode}`} width={220} height={220} unoptimized /></div>
               <div className="meta"><div><div className="lab">Date</div><div className="val">{EVENT.date}</div></div><div style={{ textAlign: "right" }}><div className="lab">Lieu</div><div className="val">{EVENT.venue}</div></div></div>
             </div>

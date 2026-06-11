@@ -137,6 +137,19 @@
   color: #050807;
 }
 
+/* Category-coloured pass label, so each pass type is instantly recognisable. */
+.badge .role-pill-cat {
+  background: var(--cat, var(--purple-lt));
+  color: #050807;
+}
+
+/* Coloured accent under the holder's name, matching the pass category. */
+.badge .pname-cat {
+  padding-bottom: 8px;
+  border-bottom: 4px solid var(--cat, var(--purple-lt));
+  display: inline-block;
+}
+
 .badge .ptag {
   font-size: 16px;
   color: #555;
