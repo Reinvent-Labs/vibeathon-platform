@@ -16,6 +16,13 @@ enum ParticipantStatus {
   CHECKED_IN
 }
 
+enum ParticipantCategory {
+  HACKATHON
+  VISITEUR
+  FORMATION_ADULTE
+  FORMATION_KIDS
+}
+
 enum AdminRole {
   SUPER_ADMIN
   ADMIN
@@ -92,12 +99,13 @@ model Participant {
   id             String             @id @default(cuid())
   competitionId  String
   reference      String             @unique
+  category       ParticipantCategory @default(HACKATHON)
   fullName       String
   email          String
   phone          String
-  city           String
-  profile        String
-  motivation     String
+  city           String             @default("")
+  profile        String             @default("")
+  motivation     String             @default("")
   source         String?
   age            String?
   gender         String?

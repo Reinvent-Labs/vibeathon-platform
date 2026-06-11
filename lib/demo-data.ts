@@ -9,6 +9,7 @@ export type DemoParticipantStatus =
 export type DemoParticipant = {
   id: string;
   reference: string;
+  category?: import("@/lib/categories").ParticipantCategory;
   fullName: string;
   email: string;
   phone: string;
