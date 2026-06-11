@@ -111,6 +111,10 @@ export async function PATCH(request: Request) {
             nextStatus === "SELECTED"
               ? "Ton dossier VIBEATHON est accepté · paiement en attente"
               : "Résultat de ta candidature VIBEATHON 2026",
+          text:
+            nextStatus === "SELECTED"
+              ? `Félicitations ${participant.fullName}, ton dossier VIBEATHON est accepté. Finalise le paiement pour confirmer ta place : ${statusUrl}`
+              : `Bonjour ${participant.fullName}, merci pour ta candidature. Ton dossier n'a pas été retenu cette année. Consulte ton statut : ${statusUrl}`,
           html:
             nextStatus === "SELECTED"
               ? emailTemplates.selection(participant.fullName, statusUrl, appUrl)

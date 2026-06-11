@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       participantId: participant.id,
       to: participant.email,
       subject: "Candidature VIBEATHON 2026 reçue",
+      text: `Bonjour ${participant.fullName}, ta candidature VIBEATHON a bien été enregistrée. Référence : ${participant.reference}. Suivi : ${appBaseUrl()}/statut`,
       html: emailTemplates.registration(
         participant.fullName,
         participant.reference,

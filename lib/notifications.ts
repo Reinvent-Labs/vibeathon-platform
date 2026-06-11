@@ -6,6 +6,7 @@ type EmailInput = {
   participantId?: string;
   to: string;
   subject: string;
+  text?: string;
   html: string;
   template: string;
   attachments?: {
@@ -62,7 +63,9 @@ export async function sendEmail(input: EmailInput) {
       const result = await resend.emails.send({
         from: emailFrom(),
         to: input.to,
+        replyTo: process.env.SMTP_USER,
         subject: input.subject,
+        text: input.text,
         html: input.html,
         attachments: input.attachments,
       });
@@ -72,7 +75,9 @@ export async function sendEmail(input: EmailInput) {
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
+        replyTo: process.env.SMTP_USER,
         subject: input.subject,
+        text: input.text,
         html: input.html,
         attachments: input.attachments,
       });

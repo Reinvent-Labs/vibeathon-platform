@@ -24,3 +24,4 @@
 - Configured Hostinger SMTP delivery for contact@vibeathonci.com and enforced STARTTLS for transactional emails.
 - Rebuilt the browser and installable-app icons directly from the VIBEATHON logo and added the Reinvent Labs credit to the public footer.
 - Added branded transactional email templates, WhatsApp template mappings, admin campaign sends, and QR badge attachments after confirmed payment.
+- Improved email deliverability with multipart text/HTML messages and an explicit reply address.

@@ -70,6 +70,7 @@ export async function POST(request: Request) {
         if (body.templateKey === "results-available") {
           return {
             subject: "Les résultats VIBEATHON 2026 sont disponibles",
+            text: `Bonjour ${participant.fullName}, les résultats VIBEATHON 2026 sont disponibles. Consulte ton statut : ${statusUrl}`,
             html: emailTemplates.resultsAvailable(
               participant.fullName,
               statusUrl,
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
         if (body.templateKey === "accepted-payment") {
           return {
             subject: "Ton dossier VIBEATHON est accepté · paiement en attente",
+            text: `Félicitations ${participant.fullName}, ton dossier est accepté. Finalise le paiement pour confirmer ta place : ${statusUrl}`,
             html: emailTemplates.selection(
               participant.fullName,
               statusUrl,
@@ -90,6 +92,7 @@ export async function POST(request: Request) {
         if (body.templateKey === "payment-confirmed") {
           return {
             subject: "Ton badge VIBEATHON 2026 est prêt",
+            text: `Bonjour ${participant.fullName}, ton paiement est confirmé. Ton badge QR est disponible ici : ${badgeUrl}`,
             html: emailTemplates.paymentConfirmed({
               name: participant.fullName,
               reference: participant.reference,
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
         if (body.templateKey === "bootcamp-info") {
           return {
             subject: "Infos pratiques VIBEATHON 2026",
+            text: `Bonjour ${participant.fullName}, ta participation est confirmée. Prépare ton ordinateur, ton chargeur, une pièce d'identité et ton badge QR : ${badgeUrl}`,
             html: emailTemplates.bootcampInfo(
               participant.fullName,
               badgeUrl,
@@ -111,17 +115,20 @@ export async function POST(request: Request) {
         if (body.templateKey === "event-reminder") {
           return {
             subject: "Rappel VIBEATHON 2026 · ton badge à préparer",
+            text: `Bonjour ${participant.fullName}, VIBEATHON approche. Prépare ton badge QR : ${badgeUrl}`,
             html: emailTemplates.reminder(participant.fullName, badgeUrl, appUrl),
           };
         }
         if (body.templateKey === "custom") {
           return {
             subject: body.subject!,
+            text: `Bonjour ${participant.fullName},\n\n${body.message!}`,
             html: emailTemplates.custom(participant.fullName, body.message!, appUrl),
           };
         }
         return {
           subject: "Rappel paiement VIBEATHON 2026",
+          text: `Bonjour ${participant.fullName}, ton dossier est accepté mais ton paiement reste en attente. Confirme ta place ici : ${statusUrl}`,
           html: emailTemplates.paymentReminder(
             participant.fullName,
             statusUrl,
@@ -134,6 +141,7 @@ export async function POST(request: Request) {
         participantId: participant.id,
         to: participant.email,
         subject: campaign.subject,
+        text: campaign.text,
         html: campaign.html,
         template: body.templateKey,
         attachments: qrAttachment,

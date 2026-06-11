@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       participantId: participant.id,
       to: participant.email,
       subject: "Ton badge VIBEATHON 2026 est prêt",
+      text: `Bonjour ${participant.fullName}, ton paiement est confirmé. Ton badge QR VIBEATHON est disponible ici : ${badgeUrl}`,
       html: emailTemplates.paymentConfirmed({
         name: participant.fullName,
         reference: participant.reference,
