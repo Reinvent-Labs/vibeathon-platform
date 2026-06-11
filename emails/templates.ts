@@ -173,6 +173,32 @@ export const emailTemplates = {
       action: { label: "Afficher mon badge", url: badgeUrl },
     }),
 
+  badgeReady: ({
+    name,
+    reference,
+    badgeUrl,
+    appUrl,
+    categoryLabel,
+  }: {
+    name: string;
+    reference: string;
+    badgeUrl: string;
+    appUrl: string;
+    categoryLabel: string;
+  }) =>
+    frame({
+      appUrl,
+      eyebrow: `Pass ${categoryLabel}`,
+      title: "Ton badge est prêt",
+      introduction: `Bonjour ${name}, ton inscription VIBEATHON 2026 (${categoryLabel}) est confirmée. Voici ton badge d'accès.`,
+      content: `<div style="padding:24px;border:1px solid #2b3732;border-radius:20px;background:#ffffff;text-align:center">
+          <img src="cid:vibeathon-qr" width="230" height="230" alt="QR code du badge ${escapeHtml(reference)}" style="display:block;width:230px;max-width:100%;height:auto;margin:0 auto">
+          <p style="margin:14px 0 0;color:#050807;font-family:monospace;font-size:13px;font-weight:700">${escapeHtml(reference)}</p>
+        </div>
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.6">Conserve cet email et présente ce QR code à l'accueil le jour J. Tu peux aussi télécharger la version complète de ton badge.</p>`,
+      action: { label: "Afficher mon badge", url: badgeUrl },
+    }),
+
   reminder: (name: string, badgeUrl: string, appUrl: string) =>
     frame({
       appUrl,

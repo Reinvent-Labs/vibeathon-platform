@@ -2,6 +2,7 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { initializePaiementPro } from "@/lib/paiementpro";
 import { findParticipantById } from "@/lib/repository";
 import { paymentInitSchema } from "@/lib/validation";
+import { CATEGORIES } from "@/lib/categories";
 
 export async function POST(request: Request) {
   const body = await readJson<unknown>(request);
@@ -14,8 +15,16 @@ export async function POST(request: Request) {
     return apiError("Ce dossier n'est pas éligible au paiement.", 409);
   }
 
+  const config = CATEGORIES[participant.category ?? "HACKATHON"];
+  if (config.fee === 0) {
+    return apiError("Ce pass est gratuit, aucun paiement n'est requis.", 409);
+  }
+
   try {
-    const payment = await initializePaiementPro(participant, parsed.data.channel);
+    const payment = await initializePaiementPro(participant, parsed.data.channel, {
+      amount: config.fee,
+      description: `${config.label} · ${"VIBEATHON 2026"}`,
+    });
     if (!payment.success) {
       return apiError(
         ("message" in payment ? payment.message : undefined) ??

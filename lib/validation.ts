@@ -16,6 +16,13 @@ export const registrationSchema = z.object({
   source: z.string().trim().max(120).optional().default(""),
 });
 
+export const ticketSchema = z.object({
+  category: z.enum(["VISITEUR", "FORMATION_ADULTE", "FORMATION_KIDS"]),
+  fullName: z.string().trim().min(3).max(120),
+  email: z.email().transform((value) => value.toLowerCase()),
+  phone: z.string().trim().min(8).max(30),
+});
+
 export const statusLookupSchema = z.object({
   email: z.email().transform((value) => value.toLowerCase()),
 });

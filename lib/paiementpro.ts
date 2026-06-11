@@ -14,15 +14,18 @@ type PaymentParticipant = {
 export async function initializePaiementPro(
   participant: PaymentParticipant,
   channel: string,
+  options: { amount?: number; description?: string } = {},
 ) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const merchantId = process.env.PAIEMENTPRO_MERCHANT_ID ?? "PP-F92248";
   const [firstName, ...lastNameParts] = participant.fullName.split(" ");
+  const amount = options.amount ?? EVENT.fee;
+  const description = options.description ?? `Participation ${EVENT.name}`;
 
   const payload = {
     merchantId,
-    amount: EVENT.fee,
-    description: `Participation ${EVENT.name}`,
+    amount,
+    description,
     channel,
     countryCurrencyCode: "952",
     referenceNumber: participant.reference,

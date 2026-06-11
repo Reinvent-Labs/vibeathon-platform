@@ -48,6 +48,15 @@ export const whatsAppMessages = {
       buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
+  badgeReady: (name: string, badgeUrl: string, categoryLabel: string) => ({
+    message: `Bonjour ${name}, ton inscription VIBEATHON 2026 (${categoryLabel}) est confirmée. Ton badge QR est prêt : ${badgeUrl}`,
+    waTemplate: {
+      name: WHATSAPP_TEMPLATE_NAMES.paymentConfirmed,
+      languageCode: "fr",
+      bodyParams: [name],
+      buttonUrlParams: [urlToken(badgeUrl)],
+    },
+  }),
   paymentConfirmed: (name: string, badgeUrl: string) => ({
     message: `Paiement confirmé, ${name}. Ton badge QR VIBEATHON est prêt : ${badgeUrl}`,
     waTemplate: {

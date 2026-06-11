@@ -7,6 +7,7 @@ import {
 } from "@/lib/demo-data";
 import type { z } from "zod";
 import type { registrationSchema } from "@/lib/validation";
+import { CATEGORIES, type OpenCategory } from "@/lib/categories";
 
 type RegistrationInput = z.infer<typeof registrationSchema>;
 
@@ -65,6 +66,90 @@ export async function createParticipant(
     ...input,
     source: input.source ?? "",
     status: "PENDING",
+    createdAt: new Date().toISOString(),
+  };
+  runtimeParticipants.set(input.email, participant);
+  return participant;
+}
+
+type TicketInput = {
+  category: OpenCategory;
+  fullName: string;
+  email: string;
+  phone: string;
+};
+
+/**
+ * Register a visitor / formation participant (the categories open to the
+ * public). Free passes (fee 0) are created CONFIRMED so the badge can be sent
+ * immediately; paid passes are created SELECTED, becoming CONFIRMED after the
+ * PaiementPro webhook fires. The QR code carries the category letter
+ * (e.g. VBT-2026-V-1234) so the scanner can distinguish pass types.
+ */
+export async function createTicketParticipant(
+  input: TicketInput,
+): Promise<DemoParticipant> {
+  const config = CATEGORIES[input.category];
+  const status: DemoParticipantStatus = config.fee === 0 ? "CONFIRMED" : "SELECTED";
+
+  if (prisma) {
+    const competition = await prisma.competition.findUnique({
+      where: { slug: "vibeathon-2026" },
+    });
+    if (!competition) {
+      throw new Error("L'événement n'est pas encore configuré.");
+    }
+
+    const existing = await prisma.participant.findFirst({
+      where: {
+        competitionId: competition.id,
+        email: { equals: input.email, mode: "insensitive" },
+      },
+    });
+    if (existing) {
+      throw new Error("Une inscription existe déjà pour cet email.");
+    }
+
+    const reference = buildReference();
+    const participant = await prisma.participant.create({
+      data: {
+        competitionId: competition.id,
+        reference,
+        qrCode: reference.replace("-2026-", `-2026-${config.qrLetter}-`),
+        category: input.category,
+        fullName: input.fullName,
+        email: input.email,
+        phone: input.phone,
+        profile: config.label,
+        status,
+        confirmedAt: status === "CONFIRMED" ? new Date() : null,
+      },
+    });
+    return {
+      ...participant,
+      status: participant.status as DemoParticipantStatus,
+      source: participant.source ?? "",
+      createdAt: participant.createdAt.toISOString(),
+    };
+  }
+
+  if (runtimeParticipants.has(input.email)) {
+    throw new Error("Une inscription existe déjà pour cet email.");
+  }
+  const reference = buildReference();
+  const participant: DemoParticipant = {
+    id: randomUUID(),
+    reference,
+    qrCode: reference.replace("-2026-", `-2026-${config.qrLetter}-`),
+    category: input.category,
+    fullName: input.fullName,
+    email: input.email,
+    phone: input.phone,
+    city: "",
+    profile: config.label,
+    motivation: "",
+    source: "",
+    status,
     createdAt: new Date().toISOString(),
   };
   runtimeParticipants.set(input.email, participant);
