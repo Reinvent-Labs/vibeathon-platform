@@ -1,0 +1,16 @@
+# The host-level Caddy service owns ports 80/443 on labtest.
+# Keep both names active while DNS caches expire.
+vibeathonci.com, www.vibeathonci.com {
+    encode gzip zstd
+
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options nosniff
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=()"
+        -Server
+    }
+
+    reverse_proxy 127.0.0.1:3003
+}

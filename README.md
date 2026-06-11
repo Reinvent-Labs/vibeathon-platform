@@ -87,6 +87,19 @@ restarts only the VIBEATHON app service.
 The server deployment uses `APP_PORT=3003` to avoid the existing services on
 ports 3000–3002.
 
+The public production URL is `https://www.vibeathonci.com`. The Hostinger DNS
+zone must contain:
+
+```text
+Type  Host  Value
+A     @     37.27.11.67
+A     www   37.27.11.67
+```
+
+Remove any `www` CNAME targeting Vercel before adding the `www` A record. Keep
+the mail MX, SPF, DKIM, and DMARC records unchanged. The host-level Caddy block
+used on `labtest` is stored in `deploy/labtest/Caddyfile.vibeathon`.
+
 ## Staff authentication
 
 The seed command creates the first admin using `ADMIN_EMAIL` and
