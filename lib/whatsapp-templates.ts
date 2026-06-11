@@ -38,7 +38,7 @@ export const whatsAppMessages = {
       `Pour verrouiller ta place, règle tes frais de participation de *20 000 FCFA* avant le *mardi 16 juin* ⏳\n` +
       `👉 ${statusUrl}\n\n` +
       `Sans paiement à temps, ta place ira à la liste d'attente. On compte sur toi ! 💚\n` +
-      `— L'équipe VIBEATHON`,
+      `L'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.accepted,
       languageCode: "fr",
@@ -50,9 +50,10 @@ export const whatsAppMessages = {
     message:
       `Salut ${name} 👋\n\n` +
       `Merci pour ta candidature à la compétition Vibe Coding du VIBEATHON CI 2026 🙌\n\n` +
-      `Tu es sur notre *liste d'attente* ⏳. Des places peuvent se libérer très vite — garde un œil sur tes messages 👀\n\n` +
+      `Tu es sur notre *liste d'attente* ⏳. Des places peuvent se libérer très vite, garde un œil sur tes messages 👀\n\n` +
+      `👉 ${statusUrl}\n\n` +
       `On te prévient dès qu'une place s'ouvre ! 💚\n` +
-      `— L'équipe VIBEATHON`,
+      `L'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
       languageCode: "fr",
@@ -66,7 +67,7 @@ export const whatsAppMessages = {
       `Merci d'avoir candidaté à la compétition Vibe Coding du VIBEATHON CI 2026 🙏\n\n` +
       `Ta candidature n'a pas été retenue pour la compétition cette fois, mais l'aventure continue ! Rejoins-nous pour les *keynotes, panels et ateliers* 🎤✨\n` +
       `👉 ${appUrl}\n\n` +
-      `À très vite,\n— L'équipe VIBEATHON`,
+      `À très vite,\nL'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
       languageCode: "fr",
