@@ -18,6 +18,23 @@ import { toast } from "sonner";
 import type { DemoParticipant, DemoParticipantStatus } from "@/lib/demo-data";
 import { demoTeams } from "@/lib/demo-data";
 import { EVENT, EVENT_SESSIONS, JUDGING_CRITERIA } from "@/lib/constants";
+import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
+
+const CATEGORY_FILTERS: ({ value: "ALL" } | { value: ParticipantCategory })[] = [
+  { value: "ALL" },
+  { value: "HACKATHON" },
+  { value: "VISITEUR" },
+  { value: "FORMATION_ADULTE" },
+  { value: "FORMATION_KIDS" },
+];
+
+function categoryLabel(category?: ParticipantCategory | null) {
+  return CATEGORIES[category ?? "HACKATHON"].label;
+}
+
+function categoryColor(category?: ParticipantCategory | null) {
+  return CATEGORIES[category ?? "HACKATHON"].color;
+}
 
 type AdminDashboardProps = {
   section: string;
@@ -58,6 +75,7 @@ export function AdminDashboard({
   const [participants, setParticipants] = useState<DemoParticipant[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<"ALL" | ParticipantCategory>("ALL");
   const [focusedParticipant, setFocusedParticipant] =
     useState<DemoParticipant | null>(null);
 
@@ -70,12 +88,27 @@ export function AdminDashboard({
 
   const filtered = useMemo(() => {
     const normalized = query.toLowerCase();
-    return participants.filter((participant) =>
-      `${participant.fullName} ${participant.email} ${participant.profile}`
+    return participants.filter((participant) => {
+      const matchesCategory =
+        categoryFilter === "ALL" ||
+        (participant.category ?? "HACKATHON") === categoryFilter;
+      const matchesQuery = `${participant.fullName} ${participant.email} ${participant.profile}`
         .toLowerCase()
-        .includes(normalized),
-    );
-  }, [participants, query]);
+        .includes(normalized);
+      return matchesCategory && matchesQuery;
+    });
+  }, [participants, query, categoryFilter]);
+
+  async function sendBadge(id: string) {
+    const response = await fetch("/api/admin/participants/send-badge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const payload = await response.json();
+    if (!payload.success) return toast.error(payload.error);
+    toast.success("Badge renvoyé par email et WhatsApp.");
+  }
 
   async function changeStatus(
     status: DemoParticipantStatus,
@@ -138,9 +171,12 @@ export function AdminDashboard({
             selected={selected}
             query={query}
             onQuery={setQuery}
+            categoryFilter={categoryFilter}
+            onCategoryFilter={setCategoryFilter}
             onSelected={setSelected}
             onStatus={changeStatus}
             onOpen={setFocusedParticipant}
+            onSendBadge={sendBadge}
             confirmedOnly={section === "participants"}
           />
         ) : section === "equipes" ? (
@@ -168,6 +204,7 @@ export function AdminDashboard({
           onStatus={(status) =>
             void changeStatus(status, [focusedParticipant.id])
           }
+          onSendBadge={() => void sendBadge(focusedParticipant.id)}
         />
       ) : null}
     </>
@@ -283,28 +320,53 @@ function ParticipantTable({
   selected,
   query,
   onQuery,
+  categoryFilter,
+  onCategoryFilter,
   onSelected,
   onStatus,
   onOpen,
+  onSendBadge,
   confirmedOnly,
 }: {
   participants: DemoParticipant[];
   selected: string[];
   query: string;
   onQuery: (value: string) => void;
+  categoryFilter: "ALL" | ParticipantCategory;
+  onCategoryFilter: (value: "ALL" | ParticipantCategory) => void;
   onSelected: (value: string[]) => void;
   onStatus: (status: DemoParticipantStatus) => void;
   onOpen: (participant: DemoParticipant) => void;
+  onSendBadge: (id: string) => void;
   confirmedOnly: boolean;
 }) {
   const rows = confirmedOnly
     ? participants.filter((item) => ["PAID", "CONFIRMED"].includes(item.status))
     : participants;
+  const canSendBadge = (status: string) =>
+    ["PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
   return (
     <div className="panel">
       <div className="phead">
         <h3>{confirmedOnly ? "Participants confirmés" : "Tous les dossiers"}</h3>
         <label className="cluster"><Search size={16} /><input className="input" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Rechercher..." /></label>
+      </div>
+      <div className="cat-filter">
+        {CATEGORY_FILTERS.map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            className={`cat-chip ${categoryFilter === filter.value ? "active" : ""}`}
+            style={
+              filter.value === "ALL"
+                ? undefined
+                : { ["--cat" as string]: categoryColor(filter.value) }
+            }
+            onClick={() => onCategoryFilter(filter.value)}
+          >
+            {filter.value === "ALL" ? "Tous" : categoryLabel(filter.value)}
+          </button>
+        ))}
       </div>
       <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
         <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
@@ -314,15 +376,25 @@ function ParticipantTable({
       </div>
       <div className="table-wrap">
         <table className="data-table">
-          <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Profil</th><th>Ville</th><th>Statut</th><th>Référence</th><th>Dossier</th></tr></thead>
+          <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Catégorie</th><th>Statut</th><th>Référence</th><th>Actions</th></tr></thead>
           <tbody>{rows.map((participant) => (
             <tr key={participant.id}>
               <td><input type="checkbox" checked={selected.includes(participant.id)} onChange={(event) => onSelected(event.target.checked ? [...selected, participant.id] : selected.filter((id) => id !== participant.id))} /></td>
               <td><b>{participant.fullName}</b><br /><small>{participant.email}</small></td>
-              <td>{participant.profile}</td><td>{participant.city}</td>
+              <td><span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category) }}>{categoryLabel(participant.category)}</span></td>
               <td><span className={`status-pill ${participant.status.toLowerCase()}`}>{statusLabels[participant.status]}</span></td>
               <td>{participant.reference}</td>
-              <td><button className="btn btn-ghost review-button" onClick={() => onOpen(participant)}><Eye size={16} /> Voir</button></td>
+              <td>
+                <div className="cluster" style={{ gap: 8 }}>
+                  <button className="btn btn-ghost review-button" onClick={() => onOpen(participant)}><Eye size={16} /> Voir</button>
+                  {canSendBadge(participant.status) ? (
+                    <>
+                      <Link className="btn btn-ghost" href={`/badge/${participant.qrCode}`} target="_blank"><Eye size={16} /> Badge</Link>
+                      <button className="btn btn-ghost" onClick={() => onSendBadge(participant.id)}><Send size={16} /> Envoyer</button>
+                    </>
+                  ) : null}
+                </div>
+              </td>
             </tr>
           ))}</tbody>
         </table>
@@ -335,15 +407,20 @@ function ParticipantReview({
   participant,
   onClose,
   onStatus,
+  onSendBadge,
 }: {
   participant: DemoParticipant;
   onClose: () => void;
   onStatus: (status: DemoParticipantStatus) => void;
+  onSendBadge: () => void;
 }) {
+  const isHackathon = (participant.category ?? "HACKATHON") === "HACKATHON";
   const canDecide =
-    participant.status === "PENDING" || participant.status === "REJECTED";
+    isHackathon &&
+    (participant.status === "PENDING" || participant.status === "REJECTED");
   const canReset =
-    participant.status === "SELECTED" || participant.status === "REJECTED";
+    isHackathon &&
+    (participant.status === "SELECTED" || participant.status === "REJECTED");
   const details = [
     ["Téléphone", participant.phone],
     ["Ville", participant.city],
@@ -373,6 +450,7 @@ function ParticipantReview({
             <span className="eyebrow">Dossier {participant.reference}</span>
             <h2 id="participant-review-title">{participant.fullName}</h2>
             <p>{participant.email}</p>
+            <span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category), marginTop: 8, display: "inline-block" }}>{categoryLabel(participant.category)}</span>
           </div>
           <button className="icon-btn" aria-label="Fermer le dossier" onClick={onClose}>
             <X size={18} />
@@ -401,28 +479,32 @@ function ParticipantReview({
           </dl>
         </section>
 
-        <section>
-          <h3>Motivation</h3>
-          <p className="review-motivation">{participant.motivation}</p>
-        </section>
+        {isHackathon && participant.motivation ? (
+          <section>
+            <h3>Motivation</h3>
+            <p className="review-motivation">{participant.motivation}</p>
+          </section>
+        ) : null}
 
-        <section>
-          <h3>Vérifications avant sélection</h3>
-          <div className="review-checks">
-            <span className={participant.conditionsAccepted ? "ok" : "warning"}>
-              {participant.conditionsAccepted ? "✓" : "!"} Conditions acceptées
-            </span>
-            <span className={participant.declarationAccepted ? "ok" : "warning"}>
-              {participant.declarationAccepted ? "✓" : "!"} Déclaration confirmée
-            </span>
-            <span className={participant.fullProgramAvailable ? "ok" : "warning"}>
-              {participant.fullProgramAvailable ? "✓" : "!"} Disponible pour tout le programme
-            </span>
-            <span className={participant.incubationCommitment ? "ok" : "warning"}>
-              {participant.incubationCommitment ? "✓" : "!"} Engagement incubation
-            </span>
-          </div>
-        </section>
+        {isHackathon ? (
+          <section>
+            <h3>Vérifications avant sélection</h3>
+            <div className="review-checks">
+              <span className={participant.conditionsAccepted ? "ok" : "warning"}>
+                {participant.conditionsAccepted ? "✓" : "!"} Conditions acceptées
+              </span>
+              <span className={participant.declarationAccepted ? "ok" : "warning"}>
+                {participant.declarationAccepted ? "✓" : "!"} Déclaration confirmée
+              </span>
+              <span className={participant.fullProgramAvailable ? "ok" : "warning"}>
+                {participant.fullProgramAvailable ? "✓" : "!"} Disponible pour tout le programme
+              </span>
+              <span className={participant.incubationCommitment ? "ok" : "warning"}>
+                {participant.incubationCommitment ? "✓" : "!"} Engagement incubation
+              </span>
+            </div>
+          </section>
+        ) : null}
 
         <footer>
           {canDecide ? (
@@ -449,9 +531,14 @@ function ParticipantReview({
             </p>
           ) : null}
           {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? (
-            <Link className="btn btn-ghost" href={`/badge/${participant.qrCode}`}>
-              Voir le badge
-            </Link>
+            <>
+              <Link className="btn btn-ghost" href={`/badge/${participant.qrCode}`} target="_blank">
+                <Eye size={16} /> Voir / imprimer le badge
+              </Link>
+              <button className="btn btn-grad" onClick={onSendBadge}>
+                <Send size={16} /> Renvoyer le badge
+              </button>
+            </>
           ) : null}
         </footer>
       </aside>

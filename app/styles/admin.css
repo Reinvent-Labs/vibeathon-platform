@@ -159,3 +159,24 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   .participant-review { padding:20px 16px 90px; }
   .review-grid,.review-checks { grid-template-columns:1fr; }
 }
+
+/* ---- Category filter chips + tags ---- */
+.cat-filter { display:flex; flex-wrap:wrap; gap:8px; padding: 0 0 16px; }
+.cat-chip {
+  cursor:pointer; padding: 6px 14px; border-radius: var(--r-pill, 100px);
+  background: var(--bg-2); border:1px solid var(--line); color: var(--ink-soft);
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:600; transition: all .15s ease;
+}
+.cat-chip:hover { color: var(--ink); border-color: var(--line); }
+.cat-chip.active {
+  color: #050807;
+  background: var(--cat, var(--ink));
+  border-color: var(--cat, var(--ink));
+}
+.cat-tag {
+  display:inline-block; padding: 3px 10px; border-radius: var(--r-pill, 100px);
+  font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+  color: var(--cat, var(--ink));
+  background: color-mix(in srgb, var(--cat, #888) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat, #888) 40%, transparent);
+}
