@@ -30,6 +30,51 @@ export const whatsAppMessages = {
       buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
+  // --- Competition decision messages (cooler, emoji-rich) ---
+  competitionSelected: (name: string, statusUrl: string) => ({
+    message:
+      `🎉 FÉLICITATIONS ${name} ! 🚀\n\n` +
+      `Tu fais partie des *100 sélectionnés* pour la compétition Vibe Coding du VIBEATHON Côte d'Ivoire 2026 ! 🇨🇮🔥\n\n` +
+      `Pour verrouiller ta place, règle tes frais de participation de *20 000 FCFA* avant le *mardi 16 juin* ⏳\n` +
+      `👉 ${statusUrl}\n\n` +
+      `Sans paiement à temps, ta place ira à la liste d'attente. On compte sur toi ! 💚\n` +
+      `— L'équipe VIBEATHON`,
+    waTemplate: {
+      name: WHATSAPP_TEMPLATE_NAMES.accepted,
+      languageCode: "fr",
+      bodyParams: [name],
+      buttonUrlParams: [encodeURIComponent(name)],
+    },
+  }),
+  competitionWaitlist: (name: string, statusUrl: string) => ({
+    message:
+      `Salut ${name} 👋\n\n` +
+      `Merci pour ta candidature à la compétition Vibe Coding du VIBEATHON CI 2026 🙌\n\n` +
+      `Tu es sur notre *liste d'attente* ⏳. Des places peuvent se libérer très vite — garde un œil sur tes messages 👀\n\n` +
+      `On te prévient dès qu'une place s'ouvre ! 💚\n` +
+      `— L'équipe VIBEATHON`,
+    waTemplate: {
+      name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
+      languageCode: "fr",
+      bodyParams: [name],
+      buttonUrlParams: [encodeURIComponent(name)],
+    },
+  }),
+  competitionRejected: (name: string, _statusUrl: string, appUrl: string) => ({
+    message:
+      `Salut ${name} 👋\n\n` +
+      `Merci d'avoir candidaté à la compétition Vibe Coding du VIBEATHON CI 2026 🙏\n\n` +
+      `Ta candidature n'a pas été retenue pour la compétition cette fois, mais l'aventure continue ! Rejoins-nous pour les *keynotes, panels et ateliers* 🎤✨\n` +
+      `👉 ${appUrl}\n\n` +
+      `À très vite,\n— L'équipe VIBEATHON`,
+    waTemplate: {
+      name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
+      languageCode: "fr",
+      bodyParams: [name],
+      buttonUrlParams: [encodeURIComponent(name)],
+    },
+  }),
+
   accepted: (name: string, statusUrl: string) => ({
     message: `Félicitations ${name}, ton dossier VIBEATHON est accepté. Vérifie ton statut et finalise le paiement ici : ${statusUrl}`,
     waTemplate: {

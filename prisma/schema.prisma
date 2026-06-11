@@ -9,6 +9,7 @@ datasource db {
 
 enum ParticipantStatus {
   PENDING
+  WAITLIST
   SELECTED
   REJECTED
   PAID

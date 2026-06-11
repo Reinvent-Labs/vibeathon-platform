@@ -61,6 +61,7 @@ type EligibleMember = {
 
 const statusLabels: Record<DemoParticipantStatus, string> = {
   PENDING: "Inscrit · à examiner",
+  WAITLIST: "Liste d'attente",
   SELECTED: "Accepté · paiement en attente",
   PAID: "Accepté · paiement validé",
   CONFIRMED: "Accepté · participant officiel",
@@ -143,6 +144,7 @@ export function AdminDashboard({
   const counts = {
     total: participants.length,
     pending: participants.filter((item) => item.status === "PENDING").length,
+    waitlist: participants.filter((item) => item.status === "WAITLIST").length,
     selected: participants.filter((item) => item.status === "SELECTED").length,
     paid: participants.filter((item) => item.status === "PAID").length,
     confirmed: participants.filter((item) =>
@@ -371,8 +373,8 @@ function ParticipantTable({
       <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
         <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
         <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
+        <button className="btn btn-ghost" onClick={() => void onStatus("WAITLIST")}><Mail size={16} /> Liste d&apos;attente</button>
         <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
-        <button className="btn btn-ghost"><Mail size={16} /> Notifier</button>
       </div>
       <div className="table-wrap">
         <table className="data-table">
@@ -417,10 +419,10 @@ function ParticipantReview({
   const isHackathon = (participant.category ?? "HACKATHON") === "HACKATHON";
   const canDecide =
     isHackathon &&
-    (participant.status === "PENDING" || participant.status === "REJECTED");
+    ["PENDING", "WAITLIST", "REJECTED"].includes(participant.status);
   const canReset =
     isHackathon &&
-    (participant.status === "SELECTED" || participant.status === "REJECTED");
+    ["SELECTED", "WAITLIST", "REJECTED"].includes(participant.status);
   const details = [
     ["Téléphone", participant.phone],
     ["Ville", participant.city],
@@ -510,8 +512,13 @@ function ParticipantReview({
           {canDecide ? (
             <>
               <button className="btn btn-grad" onClick={() => onStatus("SELECTED")}>
-                <Check size={16} /> Accepter · paiement attendu
+                <Check size={16} /> {participant.status === "WAITLIST" ? "Promouvoir · accepter" : "Accepter · paiement attendu"}
               </button>
+              {participant.status !== "WAITLIST" ? (
+                <button className="btn btn-ghost" onClick={() => onStatus("WAITLIST")}>
+                  <Mail size={16} /> Liste d&apos;attente
+                </button>
+              ) : null}
               <button className="btn btn-ghost" onClick={() => onStatus("REJECTED")}>
                 <X size={16} /> Ne pas retenir
               </button>

@@ -138,6 +138,50 @@ export const emailTemplates = {
       action: { label: "Consulter mon statut", url: statusUrl },
     }),
 
+  /** Official selection email — competition, with payment link + deadline. */
+  competitionSelected: (name: string, statusUrl: string, appUrl: string) =>
+    frame({
+      appUrl,
+      eyebrow: "Sélection · Compétition Vibe Coding",
+      title: "Félicitations, vous êtes sélectionné(e)",
+      introduction: `Bonjour ${name}, nous avons le plaisir de vous informer que votre candidature a été retenue pour participer à la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire 2026.`,
+      content: `<p style="margin:0 0 16px;color:#c9d1ce;font-size:15px;line-height:1.7">Félicitations ! Vous faites partie des 100 participants sélectionnés pour cette première édition.</p>
+        ${infoCard("Frais de participation", "20 000 FCFA")}
+        ${infoCard("Date limite de paiement", "Mardi 16 juin 2026")}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:15px;line-height:1.7">Afin de confirmer définitivement votre participation, réglez vos frais via le bouton ci-dessous au plus tard le mardi 16 juin 2026. Passé ce délai, votre place pourra être attribuée à un candidat figurant sur la liste d'attente.</p>
+        <p style="margin:14px 2px 0;color:#c9d1ce;font-size:15px;line-height:1.7">Les prochaines informations concernant le bootcamp et le déroulement de la compétition vous seront communiquées prochainement. À très bientôt pour cette belle aventure !</p>
+        <p style="margin:14px 2px 0;color:#8d9a95;font-size:14px">L'équipe VIBEATHON Côte d'Ivoire</p>`,
+      action: { label: "Régler mes frais de participation", url: statusUrl },
+    }),
+
+  /** Waitlist email — candidate kept in reserve. */
+  competitionWaitlist: (name: string, statusUrl: string, appUrl: string) =>
+    frame({
+      appUrl,
+      eyebrow: "Liste d'attente · Compétition Vibe Coding",
+      title: "Votre candidature est sur liste d'attente",
+      introduction: `Bonjour ${name}, nous vous remercions pour l'intérêt porté à la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire et pour le temps consacré à votre candidature.`,
+      content: `<p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Après évaluation des dossiers reçus, votre candidature a été placée sur liste d'attente.</p>
+        <p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Compte tenu du nombre important de candidatures et des confirmations de participation encore en cours, des places pourraient se libérer dans les prochains jours. Nous vous invitons donc à rester attentif(ve) à vos emails.</p>
+        <p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Si une place devient disponible, nous vous contacterons directement. Merci encore pour votre intérêt et votre confiance.</p>
+        <p style="margin:14px 2px 0;color:#8d9a95;font-size:14px">L'équipe VIBEATHON Côte d'Ivoire</p>`,
+      action: { label: "Consulter mon statut", url: statusUrl },
+    }),
+
+  /** Rejection email — not retained, invited to public activities. */
+  competitionRejected: (name: string, _statusUrl: string, appUrl: string) =>
+    frame({
+      appUrl,
+      eyebrow: "Résultat · Compétition Vibe Coding",
+      title: "Résultat de votre candidature",
+      introduction: `Bonjour ${name}, nous vous remercions sincèrement pour votre candidature à la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire 2026.`,
+      content: `<p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Après analyse des informations fournies, nous regrettons de vous informer que votre candidature n'a pas été retenue pour cette édition.</p>
+        <p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Cette décision est notamment liée à certains critères de sélection essentiels au bon déroulement du programme, tels que la disponibilité sur l'ensemble du parcours ou les conditions de participation définies dans l'appel à candidatures.</p>
+        <p style="margin:0 0 14px;color:#c9d1ce;font-size:15px;line-height:1.7">Nous vous remercions pour l'intérêt porté à cette initiative et espérons pouvoir vous compter parmi nous pour les autres activités du VIBEATHON, notamment les keynotes, panels et ateliers de formation.</p>
+        <p style="margin:14px 2px 0;color:#8d9a95;font-size:14px">L'équipe VIBEATHON Côte d'Ivoire</p>`,
+      action: { label: "Découvrir les autres activités", url: appUrl },
+    }),
+
   paymentReminder: (name: string, statusUrl: string, appUrl: string) =>
     frame({
       appUrl,

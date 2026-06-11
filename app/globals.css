@@ -172,6 +172,7 @@ button:disabled {
 }
 
 .status-pill.pending { color: #f5d778; }
+.status-pill.waitlist { color: #43d9ff; }
 .status-pill.selected { color: var(--purple-lt); }
 .status-pill.paid,
 .status-pill.confirmed { color: var(--green-lt); }

@@ -1,5 +1,6 @@
 export type DemoParticipantStatus =
   | "PENDING"
+  | "WAITLIST"
   | "SELECTED"
   | "PAID"
   | "CONFIRMED"

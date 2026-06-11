@@ -25,6 +25,12 @@ const statusCopy = {
     description: "Notre équipe étudie ton profil. Tu recevras la décision par email.",
     icon: "…",
   },
+  WAITLIST: {
+    label: "Liste d'attente",
+    description:
+      "Ta candidature est conservée en liste d'attente. Si une place se libère, l'équipe VIBEATHON te contactera directement par email.",
+    icon: "≈",
+  },
   SELECTED: {
     label: "Tu es accepté·e ! Paiement en attente",
     description:
