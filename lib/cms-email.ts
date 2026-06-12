@@ -30,6 +30,14 @@ export async function renderCmsEmail(slug: CmsEmailSlug, vars: TemplateVars) {
         .catch(() => null)
     : null;
   const template = { ...fallback, ...(saved ?? {}) };
+  if (
+    (slug === "paymentConfirmed" || slug === "badgeReady") &&
+    !template.bodyHtml.includes("cid:vibeathon-qr")
+  ) {
+    template.bodyHtml =
+      `<p style="text-align:center"><img src="cid:vibeathon-qr" width="230" height="230" alt="QR code du badge {{reference}}"></p>` +
+      template.bodyHtml;
+  }
   const subject = interpolateTemplate(template.subject, vars);
   const introduction = interpolateTemplate(template.introduction, vars);
   const bodyText = interpolateTemplate(template.bodyHtml, vars)

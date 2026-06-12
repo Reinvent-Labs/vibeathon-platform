@@ -40,3 +40,4 @@
 - Restored TypeScript path resolution for operational scripts executed inside the production tools container.
 - Connected the admin email-template CMS to candidate decisions, payment reminders, payment confirmations, and badge delivery with safe committed fallbacks.
 - Removed the non-functional AI evaluation navigation and redirected its legacy URL to the real jury scoring workflow.
+- Guaranteed that payment-confirmation and badge emails retain their embedded QR image even after rich-text customization.
