@@ -39,3 +39,4 @@
 - Added explicit scanner pass labels and rejection reasons plus attendance lists filterable by session and participant category.
 - Restored TypeScript path resolution for operational scripts executed inside the production tools container.
 - Connected the admin email-template CMS to candidate decisions, payment reminders, payment confirmations, and badge delivery with safe committed fallbacks.
+- Removed the non-functional AI evaluation navigation and redirected its legacy URL to the real jury scoring workflow.

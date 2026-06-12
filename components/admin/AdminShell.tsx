@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  Bot,
   ClipboardList,
   FileText,
   LayoutDashboard,
@@ -21,7 +20,6 @@ const navigation = [
   { href: "/admin/participants", label: "Participants", icon: Users },
   { href: "/admin/equipes", label: "Équipes", icon: Users },
   { href: "/admin/presence", label: "Présence", icon: QrCode },
-  { href: "/admin/evaluation", label: "Évaluation IA", icon: Bot },
   { href: "/admin/jury", label: "Jury & Scores", icon: Star },
   { href: "/admin/communications", label: "Communications", icon: Mail },
   { href: "/admin/contenu", label: "Contenu du site", icon: FileText },

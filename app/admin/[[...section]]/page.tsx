@@ -16,6 +16,9 @@ export default async function AdminPage({
   if (section === "utilisateurs" && user.role !== "SUPER_ADMIN") {
     redirect("/admin");
   }
+  if (section === "evaluation") {
+    redirect("/admin/jury");
+  }
   return (
     <AdminShell active={active} user={user}>
       <AdminDashboard
