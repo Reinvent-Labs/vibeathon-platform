@@ -357,7 +357,7 @@ function ParticipantTable({
         <table className="data-table">
           <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Catégorie</th><th>Statut</th><th>Référence</th><th>Actions</th></tr></thead>
           <tbody>{rows.map((participant) => (
-            <tr key={participant.id}>
+            <tr key={participant.id} data-status={participant.status}>
               <td><input type="checkbox" checked={selected.includes(participant.id)} onChange={(event) => onSelected(event.target.checked ? [...selected, participant.id] : selected.filter((id) => id !== participant.id))} /></td>
               <td><b>{participant.fullName}</b><br /><small>{participant.email}</small></td>
               <td><span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category) }}>{categoryLabel(participant.category)}</span></td>
@@ -505,6 +505,11 @@ function ParticipantReview({
             <button className="btn btn-ghost" onClick={() => onStatus("PENDING")}>
               Remettre en attente
             </button>
+          ) : null}
+          {participant.status === "REJECTED" ? (
+            <Link className="btn btn-ghost" href="/billet" target="_blank" style={{ borderColor: "rgba(255,122,156,.35)", color: "#ff7a9c" }}>
+              🎟 Assister à l&apos;événement (billet visiteur)
+            </Link>
           ) : null}
           {participant.status === "SELECTED" ? (
             <p>

