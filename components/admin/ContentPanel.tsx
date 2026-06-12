@@ -20,15 +20,17 @@ const CONTENT_SECTIONS = [
     id: "hero",
     label: "Héro",
     fields: [
-      { key: "hero.title", label: "Titre principal", multiline: false },
-      { key: "hero.subtitle", label: "Sous-titre", multiline: true },
-      { key: "hero.date", label: "Date", multiline: false },
+      { key: "hero.tagline", label: "Accroche principale (grande)" , multiline: false },
+      { key: "hero.title", label: "Titre section compétition", multiline: false },
+      { key: "hero.subtitle", label: "Description compétition", multiline: true },
+      { key: "hero.eyebrow", label: "Pill d'intro (ex. IA × Environnement · Abidjan)", multiline: false },
+      { key: "hero.date", label: "Date de l'événement", multiline: false },
       { key: "hero.venue", label: "Lieu", multiline: false },
     ],
   },
   {
     id: "stats",
-    label: "Chiffres clés",
+    label: "Chiffres",
     fields: [
       { key: "stats.participants", label: "Nombre d'inscrits", multiline: false },
       { key: "stats.competitors", label: "Nombre de compétiteurs", multiline: false },
@@ -42,6 +44,23 @@ const CONTENT_SECTIONS = [
       { key: "prizes.first", label: "1er prix", multiline: false },
       { key: "prizes.second", label: "2e prix", multiline: false },
       { key: "prizes.third", label: "3e prix", multiline: false },
+    ],
+  },
+  {
+    id: "about",
+    label: "À propos",
+    fields: [
+      { key: "about.title", label: "Titre de la section", multiline: false },
+      { key: "about.text", label: "Texte de présentation", multiline: true },
+    ],
+  },
+  {
+    id: "billet",
+    label: "Billets",
+    fields: [
+      { key: "billet.title", label: "Titre page inscription", multiline: false },
+      { key: "billet.subtitle", label: "Description inscription", multiline: true },
+      { key: "nav.cta", label: "Bouton d'appel à l'action nav", multiline: false },
     ],
   },
   {
@@ -129,7 +148,7 @@ export function ContentPanel() {
       {loading ? (
         <div className="cms-loading">Chargement...</div>
       ) : tab === "images" ? (
-        <div className="cms-fields">
+        <div className="cms-fields" style={{ paddingTop: 24 }}>
           {IMAGE_FIELDS.map((img) => (
             <div className="cms-field" key={img.key}>
               <label className="cms-label">{img.label}</label>

@@ -235,6 +235,8 @@ function sectionTitle(section: string) {
     jury: "Jury & Scores",
     communications: "Communications",
     parametres: "Paramètres",
+    contenu: "Contenu du site",
+    emails: "Templates email",
     utilisateurs: "Utilisateurs",
   };
   return titles[section] ?? titles.overview;
@@ -1192,59 +1194,87 @@ function SessionsManager() {
   }
 
   return (
-    <div className="surface stack" style={{ padding: 24 }}>
-      <h2>Sessions de l&apos;événement</h2>
-      <p>
-        Les sessions (conférences, ateliers, entrée…) créées ici alimentent
-        directement le scanner de présence. Une session archivée disparaît du
-        scanner, mais ses présences restent conservées.
-      </p>
-      <form className="stack" onSubmit={createSession}>
-        <label>
-          Nom de la session
-          <input
-            className="input"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Ex. Keynotes d'ouverture"
-            required
-          />
-        </label>
-        <label>Description<textarea className="textarea" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Objectif ou contenu de la session" /></label>
-        <label>Lieu<input className="input" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Ex. Auditorium principal" /></label>
-        <div className="field two">
-          <label>
-            Début (optionnel)
-            <input
-              className="input"
-              type="datetime-local"
-              value={startsAt}
-              onChange={(event) => setStartsAt(event.target.value)}
-            />
-          </label>
-          <label>
-            Fin (optionnel)
-            <input
-              className="input"
-              type="datetime-local"
-              value={endsAt}
-              onChange={(event) => setEndsAt(event.target.value)}
-            />
-          </label>
+    <div className="surface stack" style={{ padding: 24, gap: 20 }}>
+      <div>
+        <h2 style={{ margin: "0 0 4px" }}>Sessions</h2>
+        <p style={{ margin: 0, color: "var(--ink-soft)", fontSize: 13 }}>
+          Ces sessions alimentent le scanner de présence. Une session archivée disparaît du scanner mais ses présences restent conservées.
+        </p>
+      </div>
+      {loading ? (
+        <p style={{ color: "var(--ink-faint)", fontSize: 13 }}>Chargement…</p>
+      ) : sessions.length ? (
+        <div className="session-list">
+          {sessions.map((session) => (
+            <div key={session.id} className={`session-row${session.archivedAt ? " archived" : ""}`}>
+              <div className="session-info">
+                <b>{session.name}</b>
+                <span>
+                  {[session.location, session.startsAt ? new Date(session.startsAt).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null].filter(Boolean).join(" · ")}
+                </span>
+                <div className="cluster" style={{ gap: 4, marginTop: 4 }}>
+                  {SESSION_CATEGORY_OPTIONS.filter((o) => session.allowedCategories.includes(o.value)).map((o) => (
+                    <span key={o.value} className="cat-tag" style={{ fontSize: 11 }}>{o.label}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="session-meta">
+                <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>{session.scanCount} scan{session.scanCount !== 1 ? "s" : ""}</span>
+                {session.archivedAt ? (
+                  <span className="status-pill" style={{ fontSize: 11 }}>Archivée</span>
+                ) : (
+                  <button
+                    className={`status-pill ${session.active ? "confirmed" : "pending"}`}
+                    style={{ fontSize: 11, cursor: "pointer" }}
+                    onClick={() => void send("PATCH", { id: session.id, active: !session.active }, session.active ? "Session désactivée." : "Session activée.")}
+                  >
+                    {session.active ? "En cours" : "Démarrer"}
+                  </button>
+                )}
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: "4px 10px", fontSize: 12, minHeight: 0 }}
+                  onClick={() => void send("PATCH", { id: session.id, archived: !Boolean(session.archivedAt) }, session.archivedAt ? "Session restaurée." : "Session archivée.")}
+                >
+                  {session.archivedAt ? "Restaurer" : "Archiver"}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-        <fieldset className="stack">
-          <legend>Types de pass admis</legend>
-          <div className="cluster">
+      ) : null}
+      <details className="session-add-form">
+        <summary>Ajouter une session</summary>
+        <form className="stack" style={{ paddingTop: 16 }} onSubmit={createSession}>
+          <div className="field two">
+            <label>
+              Nom
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Keynotes d'ouverture" required />
+            </label>
+            <label>
+              Lieu
+              <input className="input" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex. Auditorium principal" />
+            </label>
+          </div>
+          <div className="field two">
+            <label>
+              Début
+              <input className="input" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            </label>
+            <label>
+              Fin
+              <input className="input" type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+            </label>
+          </div>
+          <div className="cluster" style={{ gap: 8 }}>
             {SESSION_CATEGORY_OPTIONS.map((option) => (
-              <label className="check-row" key={option.value}>
+              <label className="check-row compact" key={option.value}>
                 <input
                   type="checkbox"
                   checked={allowedCategories.includes(option.value)}
                   onChange={(event) =>
                     setAllowedCategories((current) =>
-                      event.target.checked
-                        ? [...current, option.value]
-                        : current.filter((category) => category !== option.value),
+                      event.target.checked ? [...current, option.value] : current.filter((c) => c !== option.value),
                     )
                   }
                 />
@@ -1252,131 +1282,11 @@ function SessionsManager() {
               </label>
             ))}
           </div>
-          <small>
-            Le scanner refusera clairement un badge confirmé dont le type de
-            pass n&apos;est pas autorisé pour cette session.
-          </small>
-        </fieldset>
-        <button className="btn btn-grad" type="submit">
-          Ajouter la session
-        </button>
-      </form>
-      {loading ? (
-        <p>Chargement…</p>
-      ) : sessions.length ? (
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Session</th>
-                <th>Scans</th>
-                <th>Pass admis</th>
-                <th>Active</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.map((session) => (
-                <tr key={session.id}>
-                  <td>
-                    <b>{session.name}</b>
-                    {session.location ? <><br /><small>{session.location}</small></> : null}
-                    {session.startsAt ? (
-                      <>
-                        <br />
-                        <small>
-                          {new Date(session.startsAt).toLocaleString("fr-FR", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </small>
-                      </>
-                    ) : null}
-                  </td>
-                  <td>{session.scanCount}</td>
-                  <td>
-                    <div className="cluster">
-                      {SESSION_CATEGORY_OPTIONS.map((option) => (
-                        <label className="check-row compact" key={option.value}>
-                          <input
-                            type="checkbox"
-                            checked={session.allowedCategories.includes(
-                              option.value,
-                            )}
-                            onChange={(event) => {
-                              const next = event.target.checked
-                                ? [...session.allowedCategories, option.value]
-                                : session.allowedCategories.filter(
-                                    (category) => category !== option.value,
-                                  );
-                              if (next.length === 0) {
-                                toast.error("Une session doit admettre au moins un type de pass.");
-                                return;
-                              }
-                              void send(
-                                "PATCH",
-                                {
-                                  id: session.id,
-                                  allowedCategories: next,
-                                },
-                                "Règles d'accès mises à jour.",
-                              );
-                            }}
-                          />
-                          {option.label}
-                        </label>
-                      ))}
-                    </div>
-                  </td>
-                  <td>
-                    {session.archivedAt ? (
-                      <span className="status-pill">Archivée</span>
-                    ) : (
-                      <button
-                        className={`status-pill ${session.active ? "confirmed" : ""}`}
-                        onClick={() =>
-                          void send(
-                            "PATCH",
-                            { id: session.id, active: !session.active },
-                            session.active
-                              ? "Session désactivée."
-                              : "Session activée.",
-                          )
-                        }
-                      >
-                        {session.active ? "En cours" : "Activer"}
-                      </button>
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-ghost"
-                      onClick={() =>
-                        void send(
-                          "PATCH",
-                          {
-                            id: session.id,
-                            archived: !Boolean(session.archivedAt),
-                          },
-                          session.archivedAt
-                            ? "Session restaurée."
-                            : "Session archivée sans supprimer ses présences.",
-                        )
-                      }
-                    >
-                      {session.archivedAt ? "Restaurer" : "Archiver"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="empty-state">Aucune session. Ajoute la première ci-dessus.</div>
-      )}
+          <button className="btn btn-grad" type="submit" style={{ alignSelf: "flex-start" }}>
+            Créer la session
+          </button>
+        </form>
+      </details>
     </div>
   );
 }

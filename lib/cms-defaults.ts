@@ -12,7 +12,7 @@ export type EmailTemplateDefault = {
 export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   {
     slug: "competitionSelected",
-    label: "Sélectionné — Compétition",
+    label: "Sélectionné · Compétition",
     subject: "Votre candidature VIBEATHON 2026 a été retenue",
     eyebrow: "Sélection · Compétition Vibe Coding",
     title: "Félicitations, vous êtes sélectionné(e)",
@@ -24,8 +24,8 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   },
   {
     slug: "competitionWaitlist",
-    label: "Liste d'attente — Compétition",
-    subject: "Votre candidature VIBEATHON 2026 — liste d'attente",
+    label: "Liste d'attente · Compétition",
+    subject: "Votre candidature VIBEATHON 2026 : liste d'attente",
     eyebrow: "Liste d'attente · Compétition Vibe Coding",
     title: "Votre candidature est sur liste d'attente",
     introduction:
@@ -36,7 +36,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   },
   {
     slug: "competitionRejected",
-    label: "Non retenu — Compétition",
+    label: "Non retenu · Compétition",
     subject: "Résultat de votre candidature VIBEATHON 2026",
     eyebrow: "Résultat · Compétition Vibe Coding",
     title: "Résultat de votre candidature",
@@ -48,8 +48,8 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   },
   {
     slug: "paymentConfirmed",
-    label: "Paiement confirmé — Badge",
-    subject: "Paiement confirmé — Ton badge VIBEATHON est prêt",
+    label: "Paiement confirmé · Badge",
+    subject: "Paiement confirmé : ton badge VIBEATHON est prêt",
     eyebrow: "Paiement confirmé",
     title: "Ton badge est prêt",
     introduction:
@@ -60,7 +60,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   },
   {
     slug: "badgeReady",
-    label: "Badge prêt — Billets visiteur/formation",
+    label: "Badge prêt · Billets visiteur/formation",
     subject: "Ton badge VIBEATHON 2026 est disponible",
     eyebrow: "Pass {{categoryLabel}}",
     title: "Ton badge est prêt",
@@ -90,6 +90,8 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
     "Le premier hackathon d'Afrique de l'Ouest entièrement construit avec l'IA. Une journée pour concevoir, coder et pitcher une application complète.",
   "hero.date": "Samedi 11 juillet 2026",
   "hero.venue": "CSCTICAO, Abidjan",
+  "hero.eyebrow": "IA × Environnement · Abidjan",
+  "hero.tagline": "Pense. Crée. Lance.",
   "stats.participants": "396",
   "stats.competitors": "100",
   "stats.prize": "1 000 000",
@@ -97,4 +99,11 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "prizes.second": "300 000 FCFA",
   "prizes.third": "200 000 FCFA",
   "footer.contact": "contact@vibeathonci.com",
+  "about.title": "Le premier hackathon IA d'Afrique de l'Ouest",
+  "about.text":
+    "VIBEATHON 2026 rassemble des créateurs, des développeurs et des entrepreneurs autour de l'intelligence artificielle et de l'environnement. Une journée intense pour concevoir, coder et pitcher une solution à fort impact.",
+  "billet.title": "Réserve ta place.",
+  "billet.subtitle":
+    "Visiteur, formation adulte ou formation kids : choisis ton pass, renseigne tes informations et reçois ton badge d'accès par email et WhatsApp.",
+  "nav.cta": "Je candidate",
 };

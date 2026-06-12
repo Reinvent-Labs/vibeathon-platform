@@ -4,8 +4,6 @@ import { Suspense } from "react";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { TicketForm } from "@/components/public/TicketForm";
-import { EVENT } from "@/lib/constants";
-
 export const metadata: Metadata = { title: "Inscription · Billet" };
 
 export default function BilletPage() {
@@ -34,8 +32,8 @@ export default function BilletPage() {
             <div className="fact">
               <span className="k" style={{ background: "#43D9FF" }} />
               <div>
-                <b>{EVENT.date}</b>
-                <span>{EVENT.venue}</span>
+                <b>11 juillet 2026</b>
+                <span>CSCTICAO, Abidjan</span>
               </div>
             </div>
             <div className="fact">

@@ -49,7 +49,7 @@ export default async function BadgePage({
               <h2 className="pname pname-cat">{participant.fullName}</h2>
               <p className="ptag">{teamName ? `Équipe · ${teamName}` : category.tagline}</p>
               <div className="qr-box"><Image src={qrDataUrl} alt={`QR code ${qrCode}`} width={220} height={220} unoptimized /></div>
-              <div className="meta"><div><div className="lab">Date</div><div className="val">{EVENT.date}</div></div><div style={{ textAlign: "right" }}><div className="lab">Lieu</div><div className="val">{EVENT.venue}</div></div></div>
+              <div className="meta"><div className="lab">VIBEATHON 2026</div><div className="val">Abidjan · Côte d&apos;Ivoire</div></div>
             </div>
           </div>
           <div className="pid">{qrCode.replaceAll("-", "·")}</div>

@@ -118,22 +118,42 @@ button:disabled {
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
 }
 
 .metric-card {
-  padding: 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
+  padding: 20px 22px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
   background: var(--bg-2);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color .18s, background .18s;
 }
-
+.metric-card:hover { border-color: rgba(186,119,255,.4); background: rgba(255,255,255,.03); }
+.metric-card span { font-size: 12px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
 .metric-card strong {
   display: block;
-  margin-top: 0.65rem;
-  font: 900 2.4rem/1 "Outfit", sans-serif;
+  font: 900 2rem/1 "Outfit", sans-serif;
+  margin-top: 2px;
 }
+
+/* Shimmer skeleton */
+@keyframes shimmer { from { background-position: -600px 0; } to { background-position: 600px 0; } }
+.shimmer {
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+.metric-skeleton { height: 80px; border-radius: 14px; }
+.row-skeleton { height: 52px; border-radius: 0; border-bottom: 1px solid var(--line-2); }
+.panel-skeleton { border-radius: 14px; overflow: hidden; }
+.shimmer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
 
 .table-wrap {
   width: 100%;
@@ -162,21 +182,24 @@ button:disabled {
 
 .status-pill {
   display: inline-flex;
-  min-height: 30px;
   align-items: center;
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.75rem;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
-.status-pill.pending { color: #f5d778; }
-.status-pill.waitlist { color: #43d9ff; }
-.status-pill.selected { color: var(--purple-lt); }
-.status-pill.paid,
-.status-pill.confirmed { color: var(--green-lt); }
-.status-pill.rejected { color: var(--pink-lt); }
+.status-pill.pending   { color: #f5d778; background: rgba(245,215,120,.12); border: 1px solid rgba(245,215,120,.25); }
+.status-pill.waitlist  { color: #43d9ff; background: rgba(67,217,255,.10); border: 1px solid rgba(67,217,255,.22); }
+.status-pill.selected  { color: #ba77ff; background: rgba(186,119,255,.12); border: 1px solid rgba(186,119,255,.25); }
+.status-pill.paid      { color: #75ff8d; background: rgba(117,255,141,.10); border: 1px solid rgba(117,255,141,.22); }
+.status-pill.confirmed { color: #75ff8d; background: rgba(117,255,141,.10); border: 1px solid rgba(117,255,141,.22); }
+.status-pill.checked_in { color: #07851d; background: rgba(7,133,29,.15); border: 1px solid rgba(7,133,29,.30); }
+.status-pill.rejected  { color: #ff7a9c; background: rgba(255,87,100,.10); border: 1px solid rgba(255,87,100,.20); }
 
 .admin-mobile-nav {
   display: none;
