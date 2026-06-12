@@ -22,15 +22,14 @@ function urlToken(url: string) {
 
 export const whatsAppMessages = {
   resultsAvailable: (name: string, statusUrl: string) => ({
-    message: `Bonjour ${name}, les résultats VIBEATHON 2026 sont disponibles. Consulte ton statut ici : ${statusUrl}`,
+    message: `Salut ${name} 👋\n\nLes résultats VIBEATHON 2026 sont disponibles. Consulte ton statut ici :\n${statusUrl}\n\nL'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
-  // --- Competition decision messages (cooler, emoji-rich) ---
+  // --- Competition decision messages ---
   competitionSelected: (name: string, statusUrl: string) => ({
     message:
       `🎉 FÉLICITATIONS ${name} ! 🚀\n\n` +
@@ -43,7 +42,6 @@ export const whatsAppMessages = {
       name: WHATSAPP_TEMPLATE_NAMES.accepted,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
   competitionWaitlist: (name: string, statusUrl: string) => ({
@@ -58,7 +56,6 @@ export const whatsAppMessages = {
       name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
   competitionRejected: (name: string, _statusUrl: string, appUrl: string) => ({
@@ -66,13 +63,12 @@ export const whatsAppMessages = {
       `Salut ${name} 👋\n\n` +
       `Merci d'avoir candidaté à la compétition Vibe Coding du VIBEATHON CI 2026 🙏\n\n` +
       `Ta candidature n'a pas été retenue pour la compétition cette fois, mais l'aventure continue ! Rejoins-nous pour les *keynotes, panels et ateliers* 🎤✨\n` +
-      `👉 ${appUrl}\n\n` +
+      `👉 ${appUrl}/billet\n\n` +
       `À très vite,\nL'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.resultsAvailable,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
 
@@ -82,7 +78,6 @@ export const whatsAppMessages = {
       name: WHATSAPP_TEMPLATE_NAMES.accepted,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
   paymentReminder: (name: string, statusUrl: string) => ({
@@ -91,7 +86,6 @@ export const whatsAppMessages = {
       name: WHATSAPP_TEMPLATE_NAMES.paymentReminder,
       languageCode: "fr",
       bodyParams: [name],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
   badgeReady: (name: string, badgeUrl: string, categoryLabel: string) => ({
@@ -136,7 +130,6 @@ export const whatsAppMessages = {
       name: WHATSAPP_TEMPLATE_NAMES.teamAssignment,
       languageCode: "fr",
       bodyParams: [name, teamName],
-      buttonUrlParams: [encodeURIComponent(name)],
     },
   }),
 };
