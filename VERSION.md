@@ -37,3 +37,4 @@
 - Overrode the vulnerable transitive PostCSS release and restored a zero-vulnerability production dependency audit.
 - Added per-session pass admission rules for competitors, visitors, adult training, and kids training badges.
 - Added explicit scanner pass labels and rejection reasons plus attendance lists filterable by session and participant category.
+- Restored TypeScript path resolution for operational scripts executed inside the production tools container.
