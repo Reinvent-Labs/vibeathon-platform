@@ -28,6 +28,29 @@ function categoryColor(category?: ParticipantCategory | null) {
   return CATEGORIES[category ?? "HACKATHON"].color;
 }
 
+type PaymentFilter = "ALL" | "PENDING" | "PAID" | "FREE";
+
+function paymentState(participant: DemoParticipant) {
+  const category = participant.category ?? "HACKATHON";
+  if (CATEGORIES[category].fee === 0) return "FREE" as const;
+  if (["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
+    return "PAID" as const;
+  }
+  if (participant.status === "SELECTED") return "PENDING" as const;
+  return "NOT_APPLICABLE" as const;
+}
+
+function paymentDate(participant: DemoParticipant) {
+  const value = participant.paidAt ?? participant.confirmedAt;
+  return value
+    ? new Date(value).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+}
+
 type AdminDashboardProps = {
   section: string;
   currentRole: "SUPER_ADMIN" | "ADMIN";
@@ -316,6 +339,7 @@ function ParticipantTable({
 }) {
   const [tab, setTab] = useState<"competiteurs" | "billets">("competiteurs");
   const [statusFilter, setStatusFilter] = useState<"ALL" | DemoParticipantStatus>("ALL");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
 
   const hackathon = participants.filter((p) => (p.category ?? "HACKATHON") === "HACKATHON");
   const billets = participants.filter((p) => BILLET_CATEGORIES.includes((p.category ?? "HACKATHON") as ParticipantCategory));
@@ -333,6 +357,9 @@ function ParticipantTable({
       : rows;
     if (tab === "competiteurs" && statusFilter !== "ALL") {
       result = result.filter((p) => p.status === statusFilter);
+    }
+    if (paymentFilter !== "ALL") {
+      result = result.filter((participant) => paymentState(participant) === paymentFilter);
     }
     return result;
   })();
@@ -353,7 +380,7 @@ function ParticipantTable({
       <div style={{ display: "flex", borderBottom: "1px solid var(--line-2)", padding: "0 20px" }}>
         <button
           type="button"
-          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); setStatusFilter("ALL"); setPaymentFilter("ALL"); }}
           style={{
             background: "none", border: "none", cursor: "pointer",
             padding: "10px 16px", fontSize: 13, fontWeight: 600,
@@ -366,7 +393,7 @@ function ParticipantTable({
         </button>
         <button
           type="button"
-          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); setStatusFilter("ALL"); setPaymentFilter("ALL"); }}
           style={{
             background: "none", border: "none", cursor: "pointer",
             padding: "10px 16px", fontSize: 13, fontWeight: 600,
@@ -420,6 +447,25 @@ function ParticipantTable({
         </div>
       ) : null}
 
+      <div className="cat-filter payment-filter">
+        {([
+          { value: "ALL" as const, label: "Tous les paiements" },
+          { value: "PENDING" as const, label: "À payer", color: "#ba77ff" },
+          { value: "PAID" as const, label: "Payé", color: "#75ff8d" },
+          { value: "FREE" as const, label: "Gratuit", color: "#43d9ff" },
+        ] as const).map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            className={`cat-chip ${paymentFilter === filter.value ? "active" : ""}`}
+            style={"color" in filter ? { ["--cat" as string]: filter.color } : undefined}
+            onClick={() => setPaymentFilter(filter.value)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
       {/* Bulk actions — hackathon decisions only */}
       {tab === "competiteurs" ? (
         <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
@@ -443,6 +489,7 @@ function ParticipantTable({
               <th>Participant</th>
               {tab === "billets" ? <th>Catégorie</th> : null}
               <th>Statut</th>
+              <th>Paiement</th>
               <th>Référence</th>
               <th>Actions</th>
             </tr>
@@ -453,6 +500,20 @@ function ParticipantTable({
               <td><b>{participant.fullName}</b><br /><small>{participant.email}</small></td>
               {tab === "billets" ? <td><span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category) }}>{categoryLabel(participant.category)}</span></td> : null}
               <td><span className={`status-pill ${participant.status.toLowerCase()}`}>{statusLabels[participant.status]}</span></td>
+              <td>
+                {paymentState(participant) === "PAID" ? (
+                  <span className="payment-state paid">
+                    Payé
+                    {paymentDate(participant) ? <small>{paymentDate(participant)}</small> : null}
+                  </span>
+                ) : paymentState(participant) === "PENDING" ? (
+                  <span className="payment-state pending">À payer</span>
+                ) : paymentState(participant) === "FREE" ? (
+                  <span className="payment-state free">Gratuit</span>
+                ) : (
+                  <span className="payment-state neutral">Non concerné</span>
+                )}
+              </td>
               <td>{participant.reference}</td>
               <td>
                 <div className="cluster" style={{ gap: 8 }}>
@@ -1466,7 +1527,7 @@ function SettingsPanel() {
       <form className="panel" onSubmit={save}>
         <div className="panel-head">
           <h2 className="panel-title">Compétition</h2>
-          <p className="panel-sub">Nom, lieu, date et capacités de l'événement</p>
+          <p className="panel-sub">Nom, lieu, date et capacités de l&apos;événement</p>
         </div>
         <div className="panel-form">
           <label>

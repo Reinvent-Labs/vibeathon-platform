@@ -364,6 +364,22 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   gap:12px;
   margin:16px 0;
 }
+.payment-filter {
+  border-top:1px solid var(--line-2);
+  background:rgba(255,255,255,.015);
+}
+.payment-state {
+  display:inline-flex;
+  flex-direction:column;
+  gap:2px;
+  font-size:12px;
+  font-weight:700;
+}
+.payment-state small { color:var(--ink-faint); font-size:10px; font-weight:500; }
+.payment-state.paid { color:#75ff8d; }
+.payment-state.pending { color:#ba77ff; }
+.payment-state.free { color:#43d9ff; }
+.payment-state.neutral { color:var(--ink-faint); font-weight:500; }
 @media(max-width:700px) {
   .filter-row { grid-template-columns:1fr; }
 }

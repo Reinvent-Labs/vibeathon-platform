@@ -37,6 +37,8 @@ export type DemoParticipant = {
   conditionsAccepted?: boolean;
   declarationAccepted?: boolean;
   isTest?: boolean;
+  paidAt?: string | Date | null;
+  confirmedAt?: string | Date | null;
 };
 
 export const demoParticipants: DemoParticipant[] = [
