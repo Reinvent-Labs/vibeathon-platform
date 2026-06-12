@@ -38,3 +38,4 @@
 - Added per-session pass admission rules for competitors, visitors, adult training, and kids training badges.
 - Added explicit scanner pass labels and rejection reasons plus attendance lists filterable by session and participant category.
 - Restored TypeScript path resolution for operational scripts executed inside the production tools container.
+- Connected the admin email-template CMS to candidate decisions, payment reminders, payment confirmations, and badge delivery with safe committed fallbacks.

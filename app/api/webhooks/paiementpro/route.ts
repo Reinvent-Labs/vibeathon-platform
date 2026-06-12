@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { apiError, apiSuccess } from "@/lib/api";
 import { findParticipantById, updateParticipantStatus } from "@/lib/repository";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
-import { emailTemplates } from "@/emails/templates";
 import { appBaseUrl, badgeUrlFor } from "@/lib/campaigns";
+import { renderCmsEmail } from "@/lib/cms-email";
 import { whatsAppMessages } from "@/lib/whatsapp-templates";
 import {
   decodePaymentContext,
@@ -137,18 +137,19 @@ async function handleCallback(request: Request) {
     participant.fullName,
     badgeUrl,
   );
+  const paymentEmail = await renderCmsEmail("paymentConfirmed", {
+    name: participant.fullName,
+    reference: participant.reference,
+    badgeUrl,
+    appUrl,
+  });
   await Promise.all([
     sendEmail({
       participantId: participant.id,
       to: participant.email,
-      subject: "Ton badge VIBEATHON 2026 est prêt",
-      text: `Bonjour ${participant.fullName}, ton paiement est confirmé. Ton badge QR VIBEATHON est disponible ici : ${badgeUrl}`,
-      html: emailTemplates.paymentConfirmed({
-        name: participant.fullName,
-        reference: participant.reference,
-        badgeUrl,
-        appUrl,
-      }),
+      subject: paymentEmail.subject,
+      text: `${paymentEmail.text}\n\n${badgeUrl}`,
+      html: paymentEmail.html,
       template: "payment-badge",
       attachments: [
         {

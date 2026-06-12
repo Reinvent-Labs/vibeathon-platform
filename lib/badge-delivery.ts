@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
-import { emailTemplates } from "@/emails/templates";
 import { appBaseUrl, badgeUrlFor } from "@/lib/campaigns";
+import { renderCmsEmail } from "@/lib/cms-email";
 import { whatsAppMessages } from "@/lib/whatsapp-templates";
 import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
 
@@ -38,20 +38,21 @@ export async function deliverBadge(participant: BadgeParticipant) {
     badgeUrl,
     category.label,
   );
+  const email = await renderCmsEmail("badgeReady", {
+    name: participant.fullName,
+    reference: participant.reference,
+    badgeUrl,
+    categoryLabel: category.label,
+    appUrl,
+  });
 
   return Promise.all([
     sendEmail({
       participantId: participant.id,
       to: participant.email,
-      subject: `Ton badge VIBEATHON 2026 · ${category.label}`,
-      text: `Bonjour ${participant.fullName}, ton inscription VIBEATHON 2026 (${category.label}) est confirmée. Ton badge : ${badgeUrl}`,
-      html: emailTemplates.badgeReady({
-        name: participant.fullName,
-        reference: participant.reference,
-        badgeUrl,
-        appUrl,
-        categoryLabel: category.label,
-      }),
+      subject: email.subject,
+      text: `${email.text}\n\n${badgeUrl}`,
+      html: email.html,
       template: "badge",
       attachments: [
         {

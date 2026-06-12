@@ -1,5 +1,6 @@
 import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { emailTemplates } from "@/emails/templates";
+import { renderCmsEmail } from "@/lib/cms-email";
 import { sendEmail } from "@/lib/notifications";
 import { listParticipants } from "@/lib/repository";
 import { isSameOrigin, requireRole } from "@/lib/auth";
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
               },
             ]
           : undefined;
-      const campaign = (() => {
+      const campaign = await (async () => {
         if (body.templateKey === "results-available") {
           return {
             subject: "Les résultats VIBEATHON 2026 sont disponibles",
@@ -79,27 +80,21 @@ export async function POST(request: Request) {
           };
         }
         if (body.templateKey === "accepted-payment") {
-          return {
-            subject: "Ton dossier VIBEATHON est accepté · paiement en attente",
-            text: `Félicitations ${participant.fullName}, ton dossier est accepté. Finalise le paiement pour confirmer ta place : ${statusUrl}`,
-            html: emailTemplates.selection(
-              participant.fullName,
-              statusUrl,
-              appUrl,
-            ),
-          };
+          const rendered = await renderCmsEmail("competitionSelected", {
+            name: participant.fullName,
+            statusUrl,
+            appUrl,
+          });
+          return { ...rendered, text: `${rendered.text}\n\n${statusUrl}` };
         }
         if (body.templateKey === "payment-confirmed") {
-          return {
-            subject: "Ton badge VIBEATHON 2026 est prêt",
-            text: `Bonjour ${participant.fullName}, ton paiement est confirmé. Ton badge QR est disponible ici : ${badgeUrl}`,
-            html: emailTemplates.paymentConfirmed({
-              name: participant.fullName,
-              reference: participant.reference,
-              badgeUrl,
-              appUrl,
-            }),
-          };
+          const rendered = await renderCmsEmail("paymentConfirmed", {
+            name: participant.fullName,
+            reference: participant.reference,
+            badgeUrl,
+            appUrl,
+          });
+          return { ...rendered, text: `${rendered.text}\n\n${badgeUrl}` };
         }
         if (body.templateKey === "bootcamp-info") {
           return {
@@ -126,15 +121,12 @@ export async function POST(request: Request) {
             html: emailTemplates.custom(participant.fullName, body.message!, appUrl),
           };
         }
-        return {
-          subject: "Rappel paiement VIBEATHON 2026",
-          text: `Bonjour ${participant.fullName}, ton dossier est accepté mais ton paiement reste en attente. Confirme ta place ici : ${statusUrl}`,
-          html: emailTemplates.paymentReminder(
-            participant.fullName,
-            statusUrl,
-            appUrl,
-          ),
-        };
+        const rendered = await renderCmsEmail("paymentReminder", {
+          name: participant.fullName,
+          statusUrl,
+          appUrl,
+        });
+        return { ...rendered, text: `${rendered.text}\n\n${statusUrl}` };
       })();
 
       return sendEmail({

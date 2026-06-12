@@ -21,11 +21,13 @@ export function sanitizeEmailBody(value: string) {
       "code",
       "span",
       "a",
+      "img",
     ],
     allowedAttributes: {
       a: ["href", "target", "rel"],
       span: ["style"],
       p: ["style"],
+      img: ["src", "alt", "width", "height", "style"],
     },
     allowedStyles: {
       "*": {
@@ -34,6 +36,7 @@ export function sanitizeEmailBody(value: string) {
       },
     },
     allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: { img: ["cid", "https"] },
     allowProtocolRelative: false,
     transformTags: {
       a: (_tagName, attributes) => ({

@@ -1,13 +1,14 @@
 import { EVENT } from "@/lib/constants";
 import { sanitizeEmailBody } from "@/lib/cms-security";
 
-type TemplateVars = {
+export type TemplateVars = {
   name: string;
   appUrl: string;
   statusUrl?: string;
   badgeUrl?: string;
   reference?: string;
   categoryLabel?: string;
+  actionUrl?: string;
 };
 
 type TemplateLike = {
@@ -25,7 +26,7 @@ function escapeHtml(value: string) {
   );
 }
 
-function interpolate(text: string, vars: TemplateVars) {
+export function interpolateTemplate(text: string, vars: TemplateVars) {
   return text
     .replace(/\{\{name\}\}/g, vars.name)
     .replace(/\{\{appUrl\}\}/g, vars.appUrl)
@@ -37,12 +38,13 @@ function interpolate(text: string, vars: TemplateVars) {
 
 export function renderEmailTemplate(tpl: TemplateLike, vars: TemplateVars): string {
   const safeAppUrl = escapeHtml(vars.appUrl.replace(/\/$/, ""));
-  const eyebrow = escapeHtml(interpolate(tpl.eyebrow, vars));
-  const title = escapeHtml(interpolate(tpl.title, vars));
-  const introduction = escapeHtml(interpolate(tpl.introduction, vars));
-  const bodyHtml = sanitizeEmailBody(interpolate(tpl.bodyHtml, vars));
+  const eyebrow = escapeHtml(interpolateTemplate(tpl.eyebrow, vars));
+  const title = escapeHtml(interpolateTemplate(tpl.title, vars));
+  const introduction = escapeHtml(interpolateTemplate(tpl.introduction, vars));
+  const bodyHtml = sanitizeEmailBody(interpolateTemplate(tpl.bodyHtml, vars));
   const hasAction = tpl.actionLabel.trim().length > 0;
-  const actionUrl = vars.statusUrl ?? vars.badgeUrl ?? vars.appUrl;
+  const actionUrl =
+    vars.actionUrl ?? vars.statusUrl ?? vars.badgeUrl ?? vars.appUrl;
 
   return `<!doctype html>
 <html lang="fr">

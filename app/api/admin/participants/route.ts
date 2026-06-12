@@ -3,7 +3,7 @@ import { listParticipants, updateParticipantStatus } from "@/lib/repository";
 import type { DemoParticipantStatus } from "@/lib/demo-data";
 import { isSameOrigin, requireRole } from "@/lib/auth";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
-import { emailTemplates } from "@/emails/templates";
+import { renderCmsEmail } from "@/lib/cms-email";
 import { requestIp, writeAuditLog } from "@/lib/audit";
 import { appBaseUrl, statusUrlFor } from "@/lib/campaigns";
 import { whatsAppMessages } from "@/lib/whatsapp-templates";
@@ -134,32 +134,25 @@ export async function PATCH(request: Request) {
         const statusUrl = statusUrlFor(participant);
         const name = participant.fullName;
 
-        const email =
+        const email = await renderCmsEmail(
           nextStatus === "SELECTED"
-            ? {
-                subject:
-                  "Félicitations ! Vous êtes sélectionné(e) pour la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire",
-                html: emailTemplates.competitionSelected(name, statusUrl, appUrl),
-                text: `Bonjour ${name}, votre candidature est retenue pour la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire 2026. Réglez vos frais de 20 000 FCFA avant le mardi 16 juin 2026 : ${statusUrl}`,
-              }
+            ? "competitionSelected"
             : nextStatus === "WAITLIST"
-              ? {
-                  subject:
-                    "Votre candidature pour la compétition de vibe coding est actuellement sur liste d'attente",
-                  html: emailTemplates.competitionWaitlist(name, statusUrl, appUrl),
-                  text: `Bonjour ${name}, votre candidature a été placée sur liste d'attente. Si une place se libère, nous vous contacterons. ${statusUrl}`,
-                }
-              : {
-                  subject: "Résultat de votre candidature à la compétition de Vibe Coding",
-                  html: emailTemplates.competitionRejected(name, statusUrl, appUrl),
-                  text: `Bonjour ${name}, votre candidature n'a pas été retenue pour la compétition cette édition. Rejoignez-nous pour les keynotes, panels et ateliers : ${appUrl}`,
-                };
+              ? "competitionWaitlist"
+              : "competitionRejected",
+          {
+            name,
+            statusUrl,
+            appUrl,
+            actionUrl: nextStatus === "REJECTED" ? appUrl : statusUrl,
+          },
+        );
 
         await sendEmail({
           participantId: participant.id,
           to: participant.email,
           subject: email.subject,
-          text: email.text,
+          text: `${email.text}\n\n${nextStatus === "REJECTED" ? appUrl : statusUrl}`,
           html: email.html,
           template: `competition-${nextStatus.toLowerCase()}`,
         });

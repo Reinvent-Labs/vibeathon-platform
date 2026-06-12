@@ -55,7 +55,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
     introduction:
       "Bienvenue officiellement au VIBEATHON, {{name}}. Tu peux maintenant participer au bootcamp et à la compétition.",
     bodyHtml:
-      "<p>Conserve cet email et présente ce QR code à l'accueil. Tu peux aussi télécharger la version complète de ton badge.</p>",
+      "<p style=\"text-align:center\"><img src=\"cid:vibeathon-qr\" width=\"230\" height=\"230\" alt=\"QR code du badge {{reference}}\"></p><p>Conserve cet email et présente ce QR code à l'accueil. Tu peux aussi télécharger la version complète de ton badge.</p>",
     actionLabel: "Afficher mon badge",
   },
   {
@@ -67,7 +67,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
     introduction:
       "Bonjour {{name}}, ton inscription VIBEATHON 2026 ({{categoryLabel}}) est confirmée. Voici ton badge d'accès.",
     bodyHtml:
-      "<p>Conserve cet email et présente ce QR code à l'accueil le jour J. Tu peux aussi télécharger la version complète de ton badge.</p>",
+      "<p style=\"text-align:center\"><img src=\"cid:vibeathon-qr\" width=\"230\" height=\"230\" alt=\"QR code du badge {{reference}}\"></p><p>Conserve cet email et présente ce QR code à l'accueil le jour J. Tu peux aussi télécharger la version complète de ton badge.</p>",
     actionLabel: "Afficher mon badge",
   },
   {

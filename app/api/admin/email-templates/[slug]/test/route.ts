@@ -6,7 +6,7 @@ import { allowRequest } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/notifications";
 import { DEFAULT_EMAIL_TEMPLATES } from "@/lib/cms-defaults";
-import { renderEmailTemplate } from "@/lib/cms-renderer";
+import { renderCmsEmail, type CmsEmailSlug } from "@/lib/cms-email";
 
 const testSchema = z.object({
   to: z.string().email(),
@@ -32,11 +32,8 @@ export async function POST(
     return apiError("Trop d'envois de test. Réessaie dans quelques minutes.", 429);
   }
 
-  const saved = await prisma.emailTemplate.findUnique({ where: { slug } });
-  const tpl = { ...def, ...(saved ?? {}) };
-
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
-  const html = renderEmailTemplate(tpl, {
+  const rendered = await renderCmsEmail(slug as CmsEmailSlug, {
     name: user.fullName,
     appUrl,
     statusUrl: `${appUrl}/statut`,
@@ -47,9 +44,9 @@ export async function POST(
 
   const result = await sendEmail({
     to: parsed.data.to,
-    subject: `[TEST] ${tpl.subject}`,
-    html,
-    text: tpl.introduction.replace(/{{name}}/g, user.fullName),
+    subject: `[TEST] ${rendered.subject}`,
+    html: rendered.html,
+    text: rendered.text,
     template: `cms_test_${slug}`,
   });
 
