@@ -212,6 +212,13 @@ export async function findParticipantByQrCode(qrCode: string) {
   );
 }
 
+export async function findParticipantByReference(reference: string) {
+  if (prisma) {
+    return prisma.participant.findFirst({ where: { reference } });
+  }
+  return [...runtimeParticipants.values()].find((p) => p.reference === reference) ?? null;
+}
+
 export async function listParticipants() {
   if (prisma) {
     return prisma.participant.findMany({

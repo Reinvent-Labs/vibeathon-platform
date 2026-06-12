@@ -113,7 +113,7 @@ export function StatusLookup() {
       const response = await fetch("/api/payment/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ participantId: participant.id, channel: "" }),
+        body: JSON.stringify({ reference: participant.reference, channel: "" }),
       });
       const payload = await response.json();
       if (!response.ok || !payload.success || !payload.data.url) throw new Error(payload.error ?? "Paiement indisponible.");

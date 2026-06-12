@@ -1,6 +1,6 @@
 import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { initializePaiementPro } from "@/lib/paiementpro";
-import { findParticipantById } from "@/lib/repository";
+import { findParticipantByReference } from "@/lib/repository";
 import { paymentInitSchema } from "@/lib/validation";
 import { CATEGORIES } from "@/lib/categories";
 import { isSameOrigin } from "@/lib/auth";
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return apiError("Données de paiement invalides.");
   if (
     !allowRequest(
-      `payment:${parsed.data.participantId}`,
+      `payment:${parsed.data.reference}`,
       5,
       10 * 60 * 1000,
     )
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const participant = await findParticipantById(parsed.data.participantId);
+  const participant = await findParticipantByReference(parsed.data.reference);
   if (!participant) return apiError("Participant introuvable.", 404);
   if (participant.status !== "SELECTED") {
     return apiError("Ce dossier n'est pas éligible au paiement.", 409);
