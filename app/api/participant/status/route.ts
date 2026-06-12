@@ -27,6 +27,7 @@ export async function GET(request: Request) {
         })
       : null;
 
+  const isPaid = ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status);
   return apiSuccess({
     id: participant.id,
     reference: participant.reference,
@@ -35,8 +36,8 @@ export async function GET(request: Request) {
     city: participant.city,
     profile: participant.profile,
     status: participant.status,
-    qrCode: participant.qrCode,
     teamName: participant.teamName,
     fee: competition?.participationFee ?? CATEGORIES[category].fee,
+    badgeUrl: isPaid && participant.qrCode ? `/badge/${participant.qrCode}` : null,
   });
 }

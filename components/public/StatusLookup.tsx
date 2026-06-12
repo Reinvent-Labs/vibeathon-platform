@@ -15,7 +15,7 @@ type StatusParticipant = {
   city: string;
   profile: string;
   status: DemoParticipantStatus;
-  qrCode: string;
+  badgeUrl: string | null;
   teamName?: string;
   fee: number;
 };
@@ -158,7 +158,7 @@ export function StatusLookup() {
             ) : null}
             <div className="actions">
               {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
-              {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? <Link href={`/badge/${participant.qrCode}`} className="btn btn-grad">Voir mon badge →</Link> : null}
+              {participant.badgeUrl ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
               <button className="btn btn-ghost" onClick={() => setParticipant(null)}>Vérifier un autre email</button>
             </div>
           </div>

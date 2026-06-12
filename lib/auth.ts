@@ -97,6 +97,8 @@ export async function requireRole(
 
 // Compare by HOST (not full origin) so a TLS-terminating proxy (Caddy sees
 // https, the app is reached over http internally) does not trip the CSRF check.
+// x-forwarded-host is NOT used to build the allowlist — it is attacker-controllable
+// without a strict proxy. Only env vars and the intrinsic request URL are trusted.
 export function isSameOrigin(request: Request) {
   const allowedHosts = new Set<string>();
   const addHost = (value: string | null | undefined) => {
@@ -110,7 +112,6 @@ export function isSameOrigin(request: Request) {
     }
   };
 
-  addHost(request.headers.get("x-forwarded-host"));
   addHost(request.headers.get("host"));
   try {
     allowedHosts.add(new URL(request.url).host);

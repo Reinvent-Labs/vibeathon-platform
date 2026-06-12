@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const isDevelopment = process.env.NODE_ENV !== "production";
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self'${isDevelopment ? " 'unsafe-inline' 'unsafe-eval'" : " 'unsafe-inline'"}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
             key: "X-Permitted-Cross-Domain-Policies",
             value: "none",
           },
+          ...(!isDevelopment ? [{
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          }] : []),
         ],
       },
     ];

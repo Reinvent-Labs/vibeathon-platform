@@ -1,7 +1,15 @@
 import { z } from "zod";
 
+const safeName = z
+  .string()
+  .trim()
+  .min(3)
+  .max(120)
+  .regex(/^[^\r\n]+$/, "Le nom ne doit pas contenir de retours à la ligne.")
+  .transform((v) => v.replace(/[\r\n]+/g, " "));
+
 export const registrationSchema = z.object({
-  fullName: z.string().trim().min(3).max(120),
+  fullName: safeName,
   email: z.email().transform((value) => value.toLowerCase()),
   phone: z.string().trim().min(8).max(30),
   city: z.string().trim().min(2).max(80),
@@ -18,7 +26,7 @@ export const registrationSchema = z.object({
 
 export const ticketSchema = z.object({
   category: z.enum(["VISITEUR", "FORMATION_ADULTE", "FORMATION_KIDS"]),
-  fullName: z.string().trim().min(3).max(120),
+  fullName: safeName,
   email: z.email().transform((value) => value.toLowerCase()),
   phone: z.string().trim().min(8).max(30),
 });

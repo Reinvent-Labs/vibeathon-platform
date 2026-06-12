@@ -18,7 +18,8 @@ const runtimeParticipants = new Map(
 const runtimeScans = new Set<string>();
 
 function buildReference() {
-  return `VBT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+  const hex = randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
+  return `VBT-2026-${hex}`;
 }
 
 export async function createParticipant(

@@ -43,7 +43,8 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Enregistrement impossible.";
-    return apiError(message, message.includes("déjà") ? 409 : 500);
+    const raw = error instanceof Error ? error.message : "";
+    if (raw.includes("déjà")) return apiError("Cette adresse email est déjà enregistrée.", 409);
+    return apiError("Enregistrement impossible. Réessaie dans un moment.", 500);
   }
 }

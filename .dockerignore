@@ -1,6 +1,8 @@
 node_modules
 .next
 .git
-.env
+.env*
 backups
 npm-debug.log
+*.backup
+*.bak
