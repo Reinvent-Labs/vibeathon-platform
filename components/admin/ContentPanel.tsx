@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DEFAULT_SITE_CONTENT } from "@/lib/cms-defaults";
@@ -135,7 +136,12 @@ export function ContentPanel() {
               <p className="cms-hint">{img.description}</p>
               {content[img.key] ? (
                 <div className="cms-img-preview">
-                  <img src={content[img.key]} alt={img.label} />
+                  <Image
+                    src={content[img.key]}
+                    alt={img.label}
+                    width={120}
+                    height={72}
+                  />
                   <button className="btn btn-ghost btn-sm" onClick={() => update(img.key, "")}>Supprimer</button>
                 </div>
               ) : null}

@@ -171,6 +171,7 @@ export function EmailTemplatesPanel() {
                 srcDoc={buildPreview(form)}
                 className="email-tpl-preview"
                 title="Aperçu email"
+                sandbox=""
               />
             ) : (
               <div className="email-tpl-fields">

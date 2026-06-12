@@ -1,4 +1,5 @@
 import { EVENT } from "@/lib/constants";
+import { sanitizeEmailBody } from "@/lib/cms-security";
 
 type TemplateVars = {
   name: string;
@@ -39,7 +40,7 @@ export function renderEmailTemplate(tpl: TemplateLike, vars: TemplateVars): stri
   const eyebrow = escapeHtml(interpolate(tpl.eyebrow, vars));
   const title = escapeHtml(interpolate(tpl.title, vars));
   const introduction = escapeHtml(interpolate(tpl.introduction, vars));
-  const bodyHtml = interpolate(tpl.bodyHtml, vars);
+  const bodyHtml = sanitizeEmailBody(interpolate(tpl.bodyHtml, vars));
   const hasAction = tpl.actionLabel.trim().length > 0;
   const actionUrl = vars.statusUrl ?? vars.badgeUrl ?? vars.appUrl;
 

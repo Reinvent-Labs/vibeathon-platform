@@ -33,3 +33,5 @@
 - Replaced placeholder admin settings, jury metrics, ranking, finalists, and presence counters with authenticated PostgreSQL-backed workflows.
 - Made competition fees, capacity, registration state, and jury criteria configurable and enforced those settings in selection, payment, registration, and scoring APIs.
 - Aligned the default and production competitor fee with the official 20 000 FCFA amount used in candidate communications.
+- Added the in-admin site and email CMS with persistent image storage, sanitized templates, protected writes, validated uploads, and audited changes.
+- Overrode the vulnerable transitive PostCSS release and restored a zero-vulnerability production dependency audit.
