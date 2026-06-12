@@ -3,28 +3,88 @@ import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SiteNav } from "@/components/public/SiteNav";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
-import { EVENT, JUDGING_CRITERIA } from "@/lib/constants";
-import { CATEGORIES, OPEN_CATEGORIES, formatFee } from "@/lib/categories";
+import { JUDGING_CRITERIA } from "@/lib/constants";
+import { CATEGORIES, formatFee } from "@/lib/categories";
+import { getSiteContent, get, getList } from "@/lib/site-content";
 
-const activities = [
-  ["01", "Keynotes", "Des voix qui inspirent : visionnaires de la tech africaine et experts de l'IA."],
-  ["02", "Compétition du Vibecoding", "100 compétiteurs, une journée pour concevoir une solution IA à fort impact environnemental."],
-  ["03", "Ateliers de formation", "Six sessions pratiques pour maîtriser les outils du vibecoding et les bonnes pratiques de l'IA."],
-  ["04", "Studio d'expérience IA", "Deux espaces immersifs, photo et musique, pour expérimenter l'IA créative."],
-  ["05", "Panels", "Débats croisés entre acteurs de la tech, de l'environnement et de l'entrepreneuriat."],
-] as const;
+export default async function HomePage() {
+  const c = await getSiteContent();
 
-const schedule = [
-  ["07:30", "Accueil des participants", "Café, networking et remise des badges."],
-  ["09:00", "Keynotes d'ouverture", "Lancement officiel et interventions inspirantes."],
-  ["10:30", "Panels", "IA, environnement et innovation inclusive."],
-  ["12:00", "Déjeuner & networking", ""],
-  ["13:30", "Compétition vibecoding", "Le grand sprint créatif démarre, avec ateliers et Studio IA en parallèle."],
-  ["17:30", "Pitch des 10 finalistes", "Les meilleurs projets passent devant le jury."],
-  ["19:00", "Remise des prix & clôture", "Célébration des lauréats et photo de groupe."],
-] as const;
+  const scheduleCount = Math.min(9, Math.max(1, Number(c["schedule.count"]) || 7));
+  const scheduleItems = Array.from({ length: scheduleCount }, (_, i) => ({
+    time: get(c, `schedule.${i + 1}.time`),
+    title: get(c, `schedule.${i + 1}.title`),
+    desc: get(c, `schedule.${i + 1}.desc`),
+  })).filter((item) => item.title);
 
-export default function HomePage() {
+  const activities = [1, 2, 3, 4, 5].map((n) => ({
+    number: String(n).padStart(2, "0"),
+    title: get(c, `activities.${n}.title`),
+    desc: get(c, `activities.${n}.desc`),
+  })).filter((a) => a.title);
+
+  const visiteurFee = Number(c["category.visiteur.fee"] ?? "0") || 0;
+  const adulteLabel = get(c, "category.formation_adulte.label", CATEGORIES.FORMATION_ADULTE.label);
+  const adulteFee = Number(c["category.formation_adulte.fee"] ?? "10000") || CATEGORIES.FORMATION_ADULTE.fee;
+  const adulteTagline = get(c, "category.formation_adulte.tagline", CATEGORIES.FORMATION_ADULTE.tagline);
+  const adultePerks = getList(c, "category.formation_adulte.perks", CATEGORIES.FORMATION_ADULTE.perks);
+  const kidsLabel = get(c, "category.formation_kids.label", CATEGORIES.FORMATION_KIDS.label);
+  const kidsFee = Number(c["category.formation_kids.fee"] ?? "5000") || CATEGORIES.FORMATION_KIDS.fee;
+  const kidsTagline = get(c, "category.formation_kids.tagline", CATEGORIES.FORMATION_KIDS.tagline);
+  const kidsPerks = getList(c, "category.formation_kids.perks", CATEGORIES.FORMATION_KIDS.perks);
+  const visiteurLabel = get(c, "category.visiteur.label", CATEGORIES.VISITEUR.label);
+  const visiteurTagline = get(c, "category.visiteur.tagline", CATEGORIES.VISITEUR.tagline);
+  const visiteurPerks = getList(c, "category.visiteur.perks", CATEGORIES.VISITEUR.perks);
+
+  const openTickets = [
+    {
+      value: "VISITEUR",
+      label: visiteurLabel,
+      tagline: visiteurTagline,
+      perks: visiteurPerks,
+      fee: visiteurFee,
+      color: CATEGORIES.VISITEUR.color,
+      slug: CATEGORIES.VISITEUR.slug,
+    },
+    {
+      value: "FORMATION_ADULTE",
+      label: adulteLabel,
+      tagline: adulteTagline,
+      perks: adultePerks,
+      fee: adulteFee,
+      color: CATEGORIES.FORMATION_ADULTE.color,
+      slug: CATEGORIES.FORMATION_ADULTE.slug,
+    },
+    {
+      value: "FORMATION_KIDS",
+      label: kidsLabel,
+      tagline: kidsTagline,
+      perks: kidsPerks,
+      fee: kidsFee,
+      color: CATEGORIES.FORMATION_KIDS.color,
+      slug: CATEGORIES.FORMATION_KIDS.slug,
+    },
+  ];
+
+  const audienceMembers = getList(c, "audience.members", [
+    "Étudiants",
+    "Jeunes diplômés",
+    "Entrepreneurs",
+    "Professionnels",
+  ]);
+
+  const prizes = [
+    { rank: get(c, "prizes.first.label", "1er prix"), amount: get(c, "prizes.first", "1 000 000"), gold: true },
+    { rank: get(c, "prizes.second.label", "2e prix"), amount: get(c, "prizes.second", "500 000"), gold: false },
+    { rank: get(c, "prizes.third.label", "3e prix"), amount: get(c, "prizes.third", "300 000"), gold: false },
+  ];
+
+  const perks = [
+    get(c, "prizes.perk.1", "Bootcamp de 3 jours : Initiation au Vibe Coding et préparation au pitch."),
+    get(c, "prizes.perk.2", "Mentorat & Accompagnement pour transformer votre idée en startup."),
+    get(c, "prizes.perk.3", "Opportunités d'incubation et accès à des investisseurs stratégiques."),
+  ];
+
   return (
     <>
       <SiteNav />
@@ -44,25 +104,29 @@ export default function HomePage() {
         <div className="chip-float cf3"><span className="ic" style={{ background: "#FF57E3" }} /> Studio IA</div>
         <div className="chip-float cf4"><span className="ic" style={{ background: "#82C880" }} /> 6 Ateliers</div>
 
-        <div className="eyebrow-pill"><span className="tag">2026</span> IA × Environnement · Abidjan</div>
-        <h1 className="display">Pense. Crée.<br /><span className="shine">Lance.</span></h1>
-        <p className="sub">
-          Intelligence artificielle et environnement : innover pour un avenir
-          durable et inclusif. Créer, sans coder, avec l&apos;IA.
-        </p>
-        <div className="pill-date"><span className="dot" /> {EVENT.date} · {EVENT.venue}</div>
+        <div className="eyebrow-pill"><span className="tag">2026</span> {get(c, "hero.eyebrow")}</div>
+        <h1 className="display">
+          {(() => {
+            const tagline = get(c, "hero.tagline", "Pense. Crée. Lance.");
+            const words = tagline.split(" ");
+            const last = words.pop();
+            return <>{words.join(" ")}<br /><span className="shine">{last}</span></>;
+          })()}
+        </h1>
+        <p className="sub">{get(c, "hero.subtitle")}</p>
+        <div className="pill-date"><span className="dot" /> {get(c, "hero.date")} · {get(c, "hero.venue")}</div>
         <div className="cta-row">
           <Link href="#billets" className="btn btn-grad">
-            Prendre mon billet <ArrowRight size={18} />
+            {get(c, "hero.cta.primary", "Prendre mon billet")} <ArrowRight size={18} />
           </Link>
-          <Link href="#programme" className="btn btn-ghost">Découvrir le programme</Link>
+          <Link href="#programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
         </div>
         <div className="hero-stats wrap">
           {[
-            ["400", "Participants"],
-            ["100", "Compétiteurs"],
-            ["20", "Solutions"],
-            ["3", "Lauréats primés"],
+            [get(c, "stats.participants", "400"), get(c, "stats.participants.label", "Participants")],
+            [get(c, "stats.competitors", "100"), get(c, "stats.competitors.label", "Compétiteurs")],
+            [get(c, "stats.solutions", "20"), get(c, "stats.solutions.label", "Solutions")],
+            [get(c, "stats.winners", "3"), get(c, "stats.winners.label", "Lauréats primés")],
           ].map(([value, label]) => (
             <div className="st" key={label}>
               <b className="grad-text-lt">{value}</b><span>{label}</span>
@@ -75,21 +139,13 @@ export default function HomePage() {
         <section id="concept" className="sec-pad">
           <div className="wrap concept">
             <div data-reveal="left">
-              <span className="eyebrow">Le concept</span>
-              <p className="lead">Le vibecoding, c&apos;est créer sans coder, en dialoguant avec l&apos;IA.</p>
-              <p className="body">
-                VIBEATHON réunit étudiants, jeunes diplômés, entrepreneurs et professionnels, avec des <strong>profils non techniques fortement encouragés</strong>. 100 participants répartis en 20 équipes de 5 personnes imagineront des solutions dans les secteurs :
-              </p>
-              <ul className="body" style={{ listStyle: "none", padding: 0, marginTop: 10 }}>
-                <li>🌱 Agriculture</li>
-                <li>⚡ Énergie</li>
-                <li>🚛 Transport</li>
-                <li>🌍 Ressources naturelles</li>
-              </ul>
+              <span className="eyebrow">{get(c, "concept.eyebrow", "Le concept")}</span>
+              <p className="lead">{get(c, "concept.lead")}</p>
+              <p className="body">{get(c, "concept.body")}</p>
             </div>
             <div className="grad-border quote" data-reveal="right">
               <div className="mark">&ldquo;</div>
-              <p>Pas besoin d&apos;être développeur. Il suffit de penser, décrire et laisser l&apos;IA construire.</p>
+              <p>{get(c, "concept.quote")}</p>
             </div>
           </div>
         </section>
@@ -97,16 +153,16 @@ export default function HomePage() {
         <section id="activites" className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
             <div className="section-head" data-reveal>
-              <span className="eyebrow">Au programme</span>
-              <h2 className="display">Cinq façons<br />de vibrer.</h2>
+              <span className="eyebrow">{get(c, "activities.eyebrow", "Au programme")}</span>
+              <h2 className="display">{get(c, "activities.title", "Cinq façons de vibrer.")}</h2>
             </div>
             <div className="act-grid" data-stagger>
-              {activities.map(([number, title, description], index) => (
+              {activities.map(({ number, title, desc }, index) => (
                 <article className={`act-card ${index === 1 || index === 4 ? "wide" : ""}`} key={number} data-reveal>
                   <div className="swatch" style={{ background: index % 2 ? "var(--grad-lt)" : "var(--grad-1)" }} />
                   <div className="num">{number}</div>
                   <h3>{title}</h3>
-                  <p>{description}</p>
+                  <p>{desc}</p>
                 </article>
               ))}
             </div>
@@ -116,14 +172,14 @@ export default function HomePage() {
         <section id="programme" className="sec-pad">
           <div className="wrap">
             <div className="section-head" data-reveal>
-              <span className="eyebrow">Le jour J · 11 juillet</span>
-              <h2 className="display">Déroulé de<br />la journée.</h2>
+              <span className="eyebrow">{get(c, "schedule.eyebrow", "Le jour J · 11 juillet")}</span>
+              <h2 className="display">{get(c, "schedule.title", "Déroulé de la journée.")}</h2>
             </div>
             <div className="timeline">
-              {schedule.map(([time, title, description]) => (
+              {scheduleItems.map(({ time, title, desc }) => (
                 <div className="tl-row" key={time} data-reveal>
                   <div className="time">{time}</div><div className="dot" />
-                  <div className="body"><h4>{title}</h4>{description ? <p>{description}</p> : null}</div>
+                  <div className="body"><h4>{title}</h4>{desc ? <p>{desc}</p> : null}</div>
                 </div>
               ))}
             </div>
@@ -133,25 +189,24 @@ export default function HomePage() {
         <section id="prix" className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
             <div className="section-head" data-reveal>
-              <span className="eyebrow">Récompenses</span>
-              <h2 className="display">Plus qu&apos;un prix,<br />un tremplin.</h2>
+              <span className="eyebrow">{get(c, "prizes.eyebrow", "Récompenses")}</span>
+              <h2 className="display">{get(c, "prizes.title", "Plus qu'un prix, un tremplin.")}</h2>
             </div>
             <div className="prize-grid" data-stagger>
-              {[
-                ["1er prix", "1 000 000"],
-                ["2e prix", "500 000"],
-                ["3e prix", "300 000"],
-              ].map(([rank, amount], index) => (
-                <div className={`prize ${index === 0 ? "gold" : ""}`} key={rank} data-reveal="scale">
+              {prizes.map(({ rank, amount, gold }) => (
+                <div className={`prize ${gold ? "gold" : ""}`} key={rank} data-reveal="scale">
                   <div className="rank">{rank}</div>
-                  <div className={`amt ${index === 0 ? "grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
+                  <div className={`amt ${gold ? "grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
                 </div>
               ))}
             </div>
             <div className="perks">
-              <div className="perk"><b className="grad-text">Bootcamp de 3 jours</b> : Initiation au Vibe Coding et préparation au pitch.</div>
-              <div className="perk"><b className="grad-text">Mentorat & Accompagnement</b> pour transformer votre idée en startup.</div>
-              <div className="perk"><b className="grad-text">Opportunités d&apos;incubation</b> et accès à des investisseurs stratégiques.</div>
+              {perks.map((perk, i) => (
+                <div className="perk" key={i}>
+                  <b className="grad-text">{perk.split(":")[0]}</b>
+                  {perk.includes(":") ? ` :${perk.split(":").slice(1).join(":")}` : ""}
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -159,43 +214,40 @@ export default function HomePage() {
         <section id="billets" className="sec-pad">
           <div className="wrap">
             <div className="section-head" data-reveal>
-              <span className="eyebrow">Participer</span>
-              <h2 className="display">Choisis<br />ton pass.</h2>
+              <span className="eyebrow">{get(c, "tickets.eyebrow", "Participer")}</span>
+              <h2 className="display">{get(c, "tickets.title", "Choisis ton pass.")}</h2>
               <p className="body" style={{ marginTop: 14, maxWidth: 560 }}>
-                Les candidatures à la compétition sont closes, mais
-                l&apos;événement reste ouvert : viens en visiteur ou inscris-toi
-                à une formation. Badge reçu par email et WhatsApp.
+                {get(c, "tickets.body")}
               </p>
             </div>
             <div className="ticket-grid" data-stagger>
-              {OPEN_CATEGORIES.map((value) => {
-                const category = CATEGORIES[value];
-                return (
-                  <article
-                    className="ticket-card"
-                    key={value}
-                    data-reveal="scale"
-                    style={{ ["--cat" as string]: category.color }}
+              {openTickets.map(({ value, label, tagline, perks: ticketPerks, fee, color, slug }) => (
+                <article
+                  className="ticket-card"
+                  key={value}
+                  data-reveal="scale"
+                  style={{ ["--cat" as string]: color }}
+                >
+                  <div className="ticket-bar" />
+                  <h3 style={{ color }}>{label}</h3>
+                  <div className="ticket-price">{formatFee(fee)}</div>
+                  <p className="ticket-tag">{tagline}</p>
+                  <ul className="ticket-list">
+                    {ticketPerks.map((perk) => (
+                      <li key={perk}>{perk}</li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={`/billet?type=${slug}`}
+                    className="btn btn-grad btn-block"
                   >
-                    <div className="ticket-bar" />
-                    <h3 style={{ color: category.color }}>{category.label}</h3>
-                    <div className="ticket-price">{formatFee(category.fee)}</div>
-                    <p className="ticket-tag">{category.tagline}</p>
-                    <ul className="ticket-list">
-                      {category.perks.map((perk) => (
-                        <li key={perk}>{perk}</li>
-                      ))}
-                    </ul>
-                    <Link
-                      href={`/billet?type=${category.slug}`}
-                      className="btn btn-grad btn-block"
-                    >
-                      {category.fee === 0 ? "S'inscrire gratuitement" : "Réserver"}{" "}
-                      <ArrowRight size={16} />
-                    </Link>
-                  </article>
-                );
-              })}
+                    {fee === 0
+                      ? get(c, "tickets.cta.free", "S'inscrire gratuitement")
+                      : get(c, "tickets.cta.paid", "Réserver")}{" "}
+                    <ArrowRight size={16} />
+                  </Link>
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -219,9 +271,14 @@ export default function HomePage() {
 
         <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
-            <div className="section-head" data-reveal><span className="eyebrow">Pour qui ?</span><h2 className="display">Ouvert à tous<br />les bâtisseurs.</h2></div>
+            <div className="section-head" data-reveal>
+              <span className="eyebrow">{get(c, "audience.eyebrow", "Pour qui ?")}</span>
+              <h2 className="display">{get(c, "audience.title", "Ouvert à tous les bâtisseurs.")}</h2>
+            </div>
             <div className="aud-row" data-stagger>
-              {["Étudiants", "Jeunes diplômés", "Entrepreneurs", "Professionnels"].map((audience) => <div className="aud-chip" key={audience} data-reveal>{audience}</div>)}
+              {audienceMembers.map((member) => (
+                <div className="aud-chip" key={member} data-reveal>{member}</div>
+              ))}
             </div>
           </div>
         </section>
@@ -230,10 +287,18 @@ export default function HomePage() {
           <div className="wrap">
             <div className="final-cta">
               <div className="mesh" aria-hidden="true"><span className="blob-g" /><span className="blob-p" /><span className="blob-k" /><span className="blob-m" /></div>
-              <h2 className="display">Prêt à <span className="grad-text-lt">lancer</span> ?</h2>
+              <h2 className="display">
+                {(() => {
+                  const words = get(c, "cta.final.title", "Prêt à lancer ?").split(" ");
+                  const last = words.pop();
+                  return <>{words.join(" ")} <span className="grad-text-lt">{last}</span></>;
+                })()}
+              </h2>
               <div className="cta-row">
-                <Link href="/billet" className="btn btn-grad">Prendre mon billet <ArrowRight size={18} /></Link>
-                <Link href="/statut" className="btn btn-ghost">Vérifier mon statut</Link>
+                <Link href="/billet" className="btn btn-grad">
+                  {get(c, "cta.final.primary", "Prendre mon billet")} <ArrowRight size={18} />
+                </Link>
+                <Link href="/statut" className="btn btn-ghost">{get(c, "cta.final.secondary", "Vérifier mon statut")}</Link>
               </div>
             </div>
           </div>
@@ -247,7 +312,7 @@ export default function HomePage() {
           <div className="foot-top">
             <div className="foot-brand">
               <Logo size={170} />
-              <p>Créer avec l&apos;IA pour un avenir durable et inclusif.</p>
+              <p>{get(c, "footer.tagline")}</p>
             </div>
             <nav className="foot-links" aria-label="Navigation de pied de page">
               <Link href="#concept">Concept</Link>
@@ -257,18 +322,18 @@ export default function HomePage() {
             </nav>
           </div>
           <div className="foot-bottom">
-            <span className="copy">© 2026 VIBEATHON · vibeathonci.com</span>
-            <a className="copy foot-contact" href="mailto:contact@vibeathonci.com">
-              contact@vibeathonci.com
+            <span className="copy">{get(c, "footer.copyright")}</span>
+            <a className="copy foot-contact" href={`mailto:${get(c, "footer.contact")}`}>
+              {get(c, "footer.contact")}
             </a>
-            <span className="copy foot-event">{EVENT.date} · {EVENT.venue}</span>
+            <span className="copy foot-event">{get(c, "hero.date")} · {get(c, "hero.venue")}</span>
             <a
               className="copy foot-made"
               href="https://www.reinvent-labs.com/"
               target="_blank"
               rel="noreferrer"
             >
-              Made with <span aria-label="heart">♥</span> by Reinvent Labs
+              {get(c, "footer.made", "Made with ♥ by Reinvent Labs")}
             </a>
           </div>
         </div>

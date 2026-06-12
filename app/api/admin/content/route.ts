@@ -3,6 +3,7 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { requestIp, writeAuditLog } from "@/lib/audit";
 import { isSameOrigin, requireRole } from "@/lib/auth";
 import { DEFAULT_SITE_CONTENT } from "@/lib/cms-defaults";
+import { invalidateSiteContentCache } from "@/lib/site-content";
 import { prisma } from "@/lib/prisma";
 
 const allowedKeys = new Set([
@@ -10,6 +11,12 @@ const allowedKeys = new Set([
   "image.hero",
   "image.about",
   "image.organizer",
+  // Allow extra numbered schedule/activity slots beyond defaults
+  ...[...Array(9)].flatMap((_, i) => [
+    `schedule.${i + 1}.time`,
+    `schedule.${i + 1}.title`,
+    `schedule.${i + 1}.desc`,
+  ]),
 ]);
 const contentSchema = z
   .record(z.string().min(1).max(80), z.string().max(10_000))
@@ -55,5 +62,6 @@ export async function PUT(request: Request) {
     metadata: { fields: Object.keys(parsed.data).length },
   });
 
+  invalidateSiteContentCache();
   return apiSuccess({ updated: Object.keys(parsed.data).length });
 }
