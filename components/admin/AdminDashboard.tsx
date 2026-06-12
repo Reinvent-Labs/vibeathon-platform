@@ -248,6 +248,7 @@ function Overview({
   counts: {
     total: number;
     pending: number;
+    waitlist: number;
     selected: number;
     paid: number;
     confirmed: number;
@@ -256,57 +257,19 @@ function Overview({
   participants: DemoParticipant[];
 }) {
   const workflow = [
-    {
-      label: "1. Inscrits à examiner",
-      value: counts.pending,
-      note: "Ouvrir chaque dossier puis accepter ou ne pas retenir.",
-      href: "/admin/candidatures",
-    },
-    {
-      label: "2. Acceptés · paiement attendu",
-      value: counts.selected,
-      note: `${Math.max(0, 100 - counts.selected - counts.paid - counts.confirmed)} place(s) encore disponible(s) sur 100. Pas encore au bootcamp.`,
-      href: "/admin/candidatures",
-    },
-    {
-      label: "3. Participants officiels",
-      value: counts.paid + counts.confirmed,
-      note: "Paiement validé: badge, bootcamp et compétition autorisés.",
-      href: "/admin/participants",
-    },
-    {
-      label: "4. Participants à mettre en équipe",
-      value: counts.paid + counts.confirmed,
-      note: "Former des équipes uniquement avec les participants ayant payé.",
-      href: "/admin/equipes",
-    },
+    { label: "À examiner", value: counts.pending, href: "/admin/candidatures" },
+    { label: "Acceptés · paiement attendu", value: counts.selected, href: "/admin/candidatures" },
+    { label: "Liste d'attente", value: counts.waitlist, href: "/admin/candidatures" },
+    { label: "Participants officiels", value: counts.paid + counts.confirmed, href: "/admin/participants" },
+    { label: "Non retenus", value: counts.rejected, href: "/admin/candidatures" },
   ];
   return (
     <div className="stack">
-      <div className="surface workflow-help">
-        <span className="eyebrow">Comment utiliser le dashboard</span>
-        <h2>Le parcours d&apos;un candidat</h2>
-        <p>
-          Un inscrit devient accepté après validation de son dossier, mais il
-          reste en attente de paiement. Il devient participant officiel
-          uniquement après paiement et peut alors rejoindre le bootcamp et la
-          compétition.
-        </p>
-        <div className="phases" aria-label="Parcours global VIBEATHON">
-          {["Inscrit", "Accepté · paiement attendu", "Paiement validé", "Bootcamp", "Compétition", "Finale"].map((phase, index) => (
-            <div className={index === 0 ? "done" : index === 1 ? "active" : ""} key={phase}>
-              <span className="n">{index === 0 ? "✓" : index + 1}</span>{phase}
-            </div>
-          ))}
-        </div>
-      </div>
       <div className="metric-grid">
         {workflow.map((item) => (
-          <Link className="metric-card workflow-card" href={item.href} key={item.label}>
+          <Link className="metric-card" href={item.href} key={item.label}>
             <span>{item.label}</span>
             <strong className="grad-text-lt">{item.value}</strong>
-            <small>{item.note}</small>
-            <b>Ouvrir <ArrowRight size={14} /></b>
           </Link>
         ))}
       </div>
@@ -318,10 +281,11 @@ function Overview({
         <div className="mini-panel span-4">
           <h3>État actuel</h3>
           <div className="feed">
-            <div className="ev"><span className="t" style={{ background: "#F5C842" }} /> {counts.pending} inscrit(s) à examiner</div>
-            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> {counts.selected} accepté(s), paiement attendu</div>
-            <div className="ev"><span className="t" style={{ background: "#BA77FF" }} /> {counts.paid + counts.confirmed} participant(s) officiel(s)</div>
-            <div className="ev"><span className="t" style={{ background: "#FF57E3" }} /> {counts.rejected} dossier(s) non retenu(s)</div>
+            <div className="ev"><span className="t" style={{ background: "#F5C842" }} /> {counts.pending} à examiner</div>
+            <div className="ev"><span className="t" style={{ background: "#43d9ff" }} /> {counts.waitlist} en attente</div>
+            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> {counts.selected} acceptés, paiement attendu</div>
+            <div className="ev"><span className="t" style={{ background: "#BA77FF" }} /> {counts.paid + counts.confirmed} participants officiels</div>
+            <div className="ev"><span className="t" style={{ background: "#FF57E3" }} /> {counts.rejected} non retenus</div>
           </div>
         </div>
       </div>
