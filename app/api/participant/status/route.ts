@@ -29,7 +29,6 @@ export async function GET(request: Request) {
 
   const isPaid = ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status);
   return apiSuccess({
-    id: participant.id,
     reference: participant.reference,
     fullName: participant.fullName,
     email: participant.email,

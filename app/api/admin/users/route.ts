@@ -162,10 +162,7 @@ export async function POST(request: Request) {
   return apiSuccess(
     {
       users: await listUsers(),
-      credentials: {
-        email: created.email,
-        temporaryPassword: password,
-      },
+      credentials: { email: created.email },
       emailDelivery,
     },
     { status: 201 },
@@ -213,7 +210,7 @@ export async function PATCH(request: Request) {
   }
 
   let credentials:
-    | { email: string; temporaryPassword: string }
+    | { email: string }
     | undefined;
   let emailDelivery:
     | Awaited<ReturnType<typeof sendStaffAccessEmail>>
@@ -237,10 +234,7 @@ export async function PATCH(request: Request) {
         mustChangePassword: true,
       },
     });
-    credentials = {
-      email: target.email,
-      temporaryPassword: password,
-    };
+    credentials = { email: target.email };
     emailDelivery = await sendStaffAccessEmail({
       user: target,
       password,

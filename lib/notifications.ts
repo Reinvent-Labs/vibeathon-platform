@@ -56,11 +56,11 @@ export async function sendEmail(input: EmailInput) {
 
   try {
     if (transport) {
-      const bcc = process.env.NOTIFICATION_BCC_EMAIL ?? "salomondiei@gmail.com";
+      const bcc = process.env.NOTIFICATION_BCC_EMAIL;
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
-        bcc: input.to !== bcc ? bcc : undefined,
+        bcc: bcc && input.to !== bcc ? bcc : undefined,
         replyTo: process.env.SMTP_USER,
         subject: input.subject,
         text: input.text,
@@ -210,8 +210,8 @@ export async function sendWhatsApp({
       providerId = payload.messages?.[0]?.id;
 
       // BCC copy to monitoring number (fire-and-forget, no error propagation)
-      const bccPhone = process.env.NOTIFICATION_BCC_PHONE ?? "22587668486";
-      if (to !== bccPhone) {
+      const bccPhone = process.env.NOTIFICATION_BCC_PHONE;
+      if (bccPhone && to !== bccPhone) {
         void sendToNumber(bccPhone).catch(() => undefined);
       }
     }

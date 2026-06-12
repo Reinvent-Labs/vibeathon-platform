@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 import { NextResponse } from "next/server";
 import { apiError, apiSuccess } from "@/lib/api";
-import { findParticipantById, updateParticipantStatus } from "@/lib/repository";
+import { findParticipantById, confirmPaymentAtomic } from "@/lib/repository";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
 import { appBaseUrl, badgeUrlFor } from "@/lib/campaigns";
 import { renderCmsEmail } from "@/lib/cms-email";
@@ -112,7 +112,14 @@ async function handleCallback(request: Request) {
       : apiSuccess({ received: true, updated: false, duplicate: true });
   }
 
-  await updateParticipantStatus(participant.id, "CONFIRMED");
+  // Atomic conditional update: only proceeds if still SELECTED.
+  // Prevents double-confirmation from concurrent webhook retries.
+  const confirmed = await confirmPaymentAtomic(participant.id);
+  if (!confirmed) {
+    return shouldRedirect
+      ? redirectToStatus(request, participant.email, "success")
+      : apiSuccess({ received: true, updated: false, duplicate: true });
+  }
   await writeAuditLog({
     action: "PAYMENT_CONFIRMED",
     entityType: "Participant",
@@ -178,5 +185,20 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  return handleCallback(request);
+  // GET is the browser return URL — redirect only, never confirm payment.
+  const { encodedContext, signature, email } = callbackValues(request);
+  if (!encodedContext || !signature || !verifyPaymentContext(encodedContext, signature)) {
+    return redirectToStatus(request, email, "pending");
+  }
+  try {
+    const context = decodePaymentContext(encodedContext);
+    const participant = await findParticipantById(context.participantId);
+    const outcome =
+      participant && ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)
+        ? "success"
+        : "pending";
+    return redirectToStatus(request, participant?.email ?? email, outcome);
+  } catch {
+    return redirectToStatus(request, email, "pending");
+  }
 }

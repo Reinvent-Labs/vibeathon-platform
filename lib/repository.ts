@@ -247,6 +247,23 @@ export async function updateParticipantStatus(
   return participant;
 }
 
+export async function confirmPaymentAtomic(id: string): Promise<boolean> {
+  if (prisma) {
+    const result = await prisma.participant.updateMany({
+      where: { id, status: "SELECTED" },
+      data: { status: "CONFIRMED", paidAt: new Date(), confirmedAt: new Date() },
+    });
+    return result.count > 0;
+  }
+  const participant = [...runtimeParticipants.values()].find(
+    (p) => p.id === id && p.status === "SELECTED",
+  );
+  if (!participant) return false;
+  participant.status = "CONFIRMED";
+  runtimeParticipants.set(participant.email, participant);
+  return true;
+}
+
 export async function recordScan(
   rawQrCode: string,
   sessionId: string,

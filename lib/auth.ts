@@ -112,7 +112,6 @@ export function isSameOrigin(request: Request) {
     }
   };
 
-  addHost(request.headers.get("host"));
   try {
     allowedHosts.add(new URL(request.url).host);
   } catch {
