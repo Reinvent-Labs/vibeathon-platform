@@ -19,13 +19,6 @@ import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
 import { ContentPanel } from "@/components/admin/ContentPanel";
 import { EmailTemplatesPanel } from "@/components/admin/EmailTemplatesPanel";
 
-const CATEGORY_FILTERS: ({ value: "ALL" } | { value: ParticipantCategory })[] = [
-  { value: "ALL" },
-  { value: "HACKATHON" },
-  { value: "VISITEUR" },
-  { value: "FORMATION_ADULTE" },
-  { value: "FORMATION_KIDS" },
-];
 
 function categoryLabel(category?: ParticipantCategory | null) {
   return CATEGORIES[category ?? "HACKATHON"].label;
@@ -294,6 +287,8 @@ function Overview({
   );
 }
 
+const BILLET_CATEGORIES: ParticipantCategory[] = ["VISITEUR", "FORMATION_ADULTE", "FORMATION_KIDS"];
+
 function ParticipantTable({
   participants,
   selected,
@@ -319,48 +314,111 @@ function ParticipantTable({
   onSendBadge: (id: string) => void;
   confirmedOnly: boolean;
 }) {
+  const [tab, setTab] = useState<"competiteurs" | "billets">("competiteurs");
+
+  const hackathon = participants.filter((p) => (p.category ?? "HACKATHON") === "HACKATHON");
+  const billets = participants.filter((p) => BILLET_CATEGORIES.includes((p.category ?? "HACKATHON") as ParticipantCategory));
+
+  const baseRows = tab === "competiteurs" ? hackathon : billets;
   const rows = confirmedOnly
-    ? participants.filter((item) => ["PAID", "CONFIRMED"].includes(item.status))
-    : participants;
+    ? baseRows.filter((item) => ["PAID", "CONFIRMED", "CHECKED_IN"].includes(item.status))
+    : baseRows;
+
+  const billetFilter = tab === "billets" ? categoryFilter : "ALL";
+
+  const filteredRows = tab === "billets" && billetFilter !== "ALL"
+    ? rows.filter((p) => (p.category ?? "HACKATHON") === billetFilter)
+    : rows;
+
   const canSendBadge = (status: string) =>
     ["PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
+
   return (
     <div className="panel">
       <div className="phead">
         <h3>{confirmedOnly ? "Participants confirmés" : "Tous les dossiers"}</h3>
         <label className="cluster"><Search size={16} /><input className="input" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Rechercher..." /></label>
       </div>
-      <div className="cat-filter">
-        {CATEGORY_FILTERS.map((filter) => (
-          <button
-            key={filter.value}
-            type="button"
-            className={`cat-chip ${categoryFilter === filter.value ? "active" : ""}`}
-            style={
-              filter.value === "ALL"
-                ? undefined
-                : { ["--cat" as string]: categoryColor(filter.value) }
-            }
-            onClick={() => onCategoryFilter(filter.value)}
-          >
-            {filter.value === "ALL" ? "Tous" : categoryLabel(filter.value)}
-          </button>
-        ))}
+
+      {/* Main tabs */}
+      <div style={{ display: "flex", borderBottom: "1px solid var(--line-2)", padding: "0 20px" }}>
+        <button
+          type="button"
+          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); }}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            padding: "10px 16px", fontSize: 13, fontWeight: 600,
+            color: tab === "competiteurs" ? "var(--ink)" : "var(--ink-soft)",
+            borderBottom: tab === "competiteurs" ? "2px solid #75FF8D" : "2px solid transparent",
+            marginBottom: -1,
+          }}
+        >
+          Compétiteurs <span style={{ background: "rgba(117,255,141,.15)", color: "#75FF8D", borderRadius: 10, padding: "1px 8px", fontSize: 11, marginLeft: 6 }}>{hackathon.length}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); }}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            padding: "10px 16px", fontSize: 13, fontWeight: 600,
+            color: tab === "billets" ? "var(--ink)" : "var(--ink-soft)",
+            borderBottom: tab === "billets" ? "2px solid #43D9FF" : "2px solid transparent",
+            marginBottom: -1,
+          }}
+        >
+          Billets publics <span style={{ background: "rgba(67,217,255,.12)", color: "#43D9FF", borderRadius: 10, padding: "1px 8px", fontSize: 11, marginLeft: 6 }}>{billets.length}</span>
+        </button>
       </div>
-      <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
-        <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
-        <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
-        <button className="btn btn-ghost" onClick={() => void onStatus("WAITLIST")}><Mail size={16} /> Liste d&apos;attente</button>
-        <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
-      </div>
+
+      {/* Sub-filters for billets tab */}
+      {tab === "billets" ? (
+        <div className="cat-filter">
+          {([{ value: "ALL" as const }, ...BILLET_CATEGORIES.map((c) => ({ value: c }))]).map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              className={`cat-chip ${billetFilter === filter.value ? "active" : ""}`}
+              style={filter.value === "ALL" ? undefined : { ["--cat" as string]: categoryColor(filter.value) }}
+              onClick={() => onCategoryFilter(filter.value)}
+            >
+              {filter.value === "ALL" ? "Tous les billets" : categoryLabel(filter.value)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Bulk actions — hackathon decisions only */}
+      {tab === "competiteurs" ? (
+        <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
+          <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
+          <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
+          <button className="btn btn-ghost" onClick={() => void onStatus("WAITLIST")}><Mail size={16} /> Liste d&apos;attente</button>
+          <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
+        </div>
+      ) : (
+        <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
+          <span className="cnt"><b>{selected.length}</b> billet(s) coché(s)</span>
+          <button className="btn btn-ghost" onClick={() => selected.forEach((id) => void onSendBadge(id))}><Send size={16} /> Renvoyer les badges</button>
+        </div>
+      )}
+
       <div className="table-wrap">
         <table className="data-table">
-          <thead><tr><th><input type="checkbox" checked={rows.length > 0 && selected.length === rows.length} onChange={(event) => onSelected(event.target.checked ? rows.map((row) => row.id) : [])} /></th><th>Participant</th><th>Catégorie</th><th>Statut</th><th>Référence</th><th>Actions</th></tr></thead>
-          <tbody>{rows.map((participant) => (
+          <thead>
+            <tr>
+              <th><input type="checkbox" checked={filteredRows.length > 0 && selected.length === filteredRows.length} onChange={(event) => onSelected(event.target.checked ? filteredRows.map((row) => row.id) : [])} /></th>
+              <th>Participant</th>
+              {tab === "billets" ? <th>Catégorie</th> : null}
+              <th>Statut</th>
+              <th>Référence</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>{filteredRows.map((participant) => (
             <tr key={participant.id} data-status={participant.status}>
               <td><input type="checkbox" checked={selected.includes(participant.id)} onChange={(event) => onSelected(event.target.checked ? [...selected, participant.id] : selected.filter((id) => id !== participant.id))} /></td>
               <td><b>{participant.fullName}</b><br /><small>{participant.email}</small></td>
-              <td><span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category) }}>{categoryLabel(participant.category)}</span></td>
+              {tab === "billets" ? <td><span className="cat-tag" style={{ ["--cat" as string]: categoryColor(participant.category) }}>{categoryLabel(participant.category)}</span></td> : null}
               <td><span className={`status-pill ${participant.status.toLowerCase()}`}>{statusLabels[participant.status]}</span></td>
               <td>{participant.reference}</td>
               <td>
