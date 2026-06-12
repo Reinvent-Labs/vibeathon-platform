@@ -35,3 +35,5 @@
 - Aligned the default and production competitor fee with the official 20 000 FCFA amount used in candidate communications.
 - Added the in-admin site and email CMS with persistent image storage, sanitized templates, protected writes, validated uploads, and audited changes.
 - Overrode the vulnerable transitive PostCSS release and restored a zero-vulnerability production dependency audit.
+- Added per-session pass admission rules for competitors, visitors, adult training, and kids training badges.
+- Added explicit scanner pass labels and rejection reasons plus attendance lists filterable by session and participant category.

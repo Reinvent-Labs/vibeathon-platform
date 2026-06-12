@@ -651,8 +651,11 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
       active: boolean;
       startsAt: string | null;
       scanCount: number;
+      allowedCategories: ParticipantCategory[];
     }[];
-    recentScans: {
+    totalRecords: number;
+    categoryCounts: Partial<Record<ParticipantCategory, number>>;
+    presenceRows: {
       id: string;
       createdAt: string;
       participant: {
@@ -665,9 +668,16 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
   };
   const [data, setData] = useState<PresenceData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionFilter, setSessionFilter] = useState("ALL");
+  const [presenceCategory, setPresenceCategory] = useState<
+    "ALL" | ParticipantCategory
+  >("ALL");
 
   useEffect(() => {
-    fetch("/api/admin/presence")
+    const search = new URLSearchParams();
+    if (sessionFilter !== "ALL") search.set("sessionId", sessionFilter);
+    if (presenceCategory !== "ALL") search.set("category", presenceCategory);
+    fetch(`/api/admin/presence?${search.toString()}`)
       .then(async (response) => {
         const payload = await response.json();
         if (!response.ok || !payload.success) {
@@ -681,7 +691,7 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
         ),
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [sessionFilter, presenceCategory]);
 
   if (loading) {
     return <div className="surface empty-state">Chargement des présences…</div>;
@@ -709,28 +719,69 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
       </div>
       <div className="panel">
         <div className="phead">
-          <h3>Présences récentes</h3>
+          <div>
+            <h3>Liste de présence</h3>
+            <small>
+              {data?.totalRecords ?? 0} entrée(s) selon les filtres
+            </small>
+          </div>
           <Link className="btn btn-grad" href="/scan">
             Ouvrir le scanner QR
           </Link>
         </div>
-        {(data?.recentScans.length ?? 0) > 0 ? (
+        <div className="filter-row">
+          <select
+            className="select"
+            value={sessionFilter}
+            onChange={(event) => setSessionFilter(event.target.value)}
+          >
+            <option value="ALL">Toutes les sessions</option>
+            {data?.sessions.map((session) => (
+              <option value={session.id} key={session.id}>
+                {session.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="select"
+            value={presenceCategory}
+            onChange={(event) =>
+              setPresenceCategory(
+                event.target.value as "ALL" | ParticipantCategory,
+              )
+            }
+          >
+            <option value="ALL">Tous les types de pass</option>
+            {SESSION_CATEGORY_OPTIONS.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {(data?.presenceRows.length ?? 0) > 0 ? (
           <div className="table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>Participant</th>
+                  <th>Type de pass</th>
                   <th>Session</th>
                   <th>Heure</th>
                 </tr>
               </thead>
               <tbody>
-                {data?.recentScans.map((scan) => (
+                {data?.presenceRows.map((scan) => (
                   <tr key={scan.id}>
                     <td>
                       <b>{scan.participant?.fullName ?? "QR inconnu"}</b>
                       <br />
                       <small>{scan.participant?.reference}</small>
+                    </td>
+                    <td>
+                      {scan.participant
+                        ? categoryLabel(scan.participant.category)
+                        : "Inconnu"}
                     </td>
                     <td>{scan.session.name}</td>
                     <td>
@@ -1099,7 +1150,18 @@ type AdminSession = {
   startsAt: string | null;
   endsAt: string | null;
   scanCount: number;
+  allowedCategories: ParticipantCategory[];
 };
+
+const SESSION_CATEGORY_OPTIONS: {
+  value: ParticipantCategory;
+  label: string;
+}[] = [
+  { value: "HACKATHON", label: "Compétiteur" },
+  { value: "VISITEUR", label: "Visiteur / invité" },
+  { value: "FORMATION_ADULTE", label: "Formation adulte" },
+  { value: "FORMATION_KIDS", label: "Formation kids" },
+];
 
 function SessionsManager() {
   const [sessions, setSessions] = useState<AdminSession[]>([]);
@@ -1108,6 +1170,9 @@ function SessionsManager() {
   const [location, setLocation] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [allowedCategories, setAllowedCategories] = useState<
+    ParticipantCategory[]
+  >(SESSION_CATEGORY_OPTIONS.map((option) => option.value));
   const [loading, setLoading] = useState(true);
 
   function refresh(payload: { success: boolean; data?: AdminSession[]; error?: string }) {
@@ -1151,6 +1216,7 @@ function SessionsManager() {
         startsAt: startsAt || null,
         endsAt: endsAt || null,
         active: sessions.filter((session) => !session.archivedAt).length === 0,
+        allowedCategories,
       },
       "Session créée.",
     );
@@ -1159,6 +1225,7 @@ function SessionsManager() {
     setLocation("");
     setStartsAt("");
     setEndsAt("");
+    setAllowedCategories(SESSION_CATEGORY_OPTIONS.map((option) => option.value));
   }
 
   return (
@@ -1202,6 +1269,31 @@ function SessionsManager() {
             />
           </label>
         </div>
+        <fieldset className="stack">
+          <legend>Types de pass admis</legend>
+          <div className="cluster">
+            {SESSION_CATEGORY_OPTIONS.map((option) => (
+              <label className="check-row" key={option.value}>
+                <input
+                  type="checkbox"
+                  checked={allowedCategories.includes(option.value)}
+                  onChange={(event) =>
+                    setAllowedCategories((current) =>
+                      event.target.checked
+                        ? [...current, option.value]
+                        : current.filter((category) => category !== option.value),
+                    )
+                  }
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+          <small>
+            Le scanner refusera clairement un badge confirmé dont le type de
+            pass n&apos;est pas autorisé pour cette session.
+          </small>
+        </fieldset>
         <button className="btn btn-grad" type="submit">
           Ajouter la session
         </button>
@@ -1215,6 +1307,7 @@ function SessionsManager() {
               <tr>
                 <th>Session</th>
                 <th>Scans</th>
+                <th>Pass admis</th>
                 <th>Active</th>
                 <th></th>
               </tr>
@@ -1240,6 +1333,40 @@ function SessionsManager() {
                     ) : null}
                   </td>
                   <td>{session.scanCount}</td>
+                  <td>
+                    <div className="cluster">
+                      {SESSION_CATEGORY_OPTIONS.map((option) => (
+                        <label className="check-row compact" key={option.value}>
+                          <input
+                            type="checkbox"
+                            checked={session.allowedCategories.includes(
+                              option.value,
+                            )}
+                            onChange={(event) => {
+                              const next = event.target.checked
+                                ? [...session.allowedCategories, option.value]
+                                : session.allowedCategories.filter(
+                                    (category) => category !== option.value,
+                                  );
+                              if (next.length === 0) {
+                                toast.error("Une session doit admettre au moins un type de pass.");
+                                return;
+                              }
+                              void send(
+                                "PATCH",
+                                {
+                                  id: session.id,
+                                  allowedCategories: next,
+                                },
+                                "Règles d'accès mises à jour.",
+                              );
+                            }}
+                          />
+                          {option.label}
+                        </label>
+                      ))}
+                    </div>
+                  </td>
                   <td>
                     {session.archivedAt ? (
                       <span className="status-pill">Archivée</span>

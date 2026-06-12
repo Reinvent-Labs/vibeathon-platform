@@ -8,6 +8,12 @@ import {
 } from "@/lib/repository";
 import { requestIp, writeAuditLog } from "@/lib/audit";
 
+const categorySchema = z.enum([
+  "HACKATHON",
+  "VISITEUR",
+  "FORMATION_ADULTE",
+  "FORMATION_KIDS",
+]);
 const createSchema = z.object({
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(1000).optional().nullable(),
@@ -15,6 +21,7 @@ const createSchema = z.object({
   startsAt: z.string().trim().min(1).optional().nullable(),
   endsAt: z.string().trim().min(1).optional().nullable(),
   active: z.boolean().optional(),
+  allowedCategories: z.array(categorySchema).min(1).max(4),
 });
 
 const updateSchema = z.object({
@@ -23,6 +30,7 @@ const updateSchema = z.object({
   description: z.string().trim().max(1000).optional().nullable(),
   location: z.string().trim().max(160).optional().nullable(),
   active: z.boolean().optional(),
+  allowedCategories: z.array(categorySchema).min(1).max(4).optional(),
   archived: z.boolean().optional(),
   startsAt: z.string().trim().min(1).optional().nullable(),
   endsAt: z.string().trim().min(1).optional().nullable(),
@@ -56,7 +64,10 @@ export async function POST(request: Request) {
     entityType: "Session",
     entityId: session.id,
     ipAddress: requestIp(request),
-    metadata: { name: session.name },
+    metadata: {
+      name: session.name,
+      allowedCategories: parsed.data.allowedCategories.join(","),
+    },
   });
   return apiSuccess(await listSessions({ includeArchived: true }));
 }

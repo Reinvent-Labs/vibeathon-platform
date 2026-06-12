@@ -23,15 +23,24 @@ type ScanResponse = {
     profile: string;
     city: string;
     status: string;
+    category: "HACKATHON" | "VISITEUR" | "FORMATION_ADULTE" | "FORMATION_KIDS";
+    categoryLabel: string;
     teamName: string | null;
   } | null;
 };
+
+type ScanCategory =
+  | "HACKATHON"
+  | "VISITEUR"
+  | "FORMATION_ADULTE"
+  | "FORMATION_KIDS";
 
 type SessionOption = {
   id: string;
   name: string;
   active: boolean;
   scanCount: number;
+  allowedCategories: ScanCategory[];
 };
 
 /**
@@ -259,6 +268,11 @@ export function ScannerApp({
                       : "Non valide"}
                 </h2>
                 <p>{result.participant?.fullName ?? "QR code non reconnu"}</p>
+                {result.participant ? (
+                  <strong className="scan-pass-label">
+                    {result.participant.categoryLabel}
+                  </strong>
+                ) : null}
                 <span>
                   {result.reason}
                   {result.participant?.teamName
@@ -297,6 +311,21 @@ export function ScannerApp({
                 </option>
               ))}
             </select>
+            <small>
+              Pass admis :{" "}
+              {sessions
+                .find((session) => session.id === sessionId)
+                ?.allowedCategories.map((category) =>
+                  category === "HACKATHON"
+                    ? "Compétiteur"
+                    : category === "VISITEUR"
+                      ? "Visiteur"
+                      : category === "FORMATION_ADULTE"
+                        ? "Formation adulte"
+                        : "Formation kids",
+                )
+                .join(", ")}
+            </small>
           </label>
           {cameraError ? (
             <p className="app-message error">{cameraError}</p>

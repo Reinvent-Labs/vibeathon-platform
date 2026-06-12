@@ -8,6 +8,7 @@ import {
 import type { z } from "zod";
 import type { registrationSchema } from "@/lib/validation";
 import { CATEGORIES, type OpenCategory } from "@/lib/categories";
+import type { ParticipantCategory } from "@/generated/prisma/enums";
 
 type RegistrationInput = z.infer<typeof registrationSchema>;
 
@@ -297,6 +298,26 @@ export async function recordScan(
         sessionCount: await acceptedScanCount(session.id),
       };
     }
+    const participantCategory = participant.category ?? "HACKATHON";
+    if (!session.allowedCategories.includes(participantCategory)) {
+      const categoryLabel = CATEGORIES[participantCategory].label;
+      await prisma.scanRecord.create({
+        data: {
+          qrCode: participant.qrCode,
+          sessionId: session.id,
+          scannedById,
+          participantId: participant.id,
+          result: "REJECTED",
+          note: `Pass non admis pour cette session: ${participantCategory}`,
+        },
+      });
+      return {
+        result: "REJECTED" as const,
+        participant,
+        reason: `Pass ${categoryLabel} non admis pour cette session`,
+        sessionCount: await acceptedScanCount(session.id),
+      };
+    }
 
     const acceptedKey = `${session.id}:${participant.id}`;
     try {
@@ -400,6 +421,7 @@ export type SessionRecord = {
   startsAt: string | null;
   endsAt: string | null;
   scanCount: number;
+  allowedCategories: ParticipantCategory[];
 };
 
 async function activeCompetitionId() {
@@ -423,7 +445,11 @@ export async function listSessions(options?: {
       ...(options?.includeArchived ? {} : { archivedAt: null }),
     },
     orderBy: [{ startsAt: "asc" }, { name: "asc" }],
-    include: { _count: { select: { scans: true } } },
+    include: {
+      _count: {
+        select: { scans: { where: { result: "ACCEPTED" } } },
+      },
+    },
   });
   return sessions.map((session) => ({
     id: session.id,
@@ -435,6 +461,7 @@ export async function listSessions(options?: {
     startsAt: session.startsAt ? session.startsAt.toISOString() : null,
     endsAt: session.endsAt ? session.endsAt.toISOString() : null,
     scanCount: session._count.scans,
+    allowedCategories: session.allowedCategories,
   }));
 }
 
@@ -445,6 +472,7 @@ export async function createSession(input: {
   startsAt?: string | null;
   endsAt?: string | null;
   active?: boolean;
+  allowedCategories: ParticipantCategory[];
 }) {
   if (!prisma) throw new Error("Base de données indisponible.");
   const competitionId = await activeCompetitionId();
@@ -465,6 +493,7 @@ export async function createSession(input: {
         startsAt: input.startsAt ? new Date(input.startsAt) : null,
         endsAt: input.endsAt ? new Date(input.endsAt) : null,
         active: input.active ?? false,
+        allowedCategories: input.allowedCategories,
       },
     });
   });
@@ -477,6 +506,7 @@ export async function updateSession(
     description?: string | null;
     location?: string | null;
     active?: boolean;
+    allowedCategories?: ParticipantCategory[];
     archived?: boolean;
     startsAt?: string | null;
     endsAt?: string | null;
@@ -505,6 +535,9 @@ export async function updateSession(
           : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
+        ...(data.allowedCategories !== undefined
+          ? { allowedCategories: data.allowedCategories }
+          : {}),
         ...(data.archived !== undefined
           ? {
               archivedAt: data.archived ? new Date() : null,

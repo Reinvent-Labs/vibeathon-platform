@@ -54,7 +54,7 @@ model Competition {
   slug                String       @unique
   eventDate           DateTime
   venue               String
-  participationFee   Int          @default(5000)
+  participationFee   Int          @default(20000)
   capacity            Int          @default(400)
   competitorCapacity  Int          @default(100)
   registrationOpen   Boolean      @default(true)
@@ -90,6 +90,7 @@ model Session {
   endsAt         DateTime?
   active         Boolean      @default(false)
   archivedAt     DateTime?
+  allowedCategories ParticipantCategory[] @default([HACKATHON, VISITEUR, FORMATION_ADULTE, FORMATION_KIDS])
   competition    Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   scans           ScanRecord[]
 

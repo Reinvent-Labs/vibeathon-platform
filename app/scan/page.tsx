@@ -21,6 +21,7 @@ export default async function ScanPage() {
         name: session.name,
         active: session.active,
         scanCount: session.scanCount,
+        allowedCategories: session.allowedCategories,
       }))}
     />
   );

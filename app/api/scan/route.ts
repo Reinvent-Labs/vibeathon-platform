@@ -2,6 +2,7 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { recordScan } from "@/lib/repository";
 import { scanSchema } from "@/lib/validation";
 import { isSameOrigin, requireRole } from "@/lib/auth";
+import { CATEGORIES } from "@/lib/categories";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
@@ -30,6 +31,9 @@ export async function POST(request: Request) {
             profile: scan.participant.profile,
             city: scan.participant.city,
             status: scan.participant.status,
+            category: scan.participant.category ?? "HACKATHON",
+            categoryLabel:
+              CATEGORIES[scan.participant.category ?? "HACKATHON"].label,
             teamName:
               "team" in scan.participant
                 ? scan.participant.team?.name ?? null
