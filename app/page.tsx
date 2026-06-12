@@ -23,46 +23,15 @@ export default async function HomePage() {
     desc: get(c, `activities.${n}.desc`),
   })).filter((a) => a.title);
 
-  const visiteurFee = Number(c["category.visiteur.fee"] ?? "0") || 0;
-  const adulteLabel = get(c, "category.formation_adulte.label", CATEGORIES.FORMATION_ADULTE.label);
-  const adulteFee = Number(c["category.formation_adulte.fee"] ?? "10000") || CATEGORIES.FORMATION_ADULTE.fee;
-  const adulteTagline = get(c, "category.formation_adulte.tagline", CATEGORIES.FORMATION_ADULTE.tagline);
-  const adultePerks = getList(c, "category.formation_adulte.perks", CATEGORIES.FORMATION_ADULTE.perks);
-  const kidsLabel = get(c, "category.formation_kids.label", CATEGORIES.FORMATION_KIDS.label);
-  const kidsFee = Number(c["category.formation_kids.fee"] ?? "5000") || CATEGORIES.FORMATION_KIDS.fee;
-  const kidsTagline = get(c, "category.formation_kids.tagline", CATEGORIES.FORMATION_KIDS.tagline);
-  const kidsPerks = getList(c, "category.formation_kids.perks", CATEGORIES.FORMATION_KIDS.perks);
-  const visiteurLabel = get(c, "category.visiteur.label", CATEGORIES.VISITEUR.label);
-  const visiteurTagline = get(c, "category.visiteur.tagline", CATEGORIES.VISITEUR.tagline);
-  const visiteurPerks = getList(c, "category.visiteur.perks", CATEGORIES.VISITEUR.perks);
-
   const openTickets = [
     {
       value: "VISITEUR",
-      label: visiteurLabel,
-      tagline: visiteurTagline,
-      perks: visiteurPerks,
-      fee: visiteurFee,
+      label: get(c, "category.visiteur.label", CATEGORIES.VISITEUR.label),
+      tagline: get(c, "category.visiteur.tagline", CATEGORIES.VISITEUR.tagline),
+      perks: getList(c, "category.visiteur.perks", CATEGORIES.VISITEUR.perks),
+      fee: Number(c["category.visiteur.fee"] ?? "0") || 0,
       color: CATEGORIES.VISITEUR.color,
       slug: CATEGORIES.VISITEUR.slug,
-    },
-    {
-      value: "FORMATION_ADULTE",
-      label: adulteLabel,
-      tagline: adulteTagline,
-      perks: adultePerks,
-      fee: adulteFee,
-      color: CATEGORIES.FORMATION_ADULTE.color,
-      slug: CATEGORIES.FORMATION_ADULTE.slug,
-    },
-    {
-      value: "FORMATION_KIDS",
-      label: kidsLabel,
-      tagline: kidsTagline,
-      perks: kidsPerks,
-      fee: kidsFee,
-      color: CATEGORIES.FORMATION_KIDS.color,
-      slug: CATEGORIES.FORMATION_KIDS.slug,
     },
   ];
 

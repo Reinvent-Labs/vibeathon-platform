@@ -181,7 +181,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "tickets.eyebrow": "Participer",
   "tickets.title": "Choisis ton pass.",
   "tickets.body":
-    "Les candidatures à la compétition sont closes, mais l'événement reste ouvert : viens en visiteur ou inscris-toi à une formation. Badge reçu par email et WhatsApp.",
+    "Les candidatures à la compétition sont closes, mais l'événement reste ouvert : viens en visiteur et assiste aux keynotes, panels et au pitch final. Badge reçu par email et WhatsApp.",
   "tickets.cta.free": "S'inscrire gratuitement",
   "tickets.cta.paid": "Réserver",
 

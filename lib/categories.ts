@@ -15,8 +15,6 @@ export type ParticipantCategory =
 /** Categories the public can self-register for (hackathon registration is closed). */
 export const OPEN_CATEGORIES = [
   "VISITEUR",
-  "FORMATION_ADULTE",
-  "FORMATION_KIDS",
 ] as const satisfies readonly ParticipantCategory[];
 
 export type OpenCategory = (typeof OPEN_CATEGORIES)[number];

@@ -151,11 +151,7 @@ export function TicketForm() {
           required
           value={form.fullName}
           onChange={(event) => update("fullName", event.target.value)}
-          placeholder={
-            category === "FORMATION_KIDS"
-              ? "Nom de l'enfant"
-              : "Ex. Aïcha Koné"
-          }
+          placeholder="Ex. Aïcha Koné"
           autoComplete="name"
         />
       </div>

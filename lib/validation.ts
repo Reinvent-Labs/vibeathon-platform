@@ -25,7 +25,7 @@ export const registrationSchema = z.object({
 });
 
 export const ticketSchema = z.object({
-  category: z.enum(["VISITEUR", "FORMATION_ADULTE", "FORMATION_KIDS"]),
+  category: z.enum(["VISITEUR"]),
   fullName: safeName,
   email: z.email().transform((value) => value.toLowerCase()),
   phone: z.string().trim().min(8).max(30),
