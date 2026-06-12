@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Bot,
   ClipboardList,
+  FileText,
   LayoutDashboard,
   Mail,
   QrCode,
@@ -23,6 +24,8 @@ const navigation = [
   { href: "/admin/evaluation", label: "Évaluation IA", icon: Bot },
   { href: "/admin/jury", label: "Jury & Scores", icon: Star },
   { href: "/admin/communications", label: "Communications", icon: Mail },
+  { href: "/admin/contenu", label: "Contenu du site", icon: FileText },
+  { href: "/admin/emails", label: "Templates email", icon: Mail },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: UserRoundCog },
 ] as const;

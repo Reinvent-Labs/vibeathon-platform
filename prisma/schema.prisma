@@ -254,6 +254,32 @@ model AuditLog {
   @@index([entityType, entityId])
 }
 
+model SiteContent {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model EmailTemplate {
+  slug         String   @id
+  label        String
+  subject      String
+  eyebrow      String
+  title        String
+  introduction String
+  bodyHtml     String   @default("")
+  actionLabel  String   @default("")
+  updatedAt    DateTime @updatedAt
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  path      String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
 model EmailLog {
   id             String          @id @default(cuid())
   participantId  String?

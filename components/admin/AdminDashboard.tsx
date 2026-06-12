@@ -17,6 +17,8 @@ import {
 import { toast } from "sonner";
 import type { DemoParticipant, DemoParticipantStatus } from "@/lib/demo-data";
 import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
+import { ContentPanel } from "@/components/admin/ContentPanel";
+import { EmailTemplatesPanel } from "@/components/admin/EmailTemplatesPanel";
 
 const CATEGORY_FILTERS: ({ value: "ALL" } | { value: ParticipantCategory })[] = [
   { value: "ALL" },
@@ -199,6 +201,10 @@ export function AdminDashboard({
           <Communications />
         ) : section === "parametres" ? (
           <SettingsPanel />
+        ) : section === "contenu" ? (
+          <ContentPanel />
+        ) : section === "emails" ? (
+          <EmailTemplatesPanel />
         ) : section === "utilisateurs" ? (
           currentRole === "SUPER_ADMIN" ? <UsersPanel /> : null
         ) : (
