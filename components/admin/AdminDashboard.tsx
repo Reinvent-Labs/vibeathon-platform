@@ -1194,15 +1194,13 @@ function SessionsManager() {
   }
 
   return (
-    <div className="surface stack" style={{ padding: 24, gap: 20 }}>
-      <div>
-        <h2 style={{ margin: "0 0 4px" }}>Sessions</h2>
-        <p style={{ margin: 0, color: "var(--ink-soft)", fontSize: 13 }}>
-          Ces sessions alimentent le scanner de présence. Une session archivée disparaît du scanner mais ses présences restent conservées.
-        </p>
+    <div className="panel" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="panel-head">
+        <h2 className="panel-title">Sessions</h2>
+        <p className="panel-sub">Alimentent le scanner de présence · les sessions archivées disparaissent du scanner mais leurs présences sont conservées</p>
       </div>
       {loading ? (
-        <p style={{ color: "var(--ink-faint)", fontSize: 13 }}>Chargement…</p>
+        <div className="cms-loading">Chargement…</div>
       ) : sessions.length ? (
         <div className="session-list">
           {sessions.map((session) => (
@@ -1243,7 +1241,7 @@ function SessionsManager() {
           ))}
         </div>
       ) : null}
-      <details className="session-add-form">
+      <details className="session-add-form" style={{ margin: "12px 20px 20px" }}>
         <summary>Ajouter une session</summary>
         <form className="stack" style={{ paddingTop: 16 }} onSubmit={createSession}>
           <div className="field two">
@@ -1289,6 +1287,7 @@ function SessionsManager() {
       </details>
     </div>
   );
+
 }
 
 function SettingsPanel() {
@@ -1368,115 +1367,123 @@ function SettingsPanel() {
   );
   return (
     <div className="settings-grid">
-      <form className="surface stack" style={{ padding: 24 }} onSubmit={save}>
-        <h2>Compétition</h2>
-        <label>
-          Nom
-          <input
-            className="input"
-            value={settings.name}
-            onChange={(event) =>
-              setSettings({ ...settings, name: event.target.value })
-            }
-            required
-          />
-        </label>
-        <label>
-          Lieu
-          <input
-            className="input"
-            value={settings.venue}
-            onChange={(event) =>
-              setSettings({ ...settings, venue: event.target.value })
-            }
-            required
-          />
-        </label>
-        <label>
-          Date
-          <input
-            className="input"
-            type="date"
-            value={settings.eventDate.slice(0, 10)}
-            onChange={(event) =>
-              setSettings({ ...settings, eventDate: event.target.value })
-            }
-            required
-          />
-        </label>
-        <label>
-          Frais compétiteur (FCFA)
-          <input
-            className="input"
-            type="number"
-            min={0}
-            value={settings.participationFee}
-            onChange={(event) =>
-              setSettings({
-                ...settings,
-                participationFee: Number(event.target.value),
-              })
-            }
-            required
-          />
-        </label>
-        <div className="field two">
-          <label>
-            Capacité totale
-            <input
-              className="input"
-              type="number"
-              min={1}
-              value={settings.capacity}
-              onChange={(event) =>
-                setSettings({
-                  ...settings,
-                  capacity: Number(event.target.value),
-                })
-              }
-              required
-            />
-          </label>
-          <label>
-            Places compétition
-            <input
-              className="input"
-              type="number"
-              min={1}
-              value={settings.competitorCapacity}
-              onChange={(event) =>
-                setSettings({
-                  ...settings,
-                  competitorCapacity: Number(event.target.value),
-                })
-              }
-              required
-            />
-          </label>
+      <form className="panel" onSubmit={save}>
+        <div className="panel-head">
+          <h2 className="panel-title">Compétition</h2>
+          <p className="panel-sub">Nom, lieu, date et capacités de l'événement</p>
         </div>
-        <label className="cluster">
-          <input
-            type="checkbox"
-            checked={settings.registrationOpen}
-            onChange={(event) =>
-              setSettings({
-                ...settings,
-                registrationOpen: event.target.checked,
-              })
-            }
-          />
-          Inscriptions hackathon ouvertes
-        </label>
-        <button className="btn btn-grad" disabled={saving}>
-          {saving ? "Enregistrement…" : "Enregistrer"}
-        </button>
+        <div className="panel-form">
+          <label>
+            Nom
+            <input
+              className="input"
+              value={settings.name}
+              onChange={(event) =>
+                setSettings({ ...settings, name: event.target.value })
+              }
+              required
+            />
+          </label>
+          <label>
+            Lieu
+            <input
+              className="input"
+              value={settings.venue}
+              onChange={(event) =>
+                setSettings({ ...settings, venue: event.target.value })
+              }
+              required
+            />
+          </label>
+          <label>
+            Date
+            <input
+              className="input"
+              type="date"
+              value={settings.eventDate.slice(0, 10)}
+              onChange={(event) =>
+                setSettings({ ...settings, eventDate: event.target.value })
+              }
+              required
+            />
+          </label>
+          <label>
+            Frais compétiteur (FCFA)
+            <input
+              className="input"
+              type="number"
+              min={0}
+              value={settings.participationFee}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  participationFee: Number(event.target.value),
+                })
+              }
+              required
+            />
+          </label>
+          <div className="field two">
+            <label>
+              Capacité totale
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={settings.capacity}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    capacity: Number(event.target.value),
+                  })
+                }
+                required
+              />
+            </label>
+            <label>
+              Places compétition
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={settings.competitorCapacity}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    competitorCapacity: Number(event.target.value),
+                  })
+                }
+                required
+              />
+            </label>
+          </div>
+          <label className="cluster" style={{ gap: 10 }}>
+            <input
+              type="checkbox"
+              checked={settings.registrationOpen}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  registrationOpen: event.target.checked,
+                })
+              }
+            />
+            Inscriptions hackathon ouvertes
+          </label>
+          <div>
+            <button className="btn btn-grad" disabled={saving}>
+              {saving ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </div>
+        </div>
       </form>
       <SessionsManager />
-      <form className="surface stack" style={{ padding: 24 }} onSubmit={save}>
-        <h2>Critères du jury</h2>
-        <p>
-          Les curseurs du portail jury utilisent directement ces plafonds.
-        </p>
+      <form className="panel" onSubmit={save}>
+        <div className="panel-head">
+          <h2 className="panel-title">Critères du jury</h2>
+          <p className="panel-sub">Les curseurs du portail jury utilisent directement ces plafonds. La somme doit être égale à 100.</p>
+        </div>
+        <div className="panel-form">
         {settings.criteria.map((criterion, index) => (
           <div className="field two" key={criterion.id}>
             <input
@@ -1514,15 +1521,18 @@ function SettingsPanel() {
             />
           </div>
         ))}
-        <strong className={criteriaTotal === 100 ? "grad-text-lt" : ""}>
-          Total : {criteriaTotal}/100
-        </strong>
-        <button
-          className="btn btn-grad"
-          disabled={saving || criteriaTotal !== 100}
-        >
-          {saving ? "Enregistrement…" : "Enregistrer les critères"}
-        </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <strong className={criteriaTotal === 100 ? "grad-text-lt" : ""} style={{ fontSize: 14 }}>
+              Total : {criteriaTotal}/100
+            </strong>
+            <button
+              className="btn btn-grad"
+              disabled={saving || criteriaTotal !== 100}
+            >
+              {saving ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
