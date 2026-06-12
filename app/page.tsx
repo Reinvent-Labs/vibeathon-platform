@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SiteNav } from "@/components/public/SiteNav";
+import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { EVENT, JUDGING_CRITERIA } from "@/lib/constants";
 import { CATEGORIES, OPEN_CATEGORIES, formatFee } from "@/lib/categories";
 
@@ -73,7 +74,7 @@ export default function HomePage() {
       <main>
         <section id="concept" className="sec-pad">
           <div className="wrap concept">
-            <div>
+            <div data-reveal="left">
               <span className="eyebrow">Le concept</span>
               <p className="lead">Le vibecoding, c&apos;est créer sans coder, en dialoguant avec l&apos;IA.</p>
               <p className="body">
@@ -86,7 +87,7 @@ export default function HomePage() {
                 <li>🌍 Ressources naturelles</li>
               </ul>
             </div>
-            <div className="grad-border quote">
+            <div className="grad-border quote" data-reveal="right">
               <div className="mark">&ldquo;</div>
               <p>Pas besoin d&apos;être développeur. Il suffit de penser, décrire et laisser l&apos;IA construire.</p>
             </div>
@@ -95,13 +96,13 @@ export default function HomePage() {
 
         <section id="activites" className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
-            <div className="section-head">
+            <div className="section-head" data-reveal>
               <span className="eyebrow">Au programme</span>
               <h2 className="display">Cinq façons<br />de vibrer.</h2>
             </div>
-            <div className="act-grid">
+            <div className="act-grid" data-stagger>
               {activities.map(([number, title, description], index) => (
-                <article className={`act-card ${index === 1 || index === 4 ? "wide" : ""}`} key={number}>
+                <article className={`act-card ${index === 1 || index === 4 ? "wide" : ""}`} key={number} data-reveal>
                   <div className="swatch" style={{ background: index % 2 ? "var(--grad-lt)" : "var(--grad-1)" }} />
                   <div className="num">{number}</div>
                   <h3>{title}</h3>
@@ -114,13 +115,13 @@ export default function HomePage() {
 
         <section id="programme" className="sec-pad">
           <div className="wrap">
-            <div className="section-head">
+            <div className="section-head" data-reveal>
               <span className="eyebrow">Le jour J · 11 juillet</span>
               <h2 className="display">Déroulé de<br />la journée.</h2>
             </div>
             <div className="timeline">
               {schedule.map(([time, title, description]) => (
-                <div className="tl-row" key={time}>
+                <div className="tl-row" key={time} data-reveal>
                   <div className="time">{time}</div><div className="dot" />
                   <div className="body"><h4>{title}</h4>{description ? <p>{description}</p> : null}</div>
                 </div>
@@ -131,17 +132,17 @@ export default function HomePage() {
 
         <section id="prix" className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
-            <div className="section-head">
+            <div className="section-head" data-reveal>
               <span className="eyebrow">Récompenses</span>
               <h2 className="display">Plus qu&apos;un prix,<br />un tremplin.</h2>
             </div>
-            <div className="prize-grid">
+            <div className="prize-grid" data-stagger>
               {[
                 ["1er prix", "1 000 000"],
                 ["2e prix", "500 000"],
                 ["3e prix", "300 000"],
               ].map(([rank, amount], index) => (
-                <div className={`prize ${index === 0 ? "gold" : ""}`} key={rank}>
+                <div className={`prize ${index === 0 ? "gold" : ""}`} key={rank} data-reveal="scale">
                   <div className="rank">{rank}</div>
                   <div className={`amt ${index === 0 ? "grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
                 </div>
@@ -157,7 +158,7 @@ export default function HomePage() {
 
         <section id="billets" className="sec-pad">
           <div className="wrap">
-            <div className="section-head">
+            <div className="section-head" data-reveal>
               <span className="eyebrow">Participer</span>
               <h2 className="display">Choisis<br />ton pass.</h2>
               <p className="body" style={{ marginTop: 14, maxWidth: 560 }}>
@@ -166,13 +167,14 @@ export default function HomePage() {
                 à une formation. Badge reçu par email et WhatsApp.
               </p>
             </div>
-            <div className="ticket-grid">
+            <div className="ticket-grid" data-stagger>
               {OPEN_CATEGORIES.map((value) => {
                 const category = CATEGORIES[value];
                 return (
                   <article
                     className="ticket-card"
                     key={value}
+                    data-reveal="scale"
                     style={{ ["--cat" as string]: category.color }}
                   >
                     <div className="ticket-bar" />
@@ -200,11 +202,11 @@ export default function HomePage() {
 
         <section className="sec-pad">
           <div className="wrap criteria">
-            <div>
+            <div data-reveal="left">
               <span className="eyebrow">Le jury évalue</span>
               <h2 className="display" style={{ fontSize: "clamp(36px,4.5vw,64px)", marginTop: 18 }}>Comment<br />on est noté.</h2>
             </div>
-            <div>
+            <div data-reveal="right">
               {JUDGING_CRITERIA.map((criterion) => (
                 <div className="crit-row" key={criterion.id}>
                   <div className="lab"><span className="name">{criterion.name}</span><span className="pct grad-text-lt">{criterion.weight}%</span></div>
@@ -217,9 +219,9 @@ export default function HomePage() {
 
         <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
-            <div className="section-head"><span className="eyebrow">Pour qui ?</span><h2 className="display">Ouvert à tous<br />les bâtisseurs.</h2></div>
-            <div className="aud-row">
-              {["Étudiants", "Jeunes diplômés", "Entrepreneurs", "Professionnels"].map((audience) => <div className="aud-chip" key={audience}>{audience}</div>)}
+            <div className="section-head" data-reveal><span className="eyebrow">Pour qui ?</span><h2 className="display">Ouvert à tous<br />les bâtisseurs.</h2></div>
+            <div className="aud-row" data-stagger>
+              {["Étudiants", "Jeunes diplômés", "Entrepreneurs", "Professionnels"].map((audience) => <div className="aud-chip" key={audience} data-reveal>{audience}</div>)}
             </div>
           </div>
         </section>
@@ -237,6 +239,8 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+
+      <ScrollReveal />
 
       <footer className="foot">
         <div className="wrap">

@@ -315,6 +315,7 @@ function ParticipantTable({
   confirmedOnly: boolean;
 }) {
   const [tab, setTab] = useState<"competiteurs" | "billets">("competiteurs");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | DemoParticipantStatus>("ALL");
 
   const hackathon = participants.filter((p) => (p.category ?? "HACKATHON") === "HACKATHON");
   const billets = participants.filter((p) => BILLET_CATEGORIES.includes((p.category ?? "HACKATHON") as ParticipantCategory));
@@ -326,9 +327,17 @@ function ParticipantTable({
 
   const billetFilter = tab === "billets" ? categoryFilter : "ALL";
 
-  const filteredRows = tab === "billets" && billetFilter !== "ALL"
-    ? rows.filter((p) => (p.category ?? "HACKATHON") === billetFilter)
-    : rows;
+  const filteredRows = (() => {
+    let result = tab === "billets" && billetFilter !== "ALL"
+      ? rows.filter((p) => (p.category ?? "HACKATHON") === billetFilter)
+      : rows;
+    if (tab === "competiteurs" && statusFilter !== "ALL") {
+      result = result.filter((p) => p.status === statusFilter);
+    }
+    return result;
+  })();
+
+  const waitlistCount = hackathon.filter((p) => p.status === "WAITLIST").length;
 
   const canSendBadge = (status: string) =>
     ["PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
@@ -344,7 +353,7 @@ function ParticipantTable({
       <div style={{ display: "flex", borderBottom: "1px solid var(--line-2)", padding: "0 20px" }}>
         <button
           type="button"
-          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); }}
+          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
           style={{
             background: "none", border: "none", cursor: "pointer",
             padding: "10px 16px", fontSize: 13, fontWeight: 600,
@@ -357,7 +366,7 @@ function ParticipantTable({
         </button>
         <button
           type="button"
-          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); }}
+          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
           style={{
             background: "none", border: "none", cursor: "pointer",
             padding: "10px 16px", fontSize: 13, fontWeight: 600,
@@ -369,6 +378,30 @@ function ParticipantTable({
           Billets publics <span style={{ background: "rgba(67,217,255,.12)", color: "#43D9FF", borderRadius: 10, padding: "1px 8px", fontSize: 11, marginLeft: 6 }}>{billets.length}</span>
         </button>
       </div>
+
+      {/* Status sub-filter for competiteurs tab */}
+      {tab === "competiteurs" ? (
+        <div className="cat-filter">
+          {([
+            { value: "ALL" as const, label: "Tous" },
+            { value: "PENDING" as const, label: "À examiner", color: "#f5d778" },
+            { value: "WAITLIST" as const, label: `Liste d'attente${waitlistCount ? ` (${waitlistCount})` : ""}`, color: "#43d9ff" },
+            { value: "SELECTED" as const, label: "Acceptés · paiement attendu", color: "#ba77ff" },
+            { value: "CONFIRMED" as const, label: "Confirmés", color: "#75ff8d" },
+            { value: "REJECTED" as const, label: "Non retenus", color: "#ff7a9c" },
+          ] as const).map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className={`cat-chip ${statusFilter === f.value ? "active" : ""}`}
+              style={"color" in f ? { ["--cat" as string]: f.color } : undefined}
+              onClick={() => setStatusFilter(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {/* Sub-filters for billets tab */}
       {tab === "billets" ? (
