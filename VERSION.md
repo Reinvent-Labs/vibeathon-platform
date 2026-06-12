@@ -32,3 +32,4 @@
 - Made payment demo confirmation impossible in production, even if the demo environment flag is accidentally enabled.
 - Replaced placeholder admin settings, jury metrics, ranking, finalists, and presence counters with authenticated PostgreSQL-backed workflows.
 - Made competition fees, capacity, registration state, and jury criteria configurable and enforced those settings in selection, payment, registration, and scoring APIs.
+- Aligned the default and production competitor fee with the official 20 000 FCFA amount used in candidate communications.

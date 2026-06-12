@@ -6,7 +6,7 @@ import { PrismaClient } from "../generated/prisma/client";
 const EVENT = {
   name: "VIBEATHON 2026",
   venue: "CSCTICAO, Abidjan",
-  fee: 5_000,
+  fee: 20_000,
   capacity: 400,
   competitorCapacity: 100,
 } as const;
