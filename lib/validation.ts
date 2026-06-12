@@ -37,7 +37,7 @@ export const statusLookupSchema = z.object({
 
 export const paymentInitSchema = z.object({
   participantId: z.string().min(1),
-  channel: z.enum(["WAVE", "ORANGE", "MTN", "CARD"]).default("WAVE"),
+  channel: z.enum(["WAVE", "ORANGE", "MTN", "CARD"]).or(z.literal("")).default("WAVE"),
 });
 
 export const scanSchema = z.object({
