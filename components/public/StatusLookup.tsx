@@ -17,6 +17,7 @@ type StatusParticipant = {
   status: DemoParticipantStatus;
   qrCode: string;
   teamName?: string;
+  fee: number;
 };
 
 const statusCopy = {
@@ -87,24 +88,6 @@ export function StatusLookup() {
   }
 
   useEffect(() => {
-    const demoParticipant = searchParams.get("participant");
-    if (!demoParticipant) return;
-    fetch("/api/payment/demo-confirm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participantId: demoParticipant }),
-    })
-      .then((response) => response.json())
-      .then((payload) => {
-        if (payload.success) {
-          setParticipant(payload.data);
-          setEmail(payload.data.email);
-          toast.success("Paiement de démonstration confirmé.");
-        }
-      });
-  }, [searchParams]);
-
-  useEffect(() => {
     if (!paymentResult || !returnedEmail) return;
     queueMicrotask(() => void lookup(returnedEmail));
     if (paymentResult === "success") {
@@ -154,9 +137,6 @@ export function StatusLookup() {
             <input className="input" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="toi@email.com" />
             <button className="btn btn-grad" disabled={loading}>{loading ? "Recherche..." : "Voir"}</button>
           </form>
-          <div className="demo-hints">
-            Exemple importé : <button onClick={() => { setEmail("christianaime001@gmail.com"); void lookup("christianaime001@gmail.com"); }}>voir un dossier</button>
-          </div>
         </div>
       ) : (
         <div className="status-card">
@@ -174,10 +154,10 @@ export function StatusLookup() {
             <div className="stat-line grad-text-lt">{copy?.label}</div>
             <p className="desc">{copy?.description}</p>
             {participant.status === "SELECTED" ? (
-              <div className="pay-box"><div><b>{EVENT.fee.toLocaleString("fr-FR")} {EVENT.currency}</b><br /><span>Frais de participation · échéance 5 juillet</span></div></div>
+              <div className="pay-box"><div><b>{participant.fee.toLocaleString("fr-FR")} {EVENT.currency}</b><br /><span>Frais de participation · paiement requis pour confirmer la place</span></div></div>
             ) : null}
             <div className="actions">
-              {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${EVENT.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
+              {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
               {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? <Link href={`/badge/${participant.qrCode}`} className="btn btn-grad">Voir mon badge →</Link> : null}
               <button className="btn btn-ghost" onClick={() => setParticipant(null)}>Vérifier un autre email</button>
             </div>

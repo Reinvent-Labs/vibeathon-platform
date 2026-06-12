@@ -5,11 +5,17 @@ import { AlertCircle, Lock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
-import { JUDGING_CRITERIA } from "@/lib/constants";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import type { SessionPayload } from "@/lib/auth";
 
 type Scores = Record<string, number>;
+type JuryCriterion = {
+  id: string;
+  key: string;
+  name: string;
+  weight: number;
+  order: number;
+};
 type JuryTeam = {
   id: string;
   name: string;
@@ -33,6 +39,7 @@ export function JuryPortal({
 }) {
   const router = useRouter();
   const [teams, setTeams] = useState<JuryTeam[]>([]);
+  const [criteria, setCriteria] = useState<JuryCriterion[]>([]);
   const [teamIndex, setTeamIndex] = useState(0);
   const [completed, setCompleted] = useState<string[]>([]);
   const [scoresByTeam, setScoresByTeam] = useState<Record<string, Scores>>({});
@@ -41,35 +48,59 @@ export function JuryPortal({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   useEffect(() => {
-    fetch("/api/teams?scope=jury")
-      .then(async (response) => {
-        const payload = await response.json();
-        if (response.status === 401) {
+    Promise.all([
+      fetch("/api/teams?scope=jury"),
+      fetch("/api/jury/config"),
+    ])
+      .then(async ([teamsResponse, criteriaResponse]) => {
+        if (teamsResponse.status === 401 || criteriaResponse.status === 401) {
           router.replace("/login?next=%2Fjury");
           return;
         }
-        if (payload.success) {
-          setTeams(payload.data);
+        const [teamsPayload, criteriaPayload] = await Promise.all([
+          teamsResponse.json(),
+          criteriaResponse.json(),
+        ]);
+        if (teamsPayload.success && criteriaPayload.success) {
+          setTeams(teamsPayload.data);
+          setCriteria(criteriaPayload.data);
           setCompleted(
-            payload.data
+            teamsPayload.data
               .filter((team: JuryTeam) => team.scored)
               .map((team: JuryTeam) => team.id),
           );
           setScoresByTeam(
             Object.fromEntries(
-              payload.data.map((team: JuryTeam) => [team.id, team.scores]),
+              teamsPayload.data.map((team: JuryTeam) => [
+                team.id,
+                Object.fromEntries(
+                  criteriaPayload.data.map((criterion: JuryCriterion) => [
+                    criterion.key,
+                    team.scores[criterion.key] ?? 0,
+                  ]),
+                ),
+              ]),
             ),
           );
           setCommentsByTeam(
             Object.fromEntries(
-              payload.data.map((team: JuryTeam) => [team.id, team.comment]),
+              teamsPayload.data.map((team: JuryTeam) => [
+                team.id,
+                team.comment,
+              ]),
             ),
           );
         } else {
-          setLoadError(payload.error ?? "Impossible de charger les équipes.");
+          setLoadError(
+            teamsPayload.error ??
+              criteriaPayload.error ??
+              "Impossible de charger la configuration du jury.",
+          );
         }
       })
-      .catch(() => setLoadError("Impossible de charger les équipes."))
+      .catch(() =>
+        setLoadError("Impossible de charger la configuration du jury."),
+      )
       .finally(() => setLoading(false));
   }, [router]);
 
@@ -77,7 +108,7 @@ export function JuryPortal({
   const scores = team
     ? scoresByTeam[team.id] ??
       Object.fromEntries(
-        JUDGING_CRITERIA.map((criterion) => [criterion.id, 0]),
+        criteria.map((criterion) => [criterion.key, 0]),
       )
     : {};
   const comment = team ? commentsByTeam[team.id] ?? "" : "";
@@ -167,11 +198,11 @@ export function JuryPortal({
           <div><small>Problème adressé</small><p>{team.problem}</p></div>
           {team.demoUrl || team.repositoryUrl ? <div className="cluster">{team.demoUrl ? <a href={externalUrl(team.demoUrl)} target="_blank" rel="noreferrer">{team.demoUrl}</a> : null}{team.repositoryUrl ? <a href={externalUrl(team.repositoryUrl)} target="_blank" rel="noreferrer">{team.repositoryUrl}</a> : null}</div> : null}
           <div>
-            {JUDGING_CRITERIA.map((criterion) => (
+            {criteria.map((criterion) => (
               <label className="score-row" key={criterion.id}>
                 <span>{criterion.name} <small>/ {criterion.weight}</small></span>
-                <input type="range" min={0} max={criterion.weight} value={scores[criterion.id]} disabled={locked} onChange={(event) => setScore(criterion.id, Number(event.target.value))} />
-                <strong>{scores[criterion.id]}</strong>
+                <input type="range" min={0} max={criterion.weight} value={scores[criterion.key]} disabled={locked} onChange={(event) => setScore(criterion.key, Number(event.target.value))} />
+                <strong>{scores[criterion.key]}</strong>
               </label>
             ))}
           </div>

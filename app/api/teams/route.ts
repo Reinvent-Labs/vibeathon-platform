@@ -20,6 +20,8 @@ export async function GET(request: Request) {
             some: {},
             every: {
               status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
+              category: "HACKATHON",
+              isTest: false,
             },
           },
         }
@@ -99,6 +101,8 @@ export async function POST(request: Request) {
   const eligibleMembers = await prisma.participant.findMany({
     where: {
       id: { in: body.memberIds },
+      category: "HACKATHON",
+      isTest: false,
       status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },
@@ -156,6 +160,8 @@ export async function PATCH(request: Request) {
     const eligible = await prisma.participant.count({
       where: {
         id: { in: addMemberIds },
+        category: "HACKATHON",
+        isTest: false,
         status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
         teamId: null,
       },

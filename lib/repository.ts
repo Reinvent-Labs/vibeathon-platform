@@ -30,6 +30,9 @@ export async function createParticipant(
     if (!competition) {
       throw new Error("La compétition n'est pas encore configurée.");
     }
+    if (!competition.registrationOpen) {
+      throw new Error("Les candidatures à la compétition sont closes.");
+    }
 
     const reference = buildReference();
     const participant = await prisma.participant.create({

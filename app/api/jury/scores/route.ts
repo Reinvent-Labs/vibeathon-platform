@@ -1,5 +1,4 @@
 import { apiError, apiSuccess, readJson } from "@/lib/api";
-import { JUDGING_CRITERIA } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { scoreSubmissionSchema } from "@/lib/validation";
 import { isSameOrigin, requireRole } from "@/lib/auth";
@@ -11,10 +10,6 @@ export async function POST(request: Request) {
   const body = await readJson<unknown>(request);
   const parsed = scoreSubmissionSchema.safeParse(body);
   if (!parsed.success) return apiError("Scores invalides.");
-  for (const criterion of JUDGING_CRITERIA) {
-    const value = parsed.data.scores[criterion.id] ?? 0;
-    if (value > criterion.weight) return apiError(`Le score ${criterion.name} dépasse ${criterion.weight}.`);
-  }
 
   if (!prisma) return apiError("Base de données indisponible.", 503);
   const database = prisma;
@@ -43,10 +38,21 @@ export async function POST(request: Request) {
     orderBy: { order: "asc" },
   });
   if (
-    criteria.length !== JUDGING_CRITERIA.length ||
-    criteria.some((criterion) => !(criterion.key in parsed.data.scores))
+    criteria.length === 0 ||
+    criteria.some((criterion) => !(criterion.key in parsed.data.scores)) ||
+    Object.keys(parsed.data.scores).some(
+      (key) => !criteria.some((criterion) => criterion.key === key),
+    )
   ) {
     return apiError("Tous les critères doivent être renseignés.", 400);
+  }
+  for (const criterion of criteria) {
+    const value = parsed.data.scores[criterion.key] ?? 0;
+    if (value > criterion.weight) {
+      return apiError(
+        `Le score ${criterion.name} dépasse ${criterion.weight}.`,
+      );
+    }
   }
   const previous = await database.juryScore.findFirst({
     where: {

@@ -7,6 +7,7 @@ import { emailTemplates } from "@/emails/templates";
 import { requestIp, writeAuditLog } from "@/lib/audit";
 import { appBaseUrl, statusUrlFor } from "@/lib/campaigns";
 import { whatsAppMessages } from "@/lib/whatsapp-templates";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   if (!(await requireRole(["SUPER_ADMIN", "ADMIN"]))) {
@@ -72,6 +73,13 @@ export async function PATCH(request: Request) {
   }
   // Enforce the 100-slot cap when selecting / promoting from the waitlist.
   if (nextStatus === "SELECTED") {
+    const competition = prisma
+      ? await prisma.competition.findUnique({
+          where: { slug: "vibeathon-2026" },
+          select: { competitorCapacity: true },
+        })
+      : null;
+    const capacity = competition?.competitorCapacity ?? 100;
     const alreadyActive = participants.filter(
       (participant) =>
         participant.category === "HACKATHON" &&
@@ -84,9 +92,9 @@ export async function PATCH(request: Request) {
         !participant.isTest &&
         !ACTIVE.includes(participant.status),
     ).length;
-    if (alreadyActive + newlyActive > 100) {
+    if (alreadyActive + newlyActive > capacity) {
       return apiError(
-        `La sélection est limitée à 100 personnes. Il reste ${Math.max(0, 100 - alreadyActive)} place(s). Libère une place (non-payeur → liste d'attente/refusé) avant de promouvoir.`,
+        `La sélection est limitée à ${capacity} personnes. Il reste ${Math.max(0, capacity - alreadyActive)} place(s). Libère une place (non-payeur → liste d'attente/refusé) avant de promouvoir.`,
         409,
       );
     }

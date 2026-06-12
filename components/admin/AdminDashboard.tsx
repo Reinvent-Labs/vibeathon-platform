@@ -16,8 +16,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { DemoParticipant, DemoParticipantStatus } from "@/lib/demo-data";
-import { demoTeams } from "@/lib/demo-data";
-import { EVENT, EVENT_SESSIONS, JUDGING_CRITERIA } from "@/lib/constants";
 import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
 
 const CATEGORY_FILTERS: ({ value: "ALL" } | { value: ParticipantCategory })[] = [
@@ -57,6 +55,14 @@ type EligibleMember = {
   proposedTeamName?: string | null;
   registrationMode?: string | null;
   status: string;
+};
+
+type JuryCriterion = {
+  id: string;
+  key: string;
+  name: string;
+  weight: number;
+  order: number;
 };
 
 const statusLabels: Record<DemoParticipantStatus, string> = {
@@ -630,8 +636,111 @@ function Teams() {
 }
 
 function Presence({ participants }: { participants: DemoParticipant[] }) {
-  const present = participants.filter((item) => item.status === "CONFIRMED").length;
-  return <div className="stack"><div className="metric-grid"><div className="metric-card"><span>Présents</span><strong className="grad-text-lt">{present}</strong><small>sur {EVENT.capacity}</small></div>{EVENT_SESSIONS.slice(0, 3).map((session, index) => <div className="metric-card" key={session}><span>{session}</span><strong>{Math.max(0, present - index * 7)}</strong><small>scans uniques</small></div>)}</div><Link className="btn btn-grad" href="/scan">Ouvrir le scanner QR</Link></div>;
+  type PresenceData = {
+    uniquePresent: number;
+    sessions: {
+      id: string;
+      name: string;
+      location: string | null;
+      active: boolean;
+      startsAt: string | null;
+      scanCount: number;
+    }[];
+    recentScans: {
+      id: string;
+      createdAt: string;
+      participant: {
+        fullName: string;
+        reference: string;
+        category: ParticipantCategory;
+      } | null;
+      session: { name: string };
+    }[];
+  };
+  const [data, setData] = useState<PresenceData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/presence")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error ?? "Chargement impossible.");
+        }
+        setData(payload.data);
+      })
+      .catch((error) =>
+        toast.error(
+          error instanceof Error ? error.message : "Chargement impossible.",
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="surface empty-state">Chargement des présences…</div>;
+  }
+  const eligible = participants.filter((participant) =>
+    ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status),
+  ).length;
+  return (
+    <div className="stack">
+      <div className="metric-grid">
+        <div className="metric-card">
+          <span>Personnes scannées</span>
+          <strong className="grad-text-lt">{data?.uniquePresent ?? 0}</strong>
+          <small>sur {eligible} accès confirmés</small>
+        </div>
+        {(data?.sessions ?? []).slice(0, 3).map((session) => (
+          <div className="metric-card" key={session.id}>
+            <span>{session.name}</span>
+            <strong>{session.scanCount}</strong>
+            <small>
+              {session.active ? "Session active" : session.location || "Scans acceptés"}
+            </small>
+          </div>
+        ))}
+      </div>
+      <div className="panel">
+        <div className="phead">
+          <h3>Présences récentes</h3>
+          <Link className="btn btn-grad" href="/scan">
+            Ouvrir le scanner QR
+          </Link>
+        </div>
+        {(data?.recentScans.length ?? 0) > 0 ? (
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Participant</th>
+                  <th>Session</th>
+                  <th>Heure</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.recentScans.map((scan) => (
+                  <tr key={scan.id}>
+                    <td>
+                      <b>{scan.participant?.fullName ?? "QR inconnu"}</b>
+                      <br />
+                      <small>{scan.participant?.reference}</small>
+                    </td>
+                    <td>{scan.session.name}</td>
+                    <td>
+                      {new Date(scan.createdAt).toLocaleString("fr-FR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="empty-state">Aucune présence enregistrée.</div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function EvaluationStub() {
@@ -639,7 +748,147 @@ function EvaluationStub() {
 }
 
 function JuryAdmin() {
-  return <div className="stack"><div className="metric-grid"><div className="metric-card"><span>Jurés actifs</span><strong>6</strong></div><div className="metric-card"><span>Équipes notées</span><strong>14</strong></div><div className="metric-card"><span>Finalistes</span><strong>10</strong></div><div className="metric-card"><span>Critères</span><strong>{JUDGING_CRITERIA.length}</strong></div></div><div className="panel"><div className="phead"><h3>Classement provisoire</h3><Link href="/jury">Espace jury</Link></div>{demoTeams.map((team, index) => <div className="bar-row" key={team.id}><span className="nm">{index + 1}. {team.name}</span><span className="tk"><i style={{ width: `${88 - index * 6}%` }} /></span><span className="vv">{88 - index * 6}</span></div>)}</div></div>;
+  type JuryOverview = {
+    juryCount: number;
+    criteriaCount: number;
+    eligibleTeams: number;
+    scoredTeams: number;
+    finalists: number;
+    ranking: {
+      id: string;
+      name: string;
+      memberCount: number;
+      juryCount: number;
+      averageScore: number | null;
+      isFinalist: boolean;
+      rank: number | null;
+    }[];
+  };
+  const [data, setData] = useState<JuryOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    fetch("/api/admin/jury-overview")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error ?? "Chargement impossible.");
+        }
+        setData(payload.data);
+      })
+      .catch((error) =>
+        toast.error(
+          error instanceof Error ? error.message : "Chargement impossible.",
+        ),
+      )
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function updateResult(
+    teamId: string,
+    value: "none" | "finalist" | "1" | "2" | "3",
+  ) {
+    const response = await fetch("/api/admin/jury-overview", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teamId,
+        isFinalist: value !== "none",
+        rank: ["1", "2", "3"].includes(value) ? Number(value) : null,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) {
+      return toast.error(payload.error ?? "Mise à jour impossible.");
+    }
+    setData(payload.data);
+    toast.success("Résultat de l'équipe enregistré.");
+  }
+
+  if (loading) {
+    return <div className="surface empty-state">Chargement du jury…</div>;
+  }
+  return (
+    <div className="stack">
+      <div className="metric-grid">
+        <div className="metric-card">
+          <span>Jurés actifs</span>
+          <strong>{data?.juryCount ?? 0}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Équipes admissibles</span>
+          <strong>{data?.eligibleTeams ?? 0}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Équipes notées</span>
+          <strong>{data?.scoredTeams ?? 0}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Critères</span>
+          <strong>{data?.criteriaCount ?? 0}</strong>
+        </div>
+      </div>
+      <div className="panel">
+        <div className="phead">
+          <h3>Classement provisoire</h3>
+          <Link href="/jury">Ouvrir l&apos;espace jury</Link>
+        </div>
+        {(data?.ranking.length ?? 0) > 0 ? (
+          <div style={{ padding: 22 }}>
+            {data?.ranking.map((team, index) => (
+              <div className="bar-row" key={team.id}>
+                <span className="nm">
+                  {team.rank ? `${team.rank}.` : `${index + 1}.`} {team.name}
+                </span>
+                <span className="tk">
+                  <i style={{ width: `${team.averageScore ?? 0}%` }} />
+                </span>
+                <span className="vv">
+                  {team.averageScore === null ? "—" : team.averageScore}
+                </span>
+                <small>{team.juryCount} juré(s)</small>
+                <select
+                  className="select compact-select"
+                  value={
+                    team.rank
+                      ? String(team.rank)
+                      : team.isFinalist
+                        ? "finalist"
+                        : "none"
+                  }
+                  onChange={(event) =>
+                    void updateResult(
+                      team.id,
+                      event.target.value as
+                        | "none"
+                        | "finalist"
+                        | "1"
+                        | "2"
+                        | "3",
+                    )
+                  }
+                  aria-label={`Résultat de ${team.name}`}
+                >
+                  <option value="none">Non finaliste</option>
+                  <option value="finalist">Finaliste</option>
+                  <option value="1">1er prix</option>
+                  <option value="2">2e prix</option>
+                  <option value="3">3e prix</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            Aucune équipe entièrement payée n&apos;est encore admissible au jury.
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Communications() {
@@ -1037,11 +1286,238 @@ function SessionsManager() {
 }
 
 function SettingsPanel() {
+  type CompetitionSettings = {
+    id: string;
+    name: string;
+    venue: string;
+    eventDate: string;
+    participationFee: number;
+    capacity: number;
+    competitorCapacity: number;
+    registrationOpen: boolean;
+    criteria: JuryCriterion[];
+  };
+  const [settings, setSettings] = useState<CompetitionSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error ?? "Chargement impossible.");
+        }
+        setSettings(payload.data);
+      })
+      .catch((error) =>
+        toast.error(
+          error instanceof Error ? error.message : "Chargement impossible.",
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...settings,
+          eventDate: settings.eventDate.slice(0, 10),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error ?? "Enregistrement impossible.");
+      }
+      setSettings(payload.data);
+      toast.success("Paramètres enregistrés dans la base de données.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Enregistrement impossible.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="surface empty-state">Chargement des paramètres…</div>;
+  }
+  if (!settings) {
+    return (
+      <div className="surface empty-state">
+        Les paramètres de la compétition sont indisponibles.
+      </div>
+    );
+  }
+  const criteriaTotal = settings.criteria.reduce(
+    (sum, criterion) => sum + criterion.weight,
+    0,
+  );
   return (
     <div className="settings-grid">
-      <form className="surface stack" style={{ padding: 24 }} onSubmit={(event) => { event.preventDefault(); toast.success("Paramètres enregistrés."); }}><h2>Compétition</h2><label>Nom<input className="input" defaultValue="VIBEATHON 2026" /></label><label>Date<input className="input" type="date" defaultValue="2026-07-11" /></label><label>Frais<input className="input" type="number" defaultValue={EVENT.fee} /></label><button className="btn btn-grad">Enregistrer</button></form>
+      <form className="surface stack" style={{ padding: 24 }} onSubmit={save}>
+        <h2>Compétition</h2>
+        <label>
+          Nom
+          <input
+            className="input"
+            value={settings.name}
+            onChange={(event) =>
+              setSettings({ ...settings, name: event.target.value })
+            }
+            required
+          />
+        </label>
+        <label>
+          Lieu
+          <input
+            className="input"
+            value={settings.venue}
+            onChange={(event) =>
+              setSettings({ ...settings, venue: event.target.value })
+            }
+            required
+          />
+        </label>
+        <label>
+          Date
+          <input
+            className="input"
+            type="date"
+            value={settings.eventDate.slice(0, 10)}
+            onChange={(event) =>
+              setSettings({ ...settings, eventDate: event.target.value })
+            }
+            required
+          />
+        </label>
+        <label>
+          Frais compétiteur (FCFA)
+          <input
+            className="input"
+            type="number"
+            min={0}
+            value={settings.participationFee}
+            onChange={(event) =>
+              setSettings({
+                ...settings,
+                participationFee: Number(event.target.value),
+              })
+            }
+            required
+          />
+        </label>
+        <div className="field two">
+          <label>
+            Capacité totale
+            <input
+              className="input"
+              type="number"
+              min={1}
+              value={settings.capacity}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  capacity: Number(event.target.value),
+                })
+              }
+              required
+            />
+          </label>
+          <label>
+            Places compétition
+            <input
+              className="input"
+              type="number"
+              min={1}
+              value={settings.competitorCapacity}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  competitorCapacity: Number(event.target.value),
+                })
+              }
+              required
+            />
+          </label>
+        </div>
+        <label className="cluster">
+          <input
+            type="checkbox"
+            checked={settings.registrationOpen}
+            onChange={(event) =>
+              setSettings({
+                ...settings,
+                registrationOpen: event.target.checked,
+              })
+            }
+          />
+          Inscriptions hackathon ouvertes
+        </label>
+        <button className="btn btn-grad" disabled={saving}>
+          {saving ? "Enregistrement…" : "Enregistrer"}
+        </button>
+      </form>
       <SessionsManager />
-      <div className="surface stack" style={{ padding: 24 }}><h2>Critères du jury</h2>{JUDGING_CRITERIA.map((criterion) => <div className="cluster" style={{ justifyContent: "space-between" }} key={criterion.id}><span>{criterion.name}</span><b>{criterion.weight}%</b></div>)}<strong>Total : 100%</strong></div>
+      <form className="surface stack" style={{ padding: 24 }} onSubmit={save}>
+        <h2>Critères du jury</h2>
+        <p>
+          Les curseurs du portail jury utilisent directement ces plafonds.
+        </p>
+        {settings.criteria.map((criterion, index) => (
+          <div className="field two" key={criterion.id}>
+            <input
+              className="input"
+              value={criterion.name}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  criteria: settings.criteria.map((item, itemIndex) =>
+                    itemIndex === index
+                      ? { ...item, name: event.target.value }
+                      : item,
+                  ),
+                })
+              }
+              aria-label={`Nom du critère ${index + 1}`}
+            />
+            <input
+              className="input"
+              type="number"
+              min={1}
+              max={100}
+              value={criterion.weight}
+              onChange={(event) =>
+                setSettings({
+                  ...settings,
+                  criteria: settings.criteria.map((item, itemIndex) =>
+                    itemIndex === index
+                      ? { ...item, weight: Number(event.target.value) }
+                      : item,
+                  ),
+                })
+              }
+              aria-label={`Poids du critère ${criterion.name}`}
+            />
+          </div>
+        ))}
+        <strong className={criteriaTotal === 100 ? "grad-text-lt" : ""}>
+          Total : {criteriaTotal}/100
+        </strong>
+        <button
+          className="btn btn-grad"
+          disabled={saving || criteriaTotal !== 100}
+        >
+          {saving ? "Enregistrement…" : "Enregistrer les critères"}
+        </button>
+      </form>
     </div>
   );
 }

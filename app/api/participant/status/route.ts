@@ -3,6 +3,8 @@ import { findParticipantByEmail } from "@/lib/repository";
 import { statusLookupSchema } from "@/lib/validation";
 import { allowRequest } from "@/lib/rate-limit";
 import { headers } from "next/headers";
+import { CATEGORIES } from "@/lib/categories";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const headerStore = await headers();
@@ -16,6 +18,14 @@ export async function GET(request: Request) {
 
   const participant = await findParticipantByEmail(parsed.data.email);
   if (!participant) return apiError("Aucune candidature trouvée pour cet email.", 404);
+  const category = participant.category ?? "HACKATHON";
+  const competition =
+    category === "HACKATHON" && prisma
+      ? await prisma.competition.findUnique({
+          where: { slug: "vibeathon-2026" },
+          select: { participationFee: true },
+        })
+      : null;
 
   return apiSuccess({
     id: participant.id,
@@ -27,5 +37,6 @@ export async function GET(request: Request) {
     status: participant.status,
     qrCode: participant.qrCode,
     teamName: participant.teamName,
+    fee: competition?.participationFee ?? CATEGORIES[category].fee,
   });
 }
