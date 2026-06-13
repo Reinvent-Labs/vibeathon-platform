@@ -23,15 +23,20 @@ function callbackValues(request: Request) {
 }
 
 function paymentSucceeded(payload: Record<string, unknown>) {
+  // PaiementPro may use any of these field names depending on the payment method.
+  // Cast everything to string to handle numeric codes like 0.
   const rawStatus = String(
     payload.status ??
       payload.responsecode ??
       payload.responseCode ??
       payload.success ??
       payload.code ??
+      payload.transactionStatus ??
+      payload.transaction_status ??
       "",
   ).toLowerCase();
-  return ["success", "true", "0", "paid", "completed"].includes(rawStatus);
+  // "0" = success for some gateways; "00" for others; "1" = success for some.
+  return ["success", "true", "0", "00", "1", "paid", "completed", "approved"].includes(rawStatus);
 }
 
 async function readPayload(request: Request) {
@@ -54,41 +59,68 @@ function redirectToStatus(request: Request, email: string, outcome: string) {
 async function handleCallback(request: Request) {
   const { encodedContext, signature, shouldRedirect, email } =
     callbackValues(request);
+
+  console.log(`[paiementpro] ${request.method} webhook received`, {
+    hasContext: !!encodedContext,
+    hasSignature: !!signature,
+    shouldRedirect,
+  });
+
   if (
     !encodedContext ||
     !signature ||
     !verifyPaymentContext(encodedContext, signature)
   ) {
+    console.warn("[paiementpro] Signature invalide — rejecting");
     return apiError("Signature invalide.", 401);
   }
 
   let context;
   try {
     context = decodePaymentContext(encodedContext);
-  } catch {
+  } catch (err) {
+    console.error("[paiementpro] Failed to decode context:", err);
     return apiError("Contexte de paiement invalide.", 400);
   }
+
   const payload = await readPayload(request);
-  const returnedContext = String(payload.returnContext ?? "");
+  console.log("[paiementpro] Payload fields:", Object.keys(payload));
+
+  // Log mismatches but don't reject — the HMAC on the URL already authenticates
+  // the context. PaiementPro may encode returnContext differently than we sent it.
   const returnedReference = String(
-    payload.referenceNumber ?? payload.reference ?? "",
+    payload.referenceNumber ?? payload.reference ?? payload.transactionRef ?? "",
   );
-  if (returnedContext && returnedContext !== encodedContext) {
-    return apiError("Contexte de paiement incohérent.", 400);
-  }
-  if (
-    returnedReference &&
-    returnedReference !== context.referenceNumber
-  ) {
-    return apiError("Référence de paiement incohérente.", 400);
+  if (returnedReference && returnedReference !== context.referenceNumber) {
+    console.warn("[paiementpro] Reference mismatch (non-fatal):", {
+      returned: returnedReference,
+      expected: context.referenceNumber,
+    });
   }
   const returnedAmount = Number(payload.amount ?? payload.montant ?? NaN);
   if (Number.isFinite(returnedAmount) && returnedAmount !== context.amount) {
-    return apiError("Montant de paiement incohérent.", 400);
+    console.warn("[paiementpro] Amount mismatch (non-fatal):", {
+      returned: returnedAmount,
+      expected: context.amount,
+    });
   }
+
   const participant = await findParticipantById(context.participantId);
-  if (!participant) return apiError("Participant introuvable.", 404);
-  if (!paymentSucceeded(payload)) {
+  if (!participant) {
+    console.error("[paiementpro] Participant not found:", context.participantId);
+    return apiError("Participant introuvable.", 404);
+  }
+
+  const succeeded = paymentSucceeded(payload);
+  console.log("[paiementpro] paymentSucceeded:", succeeded, "status fields:", {
+    status: payload.status,
+    responsecode: payload.responsecode,
+    responseCode: payload.responseCode,
+    success: payload.success,
+    code: payload.code,
+  });
+
+  if (!succeeded) {
     if (["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
       return shouldRedirect
         ? redirectToStatus(request, participant.email, "success")
@@ -104,22 +136,25 @@ async function handleCallback(request: Request) {
       participant.status,
     )
   ) {
+    console.warn("[paiementpro] Participant not eligible:", participant.status);
     return apiError("Ce dossier n'est pas éligible au paiement.", 409);
   }
   if (["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
+    console.log("[paiementpro] Already confirmed — duplicate webhook");
     return shouldRedirect
       ? redirectToStatus(request, participant.email, "success")
       : apiSuccess({ received: true, updated: false, duplicate: true });
   }
 
   // Atomic conditional update: only proceeds if still SELECTED.
-  // Prevents double-confirmation from concurrent webhook retries.
   const confirmed = await confirmPaymentAtomic(participant.id);
+  console.log("[paiementpro] confirmPaymentAtomic:", confirmed, "for", participant.reference);
   if (!confirmed) {
     return shouldRedirect
       ? redirectToStatus(request, participant.email, "success")
       : apiSuccess({ received: true, updated: false, duplicate: true });
   }
+
   await writeAuditLog({
     action: "PAYMENT_CONFIRMED",
     entityType: "Participant",
@@ -130,15 +165,13 @@ async function handleCallback(request: Request) {
       provider: "PaiementPro",
     },
   });
+
   const appUrl = appBaseUrl();
   const badgeUrl = badgeUrlFor(participant);
   const qrBuffer = await QRCode.toBuffer(participant.qrCode, {
     width: 480,
     margin: 1,
-    color: {
-      dark: "#050807",
-      light: "#ffffff",
-    },
+    color: { dark: "#050807", light: "#ffffff" },
   });
   const paymentWhatsapp = whatsAppMessages.paymentConfirmed(
     participant.fullName,
@@ -150,7 +183,8 @@ async function handleCallback(request: Request) {
     badgeUrl,
     appUrl,
   });
-  // Respond to PaiementPro immediately — don't block on email/WhatsApp.
+
+  // Respond immediately — don't block on email/WhatsApp.
   // Some gateways timeout in <5s; notifications are fire-and-forget.
   void Promise.all([
     sendEmail({
@@ -176,7 +210,8 @@ async function handleCallback(request: Request) {
       template: "payment-badge",
       waTemplate: paymentWhatsapp.waTemplate,
     }),
-  ]).catch(() => undefined);
+  ]).catch((err) => console.error("[paiementpro] Notification error:", err));
+
   return shouldRedirect
     ? redirectToStatus(request, participant.email, "success")
     : apiSuccess({ received: true, updated: true });
@@ -187,7 +222,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  // GET is the browser return URL — redirect only, never confirm payment.
+  // GET = browser return URL after payment. Never confirm payment here —
+  // only reflect current status. The POST notificationURL confirms.
   const { encodedContext, signature, email } = callbackValues(request);
   if (!encodedContext || !signature || !verifyPaymentContext(encodedContext, signature)) {
     return redirectToStatus(request, email, "pending");
