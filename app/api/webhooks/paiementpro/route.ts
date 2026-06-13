@@ -150,7 +150,9 @@ async function handleCallback(request: Request) {
     badgeUrl,
     appUrl,
   });
-  await Promise.all([
+  // Respond to PaiementPro immediately — don't block on email/WhatsApp.
+  // Some gateways timeout in <5s; notifications are fire-and-forget.
+  void Promise.all([
     sendEmail({
       participantId: participant.id,
       to: participant.email,
@@ -174,7 +176,7 @@ async function handleCallback(request: Request) {
       template: "payment-badge",
       waTemplate: paymentWhatsapp.waTemplate,
     }),
-  ]);
+  ]).catch(() => undefined);
   return shouldRedirect
     ? redirectToStatus(request, participant.email, "success")
     : apiSuccess({ received: true, updated: true });
