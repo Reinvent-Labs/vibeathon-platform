@@ -153,11 +153,14 @@ export function StatusLookup() {
           <div className="body">
             <div className="stat-line grad-text-lt">{copy?.label}</div>
             <p className="desc">{copy?.description}</p>
-            {participant.status === "SELECTED" ? (
+            {participant.status === "SELECTED" && participant.fee > 0 ? (
               <div className="pay-box"><div><b>{participant.fee.toLocaleString("fr-FR")} {EVENT.currency}</b><br /><span>Frais de participation · paiement requis pour confirmer la place</span></div></div>
             ) : null}
+            {participant.status === "SELECTED" && participant.fee === 0 ? (
+              <div className="pay-box"><div><b>Pass gratuit</b><br /><span>Aucun paiement requis — présente ta référence à l&apos;entrée.</span></div></div>
+            ) : null}
             <div className="actions">
-              {participant.status === "SELECTED" ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
+              {participant.status === "SELECTED" && participant.fee > 0 ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
               {participant.badgeUrl ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
               {participant.status === "REJECTED" ? (
                 <Link href="/billet" className="btn btn-ghost" style={{ borderColor: "rgba(255,122,156,.35)", color: "#ff7a9c" }}>

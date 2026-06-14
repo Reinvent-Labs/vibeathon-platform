@@ -40,7 +40,9 @@ export async function POST(request: Request) {
           select: { participationFee: true },
         })
       : null;
-  const amount = competition?.participationFee ?? config.fee;
+  // Use || so that 0 in the DB falls back to the category default (fee stored as 0
+  // means "not set" — the category config is the source of truth for the price).
+  const amount = competition?.participationFee || config.fee;
   if (amount === 0) {
     return apiError("Ce pass est gratuit, aucun paiement n'est requis.", 409);
   }

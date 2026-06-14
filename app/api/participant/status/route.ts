@@ -27,6 +27,9 @@ export async function GET(request: Request) {
         })
       : null;
 
+  // Use || so that 0 stored in the DB falls back to the category price (not set = 0).
+  const fee = competition?.participationFee || CATEGORIES[category].fee;
+
   const isPaid = ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status);
   return apiSuccess({
     reference: participant.reference,
@@ -36,7 +39,7 @@ export async function GET(request: Request) {
     profile: participant.profile,
     status: participant.status,
     teamName: participant.teamName,
-    fee: competition?.participationFee ?? CATEGORIES[category].fee,
+    fee,
     badgeUrl: isPaid && participant.qrCode ? `/badge/${participant.qrCode}` : null,
   });
 }
