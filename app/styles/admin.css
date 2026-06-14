@@ -364,10 +364,33 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   gap:12px;
   margin:16px 0;
 }
-.payment-filter {
-  border-top:1px solid var(--line-2);
-  background:rgba(255,255,255,.015);
+/* ---- Tab bar ---- */
+.tab-bar { display:flex; border-bottom:1px solid var(--line-2); padding:0 20px; }
+.tab-btn {
+  background:none; border:none; cursor:pointer;
+  padding:11px 16px; font-size:13px; font-weight:600; color:var(--ink-soft);
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+  transition:color .15s,border-color .15s; white-space:nowrap;
+  display:flex; align-items:center; gap:8px;
 }
+.tab-btn:hover { color:var(--ink); }
+.tab-btn.active { color:var(--ink); border-bottom-color:var(--tab-accent,var(--green)); }
+.tab-btn .tab-count {
+  font-size:11px; font-weight:700; padding:1px 7px; border-radius:20px;
+  background:rgba(255,255,255,.07); color:var(--ink-faint);
+}
+.tab-btn.active .tab-count {
+  background:color-mix(in srgb,var(--tab-accent,var(--green)) 18%,transparent);
+  color:var(--tab-accent,var(--green));
+}
+
+/* ---- Search box (icon inside input) ---- */
+.search-box { position:relative; display:flex; align-items:center; }
+.search-box svg { position:absolute; left:11px; color:var(--ink-faint); pointer-events:none; flex:none; top:50%; transform:translateY(-50%); }
+.search-box .input { padding-left:34px; min-width:200px; }
+
+/* ---- Participant filter chips (within panel) ---- */
+.panel .cat-filter { padding:12px 20px; margin:0; }
 .payment-state {
   display:inline-flex;
   flex-direction:column;

@@ -28,8 +28,6 @@ function categoryColor(category?: ParticipantCategory | null) {
   return CATEGORIES[category ?? "HACKATHON"].color;
 }
 
-type PaymentFilter = "ALL" | "PENDING" | "PAID" | "FREE";
-
 function paymentState(participant: DemoParticipant) {
   const category = participant.category ?? "HACKATHON";
   if (CATEGORIES[category].fee === 0) return "FREE" as const;
@@ -339,7 +337,6 @@ function ParticipantTable({
 }) {
   const [tab, setTab] = useState<"competiteurs" | "billets">("competiteurs");
   const [statusFilter, setStatusFilter] = useState<"ALL" | DemoParticipantStatus>("ALL");
-  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
 
   const hackathon = participants.filter((p) => (p.category ?? "HACKATHON") === "HACKATHON");
   const billets = participants.filter((p) => BILLET_CATEGORIES.includes((p.category ?? "HACKATHON") as ParticipantCategory));
@@ -358,9 +355,6 @@ function ParticipantTable({
     if (tab === "competiteurs" && statusFilter !== "ALL") {
       result = result.filter((p) => p.status === statusFilter);
     }
-    if (paymentFilter !== "ALL") {
-      result = result.filter((participant) => paymentState(participant) === paymentFilter);
-    }
     return result;
   })();
 
@@ -373,40 +367,33 @@ function ParticipantTable({
     <div className="panel">
       <div className="phead">
         <h3>{confirmedOnly ? "Participants confirmés" : "Tous les dossiers"}</h3>
-        <label className="cluster"><Search size={16} /><input className="input" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Rechercher..." /></label>
+        <div className="search-box">
+          <Search size={15} />
+          <input className="input" value={query} onChange={(event) => onQuery(event.target.value)} placeholder="Rechercher..." />
+        </div>
       </div>
 
       {/* Main tabs */}
-      <div style={{ display: "flex", borderBottom: "1px solid var(--line-2)", padding: "0 20px" }}>
+      <div className="tab-bar">
         <button
           type="button"
-          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); setStatusFilter("ALL"); setPaymentFilter("ALL"); }}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: "10px 16px", fontSize: 13, fontWeight: 600,
-            color: tab === "competiteurs" ? "var(--ink)" : "var(--ink-soft)",
-            borderBottom: tab === "competiteurs" ? "2px solid #75FF8D" : "2px solid transparent",
-            marginBottom: -1,
-          }}
+          onClick={() => { setTab("competiteurs"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+          className={`tab-btn ${tab === "competiteurs" ? "active" : ""}`}
+          style={{ ["--tab-accent" as string]: "#75FF8D" }}
         >
-          Compétiteurs <span style={{ background: "rgba(117,255,141,.15)", color: "#75FF8D", borderRadius: 10, padding: "1px 8px", fontSize: 11, marginLeft: 6 }}>{hackathon.length}</span>
+          Compétiteurs <span className="tab-count">{hackathon.length}</span>
         </button>
         <button
           type="button"
-          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); setStatusFilter("ALL"); setPaymentFilter("ALL"); }}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: "10px 16px", fontSize: 13, fontWeight: 600,
-            color: tab === "billets" ? "var(--ink)" : "var(--ink-soft)",
-            borderBottom: tab === "billets" ? "2px solid #43D9FF" : "2px solid transparent",
-            marginBottom: -1,
-          }}
+          onClick={() => { setTab("billets"); onCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+          className={`tab-btn ${tab === "billets" ? "active" : ""}`}
+          style={{ ["--tab-accent" as string]: "#43D9FF" }}
         >
-          Billets publics <span style={{ background: "rgba(67,217,255,.12)", color: "#43D9FF", borderRadius: 10, padding: "1px 8px", fontSize: 11, marginLeft: 6 }}>{billets.length}</span>
+          Billets &amp; Visiteurs <span className="tab-count">{billets.length}</span>
         </button>
       </div>
 
-      {/* Status sub-filter for competiteurs tab */}
+      {/* Status filter for compétiteurs */}
       {tab === "competiteurs" ? (
         <div className="cat-filter">
           {([
@@ -430,7 +417,7 @@ function ParticipantTable({
         </div>
       ) : null}
 
-      {/* Sub-filters for billets tab */}
+      {/* Category filter for billets */}
       {tab === "billets" ? (
         <div className="cat-filter">
           {([{ value: "ALL" as const }, ...BILLET_CATEGORIES.map((c) => ({ value: c }))]).map((filter) => (
@@ -441,30 +428,11 @@ function ParticipantTable({
               style={filter.value === "ALL" ? undefined : { ["--cat" as string]: categoryColor(filter.value) }}
               onClick={() => onCategoryFilter(filter.value)}
             >
-              {filter.value === "ALL" ? "Tous les billets" : categoryLabel(filter.value)}
+              {filter.value === "ALL" ? "Tous" : categoryLabel(filter.value)}
             </button>
           ))}
         </div>
       ) : null}
-
-      <div className="cat-filter payment-filter">
-        {([
-          { value: "ALL" as const, label: "Tous les paiements" },
-          { value: "PENDING" as const, label: "À payer", color: "#ba77ff" },
-          { value: "PAID" as const, label: "Payé", color: "#75ff8d" },
-          { value: "FREE" as const, label: "Gratuit", color: "#43d9ff" },
-        ] as const).map((filter) => (
-          <button
-            key={filter.value}
-            type="button"
-            className={`cat-chip ${paymentFilter === filter.value ? "active" : ""}`}
-            style={"color" in filter ? { ["--cat" as string]: filter.color } : undefined}
-            onClick={() => setPaymentFilter(filter.value)}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
 
       {/* Bulk actions — hackathon decisions only */}
       {tab === "competiteurs" ? (
@@ -545,7 +513,9 @@ function ParticipantReview({
   onStatus: (status: DemoParticipantStatus) => void;
   onSendBadge: () => void;
 }) {
-  const isHackathon = (participant.category ?? "HACKATHON") === "HACKATHON";
+  const category = participant.category ?? "HACKATHON";
+  const isHackathon = category === "HACKATHON";
+  const isFreePass = CATEGORIES[category as keyof typeof CATEGORIES]?.fee === 0;
   const canDecide =
     isHackathon &&
     ["PENDING", "WAITLIST", "REJECTED"].includes(participant.status);
@@ -663,13 +633,21 @@ function ParticipantReview({
               🎟 Assister à l&apos;événement (billet visiteur)
             </Link>
           ) : null}
-          {participant.status === "SELECTED" ? (
+          {participant.status === "SELECTED" && !isFreePass ? (
             <p>
               Cette personne est acceptée, mais ne participe pas encore au
               bootcamp. Elle doit payer depuis sa page de statut. Après
               paiement, elle devient participante officielle et reçoit son
               badge.
             </p>
+          ) : null}
+          {participant.status === "SELECTED" && isFreePass ? (
+            <>
+              <p>Pass gratuit — aucun paiement requis. Confirme la place pour générer le badge.</p>
+              <button className="btn btn-grad" onClick={() => onStatus("CONFIRMED")}>
+                <Check size={16} /> Confirmer la place (gratuit)
+              </button>
+            </>
           ) : null}
           {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? (
             <>
