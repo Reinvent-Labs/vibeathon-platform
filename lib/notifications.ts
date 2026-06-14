@@ -96,7 +96,7 @@ export async function sendEmail(input: EmailInput) {
 function normalizeWhatsAppNumber(phone: string) {
   let digits = phone.replace(/[^\d]/g, "");
   // Local Ivorian numbers (10 digits, e.g. 07xxxxxxxx) → prefix +225.
-  if (digits.length === 10 && digits.startsWith("0")) digits = `225${digits.slice(1)}`;
+  if (digits.length === 10 && digits.startsWith("0")) digits = `225${digits}`;
   return digits;
 }
 

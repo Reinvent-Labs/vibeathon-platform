@@ -54,14 +54,13 @@ const TEST_WA_RECIPIENTS    = ["2250788138332", "2250787668486"];
 
 // ── Meeting details ────────────────────────────────────────────────────────────
 const ZOOM_URL  = "https://us06web.zoom.us/j/81833019045?pwd=oCwOxonqbMGnb9fhjyJl0ue3KoAoqG.1";
-const MEETING   = { date: "Lundi 16 juin 2026", time: "De 19h00 à 21h00" };
+const MEETING   = { date: "Lundi 15 juin 2026", time: "De 19h00 à 21h00" };
 
 // ── Phone normalize ────────────────────────────────────────────────────────────
 function normalize(phone) {
   let d = phone.replace(/[^\d]/g, "");
   if (d.startsWith("00")) d = d.slice(2);
-  if (d.length === 10 && d.startsWith("0")) d = `225${d.slice(1)}`;
-  if (d.length === 13 && d.startsWith("2250")) d = `225${d.slice(4)}`;
+  if (d.length === 10 && d.startsWith("0")) d = `225${d}`;
   return d;
 }
 
@@ -192,21 +191,18 @@ Au plaisir de vous retrouver en ligne.
 L'équipe VIBEATHON Côte d'Ivoire`;
 }
 
-// ── WhatsApp message ───────────────────────────────────────────────────────────
-function buildWAMessage(name) {
-  return `Bonjour ${name} 👋
-
-Tu es invité(e) à notre réunion d'information VIBEATHON 2026 en ligne !
-
-📅 *${MEETING.date}*
-🕖 *${MEETING.time}*
-
-Au programme : confirmation des candidatures, modalités de paiement, constitution des équipes, bootcamp, compétition Vibe Coding & Q/R.
-
-🔗 Zoom : ${ZOOM_URL}
-
-On t'attend ! 💚
-L'équipe VIBEATHON CI`;
+// ── WhatsApp via approved template ────────────────────────────────────────────
+// Free-form text messages only deliver within the 24h customer-service window.
+// For outbound broadcasts we must use a pre-approved template so Meta delivers
+// regardless of window. The full meeting details are in the email; the WA
+// message serves as the notification ping.
+//
+// SELECTED  → vibeathon_rappel_paiement  (bodyParams: [name])
+// WAITLIST  → vibeathon_resultats_disponibles (bodyParams: [name])
+function waTemplateFor(status) {
+  return status === "SELECTED"
+    ? (process.env.WHATSAPP_TEMPLATE_PAYMENT_REMINDER ?? "vibeathon_rappel_paiement")
+    : (process.env.WHATSAPP_TEMPLATE_RESULTS ?? "vibeathon_resultats_disponibles");
 }
 
 // ── Send email ─────────────────────────────────────────────────────────────────
@@ -223,15 +219,21 @@ async function sendEmail(transport, p) {
 }
 
 // ── Send WhatsApp ──────────────────────────────────────────────────────────────
-async function sendWhatsApp(phone, name) {
+async function sendWhatsApp(phone, name, status) {
   const to = normalize(phone);
-  const message = buildWAMessage(name);
-  if (DRY_RUN) { console.log(`   [DRY WA] → ${to}`); return; }
+  const templateName = waTemplateFor(status);
+  if (DRY_RUN) { console.log(`   [DRY WA] → ${to}  template=${templateName}`); return; }
   const body = {
     messaging_product: "whatsapp",
     to,
-    type: "text",
-    text: { body: message, preview_url: false },
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: "fr" },
+      components: [
+        { type: "body", parameters: [{ type: "text", text: name }] },
+      ],
+    },
   };
   const res = await fetch(`https://graph.facebook.com/${WA_VERSION}/${WA_PHONE_ID}/messages`, {
     method: "POST",
@@ -296,10 +298,10 @@ async function main() {
       emailFail++;
     }
 
-    // WhatsApp (to participant's number)
+    // WhatsApp (to participant's number) — template so it delivers outside 24h window
     process.stdout.write(`   💬 WhatsApp ${normalize(p.phone)} … `);
     try {
-      const id = await sendWhatsApp(p.phone, p.fullName);
+      const id = await sendWhatsApp(p.phone, p.fullName, p.status);
       console.log(DRY_RUN ? "DRY" : `✅ ${id ?? ""}`);
       waOk++;
     } catch (e) {
@@ -314,7 +316,7 @@ async function main() {
         if (norm === normalize(p.phone)) continue; // skip if same
         process.stdout.write(`   💬 WhatsApp ${norm} (extra test) … `);
         try {
-          const id = await sendWhatsApp(testPhone, p.fullName);
+          const id = await sendWhatsApp(testPhone, p.fullName, p.status);
           console.log(DRY_RUN ? "DRY" : `✅ ${id ?? ""}`);
         } catch (e) {
           console.log(`❌ ${e.message}`);
