@@ -261,6 +261,17 @@ model SiteContent {
   updatedAt DateTime @updatedAt
 }
 
+model SitePage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String   @default("")
+  content     String   @default("") // HTML from TipTap
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model EmailTemplate {
   slug         String   @id
   label        String

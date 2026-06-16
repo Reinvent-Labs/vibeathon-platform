@@ -18,6 +18,7 @@ import type { DemoParticipant, DemoParticipantStatus } from "@/lib/demo-data";
 import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
 import { ContentPanel } from "@/components/admin/ContentPanel";
 import { EmailTemplatesPanel } from "@/components/admin/EmailTemplatesPanel";
+import { PagesPanel } from "@/components/admin/PagesPanel";
 
 
 function categoryLabel(category?: ParticipantCategory | null) {
@@ -216,6 +217,8 @@ export function AdminDashboard({
           <SettingsPanel />
         ) : section === "contenu" ? (
           <ContentPanel />
+        ) : section === "pages" ? (
+          <PagesPanel />
         ) : section === "emails" ? (
           <EmailTemplatesPanel />
         ) : section === "utilisateurs" ? (
@@ -250,6 +253,7 @@ function sectionTitle(section: string) {
     communications: "Communications",
     parametres: "Paramètres",
     contenu: "Contenu du site",
+    pages: "Pages",
     emails: "Templates email",
     utilisateurs: "Utilisateurs",
   };
