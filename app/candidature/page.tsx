@@ -67,7 +67,7 @@ export default async function CandidaturePage() {
           </p>
           <div className="cluster" style={{ justifyContent: "center" }}>
             <Link href="/billet" className="btn btn-grad">
-              Voir les billets
+              Mon pass
             </Link>
             <Link href="/statut" className="btn btn-ghost">
               Mon statut

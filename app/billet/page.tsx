@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { TicketForm } from "@/components/public/TicketForm";
-export const metadata: Metadata = { title: "Inscription · Billet" };
+export const metadata: Metadata = { title: "Inscription · Mon pass" };
 
 export default function BilletPage() {
   return (

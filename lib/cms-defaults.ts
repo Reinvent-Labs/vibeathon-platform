@@ -60,7 +60,7 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
   },
   {
     slug: "badgeReady",
-    label: "Badge prêt · Billets visiteur/formation",
+    label: "Badge prêt · Pass visiteur/formation",
     subject: "Ton badge VIBEATHON 2026 est disponible",
     eyebrow: "Pass {{categoryLabel}}",
     title: "Ton badge est prêt",
@@ -93,7 +93,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "hero.eyebrow": "IA × Environnement · Abidjan",
   "hero.date": "Samedi 11 juillet 2026",
   "hero.venue": "CSCTICAO, Abidjan",
-  "hero.cta.primary": "Prendre mon billet",
+  "hero.cta.primary": "Prendre mon pass",
   "hero.cta.secondary": "Découvrir le programme",
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
 
   // ── Final CTA ─────────────────────────────────────────────────────────────
   "cta.final.title": "Prêt à lancer ?",
-  "cta.final.primary": "Prendre mon billet",
+  "cta.final.primary": "Prendre mon pass",
   "cta.final.secondary": "Vérifier mon statut",
 
   // ── Footer ────────────────────────────────────────────────────────────────
