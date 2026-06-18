@@ -25,7 +25,7 @@ const CONTENT_SECTIONS: SectionDef[] = [
       { key: "hero.subtitle", label: "Sous-titre / description", multiline: true },
       { key: "hero.date", label: "Date de l'événement" },
       { key: "hero.venue", label: "Lieu" },
-      { key: "hero.cta.primary", label: "Bouton principal (ex. Prendre mon billet)" },
+      { key: "hero.cta.primary", label: "Bouton principal (ex. Prendre mon pass)" },
       { key: "hero.cta.secondary", label: "Bouton secondaire (ex. Découvrir le programme)" },
     ],
   },

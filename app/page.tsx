@@ -86,7 +86,7 @@ export default async function HomePage() {
         <div className="pill-date"><span className="dot" /> {get(c, "hero.date")} · {get(c, "hero.venue")}</div>
         <div className="cta-row">
           <Link href="#billets" className="btn btn-grad">
-            {get(c, "hero.cta.primary", "Prendre mon billet")} <ArrowRight size={18} />
+            {get(c, "hero.cta.primary", "Prendre mon pass")} <ArrowRight size={18} />
           </Link>
           <Link href="#programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
         </div>
@@ -265,7 +265,7 @@ export default async function HomePage() {
               </h2>
               <div className="cta-row">
                 <Link href="/billet" className="btn btn-grad">
-                  {get(c, "cta.final.primary", "Prendre mon billet")} <ArrowRight size={18} />
+                  {get(c, "cta.final.primary", "Prendre mon pass")} <ArrowRight size={18} />
                 </Link>
                 <Link href="/statut" className="btn btn-ghost">{get(c, "cta.final.secondary", "Vérifier mon statut")}</Link>
               </div>
