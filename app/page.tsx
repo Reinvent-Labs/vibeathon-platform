@@ -286,6 +286,7 @@ export default async function HomePage() {
             <nav className="foot-links" aria-label="Navigation de pied de page">
               <Link href="#concept">Concept</Link>
               <Link href="#programme">Programme</Link>
+              <Link href="/formation">Formation</Link>
               <Link href="#billets">Mon pass</Link>
               <Link href="/statut">Mon statut</Link>
             </nav>
