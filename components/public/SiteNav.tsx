@@ -9,7 +9,7 @@ const LINKS = [
   ["#concept", "Le concept"],
   ["#activites", "Activités"],
   ["#programme", "Programme"],
-  ["/formation", "Formation"],
+  ["/formation", "Formations"],
   ["#billets", "Mon pass"],
 ] as const;
 
