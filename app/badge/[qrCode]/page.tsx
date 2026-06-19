@@ -6,7 +6,6 @@ import Image from "next/image";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { BadgeActions } from "@/components/public/BadgeActions";
-import { EVENT } from "@/lib/constants";
 import { CATEGORIES } from "@/lib/categories";
 import { findParticipantByQrCode } from "@/lib/repository";
 
@@ -19,7 +18,7 @@ export default async function BadgePage({
 }) {
   const { qrCode } = await params;
   const participant = await findParticipantByQrCode(qrCode);
-  if (!participant || !["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) notFound();
+  if (!participant || !["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) notFound();
   const teamName =
     "team" in participant ? participant.team?.name : participant.teamName;
   const category = CATEGORIES[participant.category ?? "HACKATHON"];

@@ -44,7 +44,7 @@ export const CATEGORIES: Record<ParticipantCategory, CategoryConfig> = {
     slug: "hackathon",
     label: "Compétiteur",
     color: "#75FF8D",
-    fee: 20_000,
+    fee: 0,
     qrLetter: "C",
     tagline: "Compétiteur officiel du vibecoding",
     perks: [

@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { EVENT } from "@/lib/constants";
 import type { DemoParticipantStatus } from "@/lib/demo-data";
 
 type StatusParticipant = {
@@ -33,13 +32,13 @@ const statusCopy = {
     icon: "≈",
   },
   SELECTED: {
-    label: "Tu es accepté·e ! Paiement en attente",
+    label: "Tu es sélectionné·e !",
     description:
-      "Ton dossier est validé. Règle les frais pour devenir participant·e officiel·le et accéder au bootcamp.",
+      "Félicitations ! Ton dossier a été retenu. Confirme ta participation pour obtenir ton badge officiel.",
     icon: "★",
   },
   PAID: {
-    label: "Accepté·e · paiement validé",
+    label: "Participant·e officiel·le",
     description:
       "Tu es participant·e officiel·le. Ton badge est disponible pour le bootcamp et la compétition.",
     icon: "✓",
@@ -47,7 +46,7 @@ const statusCopy = {
   CONFIRMED: {
     label: "Participant·e officiel·le",
     description:
-      "Paiement validé. Tout est prêt pour le bootcamp et la compétition.",
+      "Ta participation est confirmée. Tout est prêt pour le bootcamp et la compétition.",
     icon: "✓",
   },
   CHECKED_IN: {
@@ -64,12 +63,11 @@ const statusCopy = {
 
 export function StatusLookup() {
   const searchParams = useSearchParams();
-  const paymentResult = searchParams.get("payment");
   const returnedEmail = searchParams.get("email");
   const [email, setEmail] = useState(returnedEmail ?? "");
   const [participant, setParticipant] = useState<StatusParticipant | null>(null);
   const [loading, setLoading] = useState(false);
-  const [paying, setPaying] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   async function lookup(value = email) {
     if (!value) return;
@@ -88,39 +86,33 @@ export function StatusLookup() {
   }
 
   useEffect(() => {
-    if (!paymentResult || !returnedEmail) return;
-    queueMicrotask(() => void lookup(returnedEmail));
-    if (paymentResult === "success") {
-      toast.success("Paiement confirmé. Ton badge est prêt.");
-    } else {
-      toast.info(
-        "Paiement en cours de vérification. Actualise ton statut dans quelques instants.",
-      );
-    }
+    if (returnedEmail) queueMicrotask(() => void lookup(returnedEmail));
     // Search params are stable for this page load; lookup must run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentResult, returnedEmail]);
+  }, [returnedEmail]);
 
-  async function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     await lookup();
   }
 
-  async function startPayment() {
+  async function confirmParticipation() {
     if (!participant) return;
-    setPaying(true);
+    setConfirming(true);
     try {
-      const response = await fetch("/api/payment/init", {
+      const response = await fetch("/api/participant/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference: participant.reference, channel: "" }),
+        body: JSON.stringify({ email: participant.email }),
       });
       const payload = await response.json();
-      if (!response.ok || !payload.success || !payload.data.url) throw new Error(payload.error ?? "Paiement indisponible.");
-      window.location.assign(payload.data.url);
+      if (!response.ok || !payload.success) throw new Error(payload.error ?? "Erreur de confirmation.");
+      toast.success("Participation confirmée ! Ton badge est prêt.");
+      await lookup();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erreur de paiement.");
-      setPaying(false);
+      toast.error(error instanceof Error ? error.message : "Erreur de confirmation.");
+    } finally {
+      setConfirming(false);
     }
   }
 
@@ -153,15 +145,13 @@ export function StatusLookup() {
           <div className="body">
             <div className="stat-line grad-text-lt">{copy?.label}</div>
             <p className="desc">{copy?.description}</p>
-            {participant.status === "SELECTED" && participant.fee > 0 ? (
-              <div className="pay-box"><div><b>{participant.fee.toLocaleString("fr-FR")} {EVENT.currency}</b><br /><span>Frais de participation · paiement requis pour confirmer la place</span></div></div>
-            ) : null}
-            {participant.status === "SELECTED" && participant.fee === 0 ? (
-              <div className="pay-box"><div><b>Pass gratuit</b><br /><span>Aucun paiement requis — présente ta référence à l&apos;entrée.</span></div></div>
-            ) : null}
             <div className="actions">
-              {participant.status === "SELECTED" && participant.fee > 0 ? <button className="btn btn-grad" onClick={startPayment} disabled={paying}>{paying ? "Redirection..." : `Payer ${participant.fee.toLocaleString("fr-FR")} FCFA →`}</button> : null}
-              {participant.badgeUrl ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
+              {participant.status === "SELECTED" ? (
+                <button className="btn btn-grad" onClick={confirmParticipation} disabled={confirming}>
+                  {confirming ? "Confirmation..." : "Confirmer ma participation →"}
+                </button>
+              ) : null}
+              {participant.badgeUrl && participant.status !== "SELECTED" ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
               {participant.status === "REJECTED" ? (
                 <Link href="/billet" className="btn btn-ghost" style={{ borderColor: "rgba(255,122,156,.35)", color: "#ff7a9c" }}>
                   🎟 Tu veux quand même assister ? Prends un billet visiteur →
