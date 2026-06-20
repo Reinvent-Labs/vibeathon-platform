@@ -36,7 +36,7 @@ const DB_URL     = process.env.DATABASE_URL;
 
 // Recipients — always sent to both
 const ADMIN_EMAILS = [
-  process.env.NOTIFICATION_BCC_EMAIL ?? "salomondiei08@gmail.com",
+  "salomondiei@gmail.com",
   "ossey.nelly@gmail.com",
 ].filter((v, i, a) => v && a.indexOf(v) === i); // dedupe
 
@@ -91,7 +91,7 @@ async function main() {
 
   const dateLabel = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  function section(title: string, rows: any[], fields: {label: string; key: string}[]) {
+  function section(title, rows, fields) {
     if (!rows.length) return "";
     const rowsHtml = rows.map(r =>
       `<tr>${fields.map(f => `<td style="padding:8px 12px;border-bottom:1px solid #1a1a1a;font-size:13px;color:#b0b0b0">${r[f.key] ?? "—"}</td>`).join("")}</tr>`
