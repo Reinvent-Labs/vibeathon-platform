@@ -176,88 +176,6 @@ export default function FormationPage() {
           </div>
         </section>
 
-        {/* Section 2 : Grille des Tarifs & Offres */}
-        <section style={{ marginBottom: "90px" }}>
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h2 className="display" style={{ fontSize: "2.2rem" }}>Réservez votre pass formation</h2>
-            <p style={{ color: "var(--ink-soft)", marginTop: "8px" }}>Choisissez la formule adaptée à votre profil</p>
-          </div>
-          
-          <div className="ticket-grid" style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", 
-            gap: "30px", 
-            maxWidth: "960px", 
-            margin: "0 auto" 
-          }}>
-            {courses.map((course) => (
-              <article
-                key={course.title}
-                className="ticket-card"
-                style={{
-                  background: "rgba(16, 23, 26, 0.75)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "20px",
-                  padding: "40px 30px",
-                  display: "flex",
-                  flexDirection: "column",
-                  position: "relative",
-                  overflow: "hidden",
-                  backdropFilter: "blur(12px)",
-                  boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
-                  ["--cat" as string]: course.color,
-                }}
-              >
-                <div className="ticket-bar" style={{ backgroundColor: course.color, position: "absolute", top: 0, left: 0, right: 0, height: "4px" }} />
-                
-                <h3 style={{ color: course.color, fontSize: "1.6rem", fontWeight: "700", marginBottom: "10px" }}>
-                  {course.title}
-                </h3>
-                
-                <p style={{ color: "var(--ink-soft)", fontSize: "0.95rem", minHeight: "40px", marginBottom: "20px" }}>
-                  {course.tagline}
-                </p>
-                
-                <div style={{ display: "flex", alignItems: "baseline", marginBottom: "20px" }}>
-                  <span style={{ fontSize: "2.8rem", fontWeight: "900", fontFamily: "Outfit, sans-serif" }}>
-                    {course.price}
-                  </span>
-                  <span style={{ fontSize: "1rem", color: "var(--ink-faint)", marginLeft: "6px" }}>
-                    FCFA
-                  </span>
-                </div>
-                
-                <p className="body" style={{ fontSize: "0.95rem", color: "var(--ink)", marginBottom: "30px", minHeight: "60px", lineHeight: "1.5" }}>
-                  {course.description}
-                </p>
-                
-                <ul className="ticket-list" style={{ listStyle: "none", padding: 0, margin: "0 0 40px", flex: 1 }}>
-                  {course.perks.map((perk, i) => (
-                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", margin: "14px 0", fontSize: "0.9rem", color: "var(--ink-soft)" }}>
-                      <Check size={16} style={{ color: course.color, marginTop: "3px", flexShrink: 0 }} />
-                      <span>{perk}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <Link
-                  href={course.link}
-                  className="btn btn-grad btn-block"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    width: "100%",
-                  }}
-                >
-                  Réserver ma place <ArrowRight size={16} />
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
-
         {/* Section 3 : Le Programme en détail */}
         <section style={{ marginBottom: "90px" }}>
           <div style={{ textAlign: "center", marginBottom: "50px" }}>
@@ -381,6 +299,88 @@ export default function FormationPage() {
                 }} />
                 <span style={{ fontSize: "0.9rem", color: "var(--ink)", lineHeight: "1.4" }}>{target}</span>
               </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Section 2 : Grille des Tarifs & Offres */}
+        <section style={{ marginBottom: "60px" }}>
+          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+            <h2 className="display" style={{ fontSize: "2.2rem" }}>Réservez votre pass formation</h2>
+            <p style={{ color: "var(--ink-soft)", marginTop: "8px" }}>Choisissez la formule adaptée à votre profil</p>
+          </div>
+          
+          <div className="ticket-grid" style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", 
+            gap: "30px", 
+            maxWidth: "960px", 
+            margin: "0 auto" 
+          }}>
+            {courses.map((course) => (
+              <article
+                key={course.title}
+                className="ticket-card"
+                style={{
+                  background: "rgba(16, 23, 26, 0.75)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "20px",
+                  padding: "40px 30px",
+                  display: "flex",
+                  flexDirection: "column",
+                  position: "relative",
+                  overflow: "hidden",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+                  ["--cat" as string]: course.color,
+                }}
+              >
+                <div className="ticket-bar" style={{ backgroundColor: course.color, position: "absolute", top: 0, left: 0, right: 0, height: "4px" }} />
+                
+                <h3 style={{ color: course.color, fontSize: "1.6rem", fontWeight: "700", marginBottom: "10px" }}>
+                  {course.title}
+                </h3>
+                
+                <p style={{ color: "var(--ink-soft)", fontSize: "0.95rem", minHeight: "40px", marginBottom: "20px" }}>
+                  {course.tagline}
+                </p>
+                
+                <div style={{ display: "flex", alignItems: "baseline", marginBottom: "20px" }}>
+                  <span style={{ fontSize: "2.8rem", fontWeight: "900", fontFamily: "Outfit, sans-serif" }}>
+                    {course.price}
+                  </span>
+                  <span style={{ fontSize: "1rem", color: "var(--ink-faint)", marginLeft: "6px" }}>
+                    FCFA
+                  </span>
+                </div>
+                
+                <p className="body" style={{ fontSize: "0.95rem", color: "var(--ink)", marginBottom: "30px", minHeight: "60px", lineHeight: "1.5" }}>
+                  {course.description}
+                </p>
+                
+                <ul className="ticket-list" style={{ listStyle: "none", padding: 0, margin: "0 0 40px", flex: 1 }}>
+                  {course.perks.map((perk, i) => (
+                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", margin: "14px 0", fontSize: "0.9rem", color: "var(--ink-soft)" }}>
+                      <Check size={16} style={{ color: course.color, marginTop: "3px", flexShrink: 0 }} />
+                      <span>{perk}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Link
+                  href={course.link}
+                  className="btn btn-grad btn-block"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    width: "100%",
+                  }}
+                >
+                  Réserver ma place <ArrowRight size={16} />
+                </Link>
+              </article>
             ))}
           </div>
         </section>
