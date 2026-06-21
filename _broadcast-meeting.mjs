@@ -17,8 +17,11 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const DRY_RUN = process.argv.includes("--dry-run");
-const TEST_ONLY = process.argv.includes("--test");
+const DRY_RUN   = process.argv.includes("--dry-run");
+const TEST_ONLY  = process.argv.includes("--test");
+const EMAIL_ONLY = process.argv.includes("--email-only");
+// Path to a file listing emails already sent (one per line) — used for retry runs
+const SENT_LOG   = process.env.SENT_LOG ?? "/tmp/bcast-done.log";
 
 function loadEnv() {
   try {
@@ -54,14 +57,13 @@ const TEST_WA_RECIPIENTS    = ["2250788138332", "2250787668486"];
 
 // ── Meeting details ────────────────────────────────────────────────────────────
 const ZOOM_URL  = "https://us06web.zoom.us/j/81833019045?pwd=oCwOxonqbMGnb9fhjyJl0ue3KoAoqG.1";
-const MEETING   = { date: "Lundi 16 juin 2026", time: "De 19h00 à 21h00" };
+const MEETING   = { date: "Lundi 15 juin 2026", time: "De 19h00 à 21h00" };
 
 // ── Phone normalize ────────────────────────────────────────────────────────────
 function normalize(phone) {
   let d = phone.replace(/[^\d]/g, "");
   if (d.startsWith("00")) d = d.slice(2);
-  if (d.length === 10 && d.startsWith("0")) d = `225${d.slice(1)}`;
-  if (d.length === 13 && d.startsWith("2250")) d = `225${d.slice(4)}`;
+  if (d.length === 10 && d.startsWith("0")) d = `225${d}`;
   return d;
 }
 
@@ -192,21 +194,18 @@ Au plaisir de vous retrouver en ligne.
 L'équipe VIBEATHON Côte d'Ivoire`;
 }
 
-// ── WhatsApp message ───────────────────────────────────────────────────────────
-function buildWAMessage(name) {
-  return `Bonjour ${name} 👋
-
-Tu es invité(e) à notre réunion d'information VIBEATHON 2026 en ligne !
-
-📅 *${MEETING.date}*
-🕖 *${MEETING.time}*
-
-Au programme : confirmation des candidatures, modalités de paiement, constitution des équipes, bootcamp, compétition Vibe Coding & Q/R.
-
-🔗 Zoom : ${ZOOM_URL}
-
-On t'attend ! 💚
-L'équipe VIBEATHON CI`;
+// ── WhatsApp via approved template ────────────────────────────────────────────
+// Free-form text messages only deliver within the 24h customer-service window.
+// For outbound broadcasts we must use a pre-approved template so Meta delivers
+// regardless of window. The full meeting details are in the email; the WA
+// message serves as the notification ping.
+//
+// SELECTED  → vibeathon_rappel_paiement  (bodyParams: [name])
+// WAITLIST  → vibeathon_resultats_disponibles (bodyParams: [name])
+function waTemplateFor(status) {
+  return status === "SELECTED"
+    ? (process.env.WHATSAPP_TEMPLATE_PAYMENT_REMINDER ?? "vibeathon_rappel_paiement")
+    : (process.env.WHATSAPP_TEMPLATE_RESULTS ?? "vibeathon_resultats_disponibles");
 }
 
 // ── Send email ─────────────────────────────────────────────────────────────────
@@ -218,20 +217,25 @@ async function sendEmail(transport, p) {
   const html  = buildEmailHtml(p.fullName, statusLabel);
   const text  = buildEmailText(p.fullName, statusLabel);
   if (DRY_RUN) { console.log(`   [DRY EMAIL] → ${p.email}`); return; }
-  const bcc = BCC_EMAIL ? [BCC_EMAIL] : undefined;
-  await transport.sendMail({ from: EMAIL_FROM, to: p.email, bcc, subject, text, html });
+  await transport.sendMail({ from: EMAIL_FROM, to: p.email, subject, text, html });
 }
 
 // ── Send WhatsApp ──────────────────────────────────────────────────────────────
-async function sendWhatsApp(phone, name) {
+async function sendWhatsApp(phone, name, status) {
   const to = normalize(phone);
-  const message = buildWAMessage(name);
-  if (DRY_RUN) { console.log(`   [DRY WA] → ${to}`); return; }
+  const templateName = waTemplateFor(status);
+  if (DRY_RUN) { console.log(`   [DRY WA] → ${to}  template=${templateName}`); return; }
   const body = {
     messaging_product: "whatsapp",
     to,
-    type: "text",
-    text: { body: message, preview_url: false },
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: "fr" },
+      components: [
+        { type: "body", parameters: [{ type: "text", text: name }] },
+      ],
+    },
   };
   const res = await fetch(`https://graph.facebook.com/${WA_VERSION}/${WA_PHONE_ID}/messages`, {
     method: "POST",
@@ -280,26 +284,53 @@ async function main() {
     console.log();
   }
 
+  // Load already-sent emails to skip on retry runs
+  let alreadySent = new Set();
+  try {
+    const { readFileSync } = await import("fs");
+    alreadySent = new Set(readFileSync(SENT_LOG, "utf8").split("\n").map(s => s.trim()).filter(Boolean));
+    if (alreadySent.size) console.log(`   Skipping ${alreadySent.size} already-sent emails.\n`);
+  } catch { /**/ }
+
+  const { appendFileSync } = await import("fs");
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
   let emailOk = 0, emailFail = 0, waOk = 0, waFail = 0;
 
   for (const p of targets) {
-    console.log(`── ${p.status.padEnd(8)} ${p.reference ?? ""}  ${p.fullName} <${p.email}>`);
+    const skipEmail = alreadySent.has(p.email);
+    console.log(`── ${p.status.padEnd(8)} ${p.reference ?? ""}  ${p.fullName} <${p.email}>${skipEmail ? " [email skip]" : ""}`);
 
-    // Email
-    process.stdout.write(`   📧 Email … `);
-    try {
-      await sendEmail(transport, p);
-      console.log("✅");
-      emailOk++;
-    } catch (e) {
-      console.log(`❌ ${e.message}`);
-      emailFail++;
+    // Email — retry once after 65s pause on rate-limit
+    if (!skipEmail) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        process.stdout.write(`   📧 Email${attempt > 1 ? " (retry)" : ""} … `);
+        try {
+          await sendEmail(transport, p);
+          console.log("✅");
+          emailOk++;
+          if (!DRY_RUN) appendFileSync(SENT_LOG, p.email + "\n");
+          await delay(3000); // ~20 emails/min, well under Hostinger limit
+          break;
+        } catch (e) {
+          if (e.message?.includes("atelimit") && attempt === 1) {
+            console.log(`⏳ rate-limit — pausing 65s …`);
+            await delay(65000);
+          } else {
+            console.log(`❌ ${e.message}`);
+            emailFail++;
+            break;
+          }
+        }
+      }
     }
 
-    // WhatsApp (to participant's number)
+    if (EMAIL_ONLY) { console.log(); continue; }
+
+    // WhatsApp (to participant's number) — template so it delivers outside 24h window
     process.stdout.write(`   💬 WhatsApp ${normalize(p.phone)} … `);
     try {
-      const id = await sendWhatsApp(p.phone, p.fullName);
+      const id = await sendWhatsApp(p.phone, p.fullName, p.status);
       console.log(DRY_RUN ? "DRY" : `✅ ${id ?? ""}`);
       waOk++;
     } catch (e) {
@@ -314,7 +345,7 @@ async function main() {
         if (norm === normalize(p.phone)) continue; // skip if same
         process.stdout.write(`   💬 WhatsApp ${norm} (extra test) … `);
         try {
-          const id = await sendWhatsApp(testPhone, p.fullName);
+          const id = await sendWhatsApp(testPhone, p.fullName, p.status);
           console.log(DRY_RUN ? "DRY" : `✅ ${id ?? ""}`);
         } catch (e) {
           console.log(`❌ ${e.message}`);
@@ -332,6 +363,16 @@ async function main() {
     console.log(`Email  ✅ ${emailOk}  ❌ ${emailFail}`);
     console.log(`WA     ✅ ${waOk}  ❌ ${waFail}`);
     console.log(`Done.`);
+    // Send one summary email to admin
+    if (BCC_EMAIL && !TEST_ONLY) {
+      await transport.sendMail({
+        from: EMAIL_FROM,
+        to: BCC_EMAIL,
+        subject: `[VIBEATHON] Broadcast terminé — ${emailOk} emails envoyés`,
+        text: `Broadcast réunion d'information terminé.\n\nEmail ✅ ${emailOk}  ❌ ${emailFail}\nWhatsApp ✅ ${waOk}  ❌ ${waFail}\n\nTotal candidats: ${targets.length}`,
+      });
+      console.log(`Summary sent to ${BCC_EMAIL}`);
+    }
   }
 }
 

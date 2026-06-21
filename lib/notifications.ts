@@ -56,11 +56,9 @@ export async function sendEmail(input: EmailInput) {
 
   try {
     if (transport) {
-      const bcc = process.env.NOTIFICATION_BCC_EMAIL;
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
-        bcc: bcc && input.to !== bcc ? bcc : undefined,
         replyTo: process.env.SMTP_USER,
         subject: input.subject,
         text: input.text,
@@ -96,7 +94,7 @@ export async function sendEmail(input: EmailInput) {
 function normalizeWhatsAppNumber(phone: string) {
   let digits = phone.replace(/[^\d]/g, "");
   // Local Ivorian numbers (10 digits, e.g. 07xxxxxxxx) → prefix +225.
-  if (digits.length === 10 && digits.startsWith("0")) digits = `225${digits.slice(1)}`;
+  if (digits.length === 10 && digits.startsWith("0")) digits = `225${digits}`;
   return digits;
 }
 
@@ -209,11 +207,7 @@ export async function sendWhatsApp({
       }
       providerId = payload.messages?.[0]?.id;
 
-      // BCC copy to monitoring number (fire-and-forget, no error propagation)
-      const bccPhone = process.env.NOTIFICATION_BCC_PHONE;
-      if (bccPhone && to !== bccPhone) {
-        void sendToNumber(bccPhone).catch(() => undefined);
-      }
+      // Per-message BCC disabled — daily digest cron handles admin summary instead.
     }
   } catch (caught) {
     status = "FAILED";

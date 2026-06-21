@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /scan
+Disallow: /scan/
+Disallow: /jury
+Disallow: /jury/
+Disallow: /badge
+Disallow: /badge/
+Disallow: /change-password
+Disallow: /change-password/
+Disallow: /login
+
+Sitemap: https://vibeathonci.com/sitemap.xml
