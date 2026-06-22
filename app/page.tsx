@@ -287,6 +287,7 @@ export default async function HomePage() {
               <Link href="#concept">Concept</Link>
               <Link href="#programme">Programme</Link>
               <Link href="/formation">Formations</Link>
+              <Link href="/membres-du-jury">Le jury</Link>
               <Link href="#billets">Mon pass</Link>
               <Link href="/statut">Mon statut</Link>
             </nav>
