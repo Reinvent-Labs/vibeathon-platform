@@ -7,8 +7,8 @@ import { Logo } from "@/components/Logo";
 
 const LINKS = [
   ["#concept", "Le concept"],
-  ["#activites", "Activités"],
-  ["#programme", "Programme"],
+  ["/activites", "Activités"],
+  ["/programme", "Programme"],
   ["/formation", "Formations"],
   ["/membres-du-jury", "Le jury"],
   ["#billets", "Mon pass"],

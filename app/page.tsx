@@ -88,7 +88,7 @@ export default async function HomePage() {
           <Link href="#billets" className="btn btn-grad">
             {get(c, "hero.cta.primary", "Prendre mon pass")} <ArrowRight size={18} />
           </Link>
-          <Link href="#programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
+          <Link href="/programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
         </div>
         <div className="hero-stats wrap">
           {[
@@ -115,42 +115,6 @@ export default async function HomePage() {
             <div className="grad-border quote" data-reveal="right">
               <div className="mark">&ldquo;</div>
               <p>{get(c, "concept.quote")}</p>
-            </div>
-          </div>
-        </section>
-
-        <section id="activites" className="sec-pad" style={{ background: "var(--bg-0)" }}>
-          <div className="wrap">
-            <div className="section-head" data-reveal>
-              <span className="eyebrow">{get(c, "activities.eyebrow", "Au programme")}</span>
-              <h2 className="display">{get(c, "activities.title", "Cinq façons de vibrer.")}</h2>
-            </div>
-            <div className="act-grid" data-stagger>
-              {activities.map(({ number, title, desc }, index) => (
-                <article className={`act-card ${index === 1 || index === 4 ? "wide" : ""}`} key={number} data-reveal>
-                  <div className="swatch" style={{ background: index % 2 ? "var(--grad-lt)" : "var(--grad-1)" }} />
-                  <div className="num">{number}</div>
-                  <h3>{title}</h3>
-                  <p>{desc}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="programme" className="sec-pad">
-          <div className="wrap">
-            <div className="section-head" data-reveal>
-              <span className="eyebrow">{get(c, "schedule.eyebrow", "Le jour J · 11 juillet")}</span>
-              <h2 className="display">{get(c, "schedule.title", "Déroulé de la journée.")}</h2>
-            </div>
-            <div className="timeline">
-              {scheduleItems.map(({ time, title, desc }) => (
-                <div className="tl-row" key={time} data-reveal>
-                  <div className="time">{time}</div><div className="dot" />
-                  <div className="body"><h4>{title}</h4>{desc ? <p>{desc}</p> : null}</div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
