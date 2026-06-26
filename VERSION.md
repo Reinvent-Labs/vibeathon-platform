@@ -43,3 +43,4 @@
 - Guaranteed that payment-confirmation and badge emails retain their embedded QR image even after rich-text customization.
 - Added an explicit dashboard payment column, payment dates, and filters for pending, paid, and free registrations.
 - Fixed the public payment button to initialize PaiementPro with the candidate reference after internal participant IDs were removed from the public status response.
+- Added SMTP TLS server-name support so production mail can use a private relay while still validating Hostinger's SMTP certificate.

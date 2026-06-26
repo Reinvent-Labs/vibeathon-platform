@@ -33,6 +33,9 @@ function smtpTransport() {
     host: process.env.SMTP_HOST,
     port,
     secure,
+    tls: process.env.SMTP_TLS_SERVERNAME
+      ? { servername: process.env.SMTP_TLS_SERVERNAME }
+      : undefined,
     // Port 587 starts unencrypted and must upgrade before credentials are sent.
     requireTLS:
       !secure && (process.env.SMTP_REQUIRE_TLS ?? "true") === "true",

@@ -161,6 +161,9 @@ async function main() {
   const { default: nodemailer } = await import("nodemailer");
   const transport = nodemailer.createTransport({
     host: SMTP_HOST, port: SMTP_PORT, secure: false, requireTLS: true,
+    tls: process.env.SMTP_TLS_SERVERNAME
+      ? { servername: process.env.SMTP_TLS_SERVERNAME }
+      : undefined,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
 
