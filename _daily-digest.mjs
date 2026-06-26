@@ -171,7 +171,30 @@ async function main() {
 
   for (const to of ADMIN_EMAILS) {
     try {
-      await transport.sendMail({ from: EMAIL_FROM, to, subject, text, html });
+      if (process.env.RESEND_API_KEY) {
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: EMAIL_FROM,
+            to,
+            reply_to: process.env.EMAIL_REPLY_TO ?? SMTP_USER,
+            subject,
+            text,
+            html,
+          }),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Resend ${response.status}: ${errorBody}`);
+        }
+      } else {
+        await transport.sendMail({ from: EMAIL_FROM, to, subject, text, html });
+      }
       console.log(`✅ Envoyé à ${to}`);
     } catch (e) {
       console.log(`❌ ${to}: ${e instanceof Error ? e.message : e}`);

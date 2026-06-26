@@ -45,3 +45,4 @@
 - Fixed the public payment button to initialize PaiementPro with the candidate reference after internal participant IDs were removed from the public status response.
 - Added SMTP TLS server-name support so production mail can use a private relay while still validating Hostinger's SMTP certificate.
 - Kept the Docker app port bound to localhost so public traffic must pass through Caddy.
+- Added Resend HTTP email delivery support for servers where outbound SMTP is blocked.

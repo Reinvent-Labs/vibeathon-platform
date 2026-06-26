@@ -24,6 +24,42 @@ function emailFrom() {
   );
 }
 
+async function sendWithResend(input: EmailInput) {
+  if (!process.env.RESEND_API_KEY) return null;
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: emailFrom(),
+      to: input.to.split(",").map((recipient) => recipient.trim()),
+      reply_to: process.env.EMAIL_REPLY_TO ?? process.env.SMTP_USER,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+      attachments: input.attachments?.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content.toString("base64"),
+        content_type: attachment.contentType,
+      })),
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  const result = (await response.json().catch(() => ({}))) as {
+    id?: string;
+    message?: string;
+    error?: string;
+  };
+  if (!response.ok) {
+    throw new Error(
+      result.message ?? result.error ?? `Resend a répondu ${response.status}.`,
+    );
+  }
+  return result.id;
+}
+
 /** SMTP transport (single provider). Null when SMTP is not configured. */
 function smtpTransport() {
   if (!process.env.SMTP_HOST) return null;
@@ -52,13 +88,18 @@ function smtpTransport() {
  */
 export async function sendEmail(input: EmailInput) {
   const transport = smtpTransport();
+  const useResend = Boolean(process.env.RESEND_API_KEY);
 
-  let status: "SENT" | "QUEUED" | "FAILED" = transport ? "SENT" : "QUEUED";
+  let status: "SENT" | "QUEUED" | "FAILED" =
+    useResend || transport ? "SENT" : "QUEUED";
   let providerId: string | undefined;
   let error: string | undefined;
 
   try {
-    if (transport) {
+    const resendId = await sendWithResend(input);
+    if (resendId) {
+      providerId = resendId;
+    } else if (transport) {
       const result = await transport.sendMail({
         from: emailFrom(),
         to: input.to,
