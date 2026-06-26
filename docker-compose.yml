@@ -11,7 +11,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-vibeathon}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-vibeathon}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
     volumes:
       - uploads_data:/app/public/uploads
     depends_on:
