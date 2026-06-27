@@ -23,9 +23,8 @@ export default function BilletPage() {
               <span className="grad-text-lt">ta place.</span>
             </h1>
             <p className="lede">
-              Visiteur, formation adulte ou formation kids : choisis ton pass,
-              renseigne tes informations et reçois ton badge d&apos;accès par
-              email et WhatsApp.
+              Renseigne tes informations et reçois ton badge d&apos;accès
+              gratuitement par email et WhatsApp.
             </p>
           </div>
           <div className="facts">
@@ -46,8 +45,8 @@ export default function BilletPage() {
             <div className="fact">
               <span className="k" style={{ background: "#FF57E3" }} />
               <div>
-                <b>Paiement sécurisé</b>
-                <span>Wave, Orange, MTN, carte</span>
+                <b>Entrée gratuite</b>
+                <span>Aucun paiement requis</span>
               </div>
             </div>
           </div>
