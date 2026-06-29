@@ -108,7 +108,7 @@ export default async function HomePage() {
         <section id="concept" className="sec-pad">
           <div className="wrap concept">
             <div data-reveal="left">
-              <span className="eyebrow">{get(c, "concept.eyebrow", "Le concept")}</span>
+              <span className="eyebrow">{get(c, "concept.eyebrow", "Accueil")}</span>
               <p className="lead">{get(c, "concept.lead")}</p>
               <p className="body">{get(c, "concept.body")}</p>
             </div>
