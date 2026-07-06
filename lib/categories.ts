@@ -87,7 +87,7 @@ export const CATEGORIES: Record<ParticipantCategory, CategoryConfig> = {
     slug: "formation-kids",
     label: "Formation Kids",
     color: "#FF57E3",
-    fee: 5_000,
+    fee: 0,
     qrLetter: "K",
     tagline: "Le bootcamp de formation pensé pour les enfants",
     perks: [

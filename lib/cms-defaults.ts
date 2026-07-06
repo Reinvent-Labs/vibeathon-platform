@@ -107,7 +107,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "stats.winners.label": "Lauréats primés",
 
   // ── Concept ───────────────────────────────────────────────────────────────
-  "concept.eyebrow": "Le concept",
+  "concept.eyebrow": "Accueil",
   "concept.lead":
     "Le vibecoding, c'est créer sans coder, en dialoguant avec l'IA.",
   "concept.body":
@@ -202,7 +202,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "category.formation_kids.label": "Formation Kids",
   "category.formation_kids.tagline":
     "Le bootcamp de formation pensé pour les enfants",
-  "category.formation_kids.fee": "5000",
+  "category.formation_kids.fee": "0",
   "category.formation_kids.perks":
     "Accès au bootcamp de formation pour enfants\nUn atelier adapté aux enfants\nGoûter inclus\nEncadrés par des formateurs",
 

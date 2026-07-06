@@ -108,7 +108,7 @@ export default async function HomePage() {
         <section id="concept" className="sec-pad">
           <div className="wrap concept">
             <div data-reveal="left">
-              <span className="eyebrow">{get(c, "concept.eyebrow", "Le concept")}</span>
+              <span className="eyebrow">{get(c, "concept.eyebrow", "Accueil")}</span>
               <p className="lead">{get(c, "concept.lead")}</p>
               <p className="body">{get(c, "concept.body")}</p>
             </div>
@@ -248,7 +248,7 @@ export default async function HomePage() {
               <p>{get(c, "footer.tagline")}</p>
             </div>
             <nav className="foot-links" aria-label="Navigation de pied de page">
-              <Link href="#concept">Concept</Link>
+              <Link href="/">Accueil</Link>
               <Link href="#programme">Programme</Link>
               <Link href="/formation">Formations</Link>
               <Link href="/membres-du-jury">Le jury</Link>

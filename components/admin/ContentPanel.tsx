@@ -11,7 +11,7 @@ type SectionDef = { id: string; label: string; fields: FieldDef[] };
 
 const IMAGE_FIELDS = [
   { key: "image.hero", label: "Image héro (fond)", description: "Arrière-plan de la section principale. JPG ou PNG, minimum 1920×1080px." },
-  { key: "image.about", label: "Image section À propos", description: "Photo ou visuel pour la section concept." },
+  { key: "image.about", label: "Image section À propos", description: "Photo ou visuel pour la section Accueil." },
   { key: "image.organizer", label: "Logo organisateur", description: "Logo principal de l'organisateur, fond transparent recommandé." },
 ];
 
@@ -45,7 +45,7 @@ const CONTENT_SECTIONS: SectionDef[] = [
   },
   {
     id: "concept",
-    label: "Concept",
+    label: "Accueil",
     fields: [
       { key: "concept.eyebrow", label: "Étiquette de section" },
       { key: "concept.lead", label: "Phrase d'accroche (grande)", multiline: true },

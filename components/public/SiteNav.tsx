@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const LINKS = [
-  ["#concept", "Le concept"],
+  ["/", "Accueil"],
   ["/activites", "Activités"],
   ["/programme", "Programme"],
   ["/formation", "Formations"],

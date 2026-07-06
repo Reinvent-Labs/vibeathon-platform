@@ -43,7 +43,7 @@ export default function FormationPage() {
     {
       title: "Formation Kids",
       tagline: "L'initiation à l'IA pour les plus jeunes",
-      price: "5 000",
+      price: "Gratuit",
       description: "Un parcours d'apprentissage ludique spécialement pensé pour initier les enfants aux technologies d'intelligence artificielle et stimuler leur créativité.",
       perks: [
         "Accès au bootcamp de formation enfants",
@@ -53,7 +53,7 @@ export default function FormationPage() {
         "Encadrement personnalisé par des formateurs experts",
         "Attestation d'initiation nominative",
       ],
-      link: "/billet?type=formation_kids",
+      link: "https://forms.gle/zqtfDsZYHtYyGDxBA",
       color: "#FF57E3", // Pink accent
     },
   ];
@@ -349,9 +349,11 @@ export default function FormationPage() {
                   <span style={{ fontSize: "2.8rem", fontWeight: "900", fontFamily: "Outfit, sans-serif" }}>
                     {course.price}
                   </span>
-                  <span style={{ fontSize: "1rem", color: "var(--ink-faint)", marginLeft: "6px" }}>
-                    FCFA
-                  </span>
+                  {course.price !== "Gratuit" && (
+                    <span style={{ fontSize: "1rem", color: "var(--ink-faint)", marginLeft: "6px" }}>
+                      FCFA
+                    </span>
+                  )}
                 </div>
                 
                 <p className="body" style={{ fontSize: "0.95rem", color: "var(--ink)", marginBottom: "30px", minHeight: "60px", lineHeight: "1.5" }}>
@@ -370,6 +372,8 @@ export default function FormationPage() {
                 <Link
                   href={course.link}
                   className="btn btn-grad btn-block"
+                  target={course.link.startsWith("http") ? "_blank" : undefined}
+                  rel={course.link.startsWith("http") ? "noopener noreferrer" : undefined}
                   style={{
                     display: "flex",
                     alignItems: "center",
