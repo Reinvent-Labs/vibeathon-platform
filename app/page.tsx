@@ -6,6 +6,7 @@ import { ScrollReveal } from "@/components/public/ScrollReveal";
 import { JUDGING_CRITERIA } from "@/lib/constants";
 import { CATEGORIES, formatFee } from "@/lib/categories";
 import { getSiteContent, get, getList } from "@/lib/site-content";
+import { Countdown } from "@/components/public/Countdown";
 
 export default async function HomePage() {
   const c = await getSiteContent();
@@ -83,6 +84,7 @@ export default async function HomePage() {
           })()}
         </h1>
         <p className="sub">{get(c, "hero.subtitle")}</p>
+        <Countdown />
         <div className="pill-date"><span className="dot" /> {get(c, "hero.date")} · {get(c, "hero.venue")}</div>
         <div className="cta-row">
           <Link href="#billets" className="btn btn-grad">
