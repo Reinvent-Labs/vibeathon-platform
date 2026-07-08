@@ -7,6 +7,23 @@ import { JUDGING_CRITERIA } from "@/lib/constants";
 import { CATEGORIES, formatFee } from "@/lib/categories";
 import { getSiteContent, get, getList } from "@/lib/site-content";
 import { Countdown } from "@/components/public/Countdown";
+const PARTNERS_GROUP_1 = [
+  { name: "Ministère de la Transition Numérique et de la Digitalisation", tier: "Partenaire Institutionnel", color: "#43D9FF" },
+  { name: "ANSUT", tier: "Partenaire Institutionnel", color: "#43D9FF" },
+  { name: "VITIB", tier: "Partenaire Institutionnel", color: "#43D9FF" },
+  { name: "Trésor Public", tier: "Partenaire Institutionnel", color: "#43D9FF" },
+  { name: "PEJ-CI", tier: "Sponsor Platinum", color: "#BA77FF" },
+  { name: "Orange", tier: "Sponsor Platinum", color: "#BA77FF" },
+];
+
+const PARTNERS_GROUP_2 = [
+  { name: "MTN", tier: "Sponsor Platinum", color: "#BA77FF" },
+  { name: "Moov Africa", tier: "Sponsor Platinum", color: "#BA77FF" },
+  { name: "Wave", tier: "Sponsor Platinum", color: "#BA77FF" },
+  { name: "Djamo", tier: "Sponsor Platinum", color: "#BA77FF" },
+  { name: "Yassir", tier: "Sponsor Silver", color: "#FF57E3" },
+  { name: "Lapaire", tier: "Sponsor Silver", color: "#FF57E3" },
+];
 
 export default async function HomePage() {
   const c = await getSiteContent();
@@ -334,6 +351,56 @@ export default async function HomePage() {
                 <Link href="/statut" className="btn btn-ghost">
                   {get(c, "cta.final.secondary", "Vérifier mon statut")}
                 </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── PARTNERS MARQUEE ────────────────────────────────────── */}
+        <section className="partners-section">
+          <div className="wrap">
+            <div className="section-head" style={{ textAlign: "center", marginBottom: "40px" }} data-reveal>
+              <span className="eyebrow">Soutien & Partenariat</span>
+              <h2 className="display" style={{ fontSize: "clamp(28px, 4vw, 42px)" }}>Nos Partenaires & Sponsors</h2>
+            </div>
+          </div>
+
+          <div className="partners-marquee-container">
+            {/* Track 1 (Left to Right) */}
+            <div className="partners-track-wrapper">
+              <div className="partners-track">
+                {PARTNERS_GROUP_1.map((p, idx) => (
+                  <div key={idx} className="partner-badge">
+                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
+                    <span className="partner-name">{p.name}</span>
+                  </div>
+                ))}
+                {/* Duplicate */}
+                {PARTNERS_GROUP_1.map((p, idx) => (
+                  <div key={`dup1-${idx}`} className="partner-badge">
+                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
+                    <span className="partner-name">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Track 2 (Right to Left) */}
+            <div className="partners-track-wrapper">
+              <div className="partners-track-rev">
+                {PARTNERS_GROUP_2.map((p, idx) => (
+                  <div key={idx} className="partner-badge">
+                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
+                    <span className="partner-name">{p.name}</span>
+                  </div>
+                ))}
+                {/* Duplicate */}
+                {PARTNERS_GROUP_2.map((p, idx) => (
+                  <div key={`dup2-${idx}`} className="partner-badge">
+                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
+                    <span className="partner-name">{p.name}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
