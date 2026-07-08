@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
   // Run AI evaluation (non-blocking: if it fails, submission is still saved)
   let evalResult = null;
-  if (process.env.ANTHROPIC_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
       evalResult = await evaluateProject({
         teamName: team.name,

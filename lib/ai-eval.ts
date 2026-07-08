@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { JUDGING_CRITERIA } from "@/lib/constants";
 
 export type EvalInput = {
@@ -26,16 +25,16 @@ export type EvalResult = {
   model: string;
 };
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+// Best available model via OpenRouter — falls back to a cheaper one if quota exhausted
+const MODEL = "anthropic/claude-sonnet-4-5";
 
 const CRITERIA_LIST = JUDGING_CRITERIA.map(
   (c) => `- **${c.name}** (max ${c.weight} points, id: "${c.id}")`,
 ).join("\n");
 
-export async function evaluateProject(input: EvalInput): Promise<EvalResult> {
-  const MODEL = "claude-sonnet-5-20251101";
-
-  const prompt = `Tu es un jury expert pour VIBEATHON 2026, un hackathon de Vibe Coding sur le thème IA × Environnement à Abidjan.
+function buildPrompt(input: EvalInput): string {
+  return `Tu es un jury expert pour VIBEATHON 2026, un hackathon de Vibe Coding sur le thème IA × Environnement à Abidjan.
 Les équipes ont eu une journée pour concevoir, vibe-coder (IA générative seule, sans écrire de code traditionnel) et pitcher une application complète.
 
 ## Projet à évaluer
@@ -70,41 +69,66 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte avant o
   "strengths": ["<point fort 1>", "<point fort 2>"],
   "improvements": ["<axe d'amélioration 1>", "<axe d'amélioration 2>"]
 }`;
+}
 
-  const message = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
+export async function evaluateProject(input: EvalInput): Promise<EvalResult> {
+  const key = process.env.OPENROUTER_API_KEY;
+  if (!key) throw new Error("OPENROUTER_API_KEY not set");
+
+  const res = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://vibethon.reinvent-labs.com",
+      "X-Title": "VIBEATHON 2026 AI Evaluation",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: buildPrompt(input) }],
+    }),
   });
 
-  const raw = message.content[0].type === "text" ? message.content[0].text : "";
-  const parsed = JSON.parse(raw.replace(/^```json\s*/i, "").replace(/```\s*$/, ""));
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`OpenRouter error ${res.status}: ${err}`);
+  }
 
-  const criteriaMap = Object.fromEntries(
-    JUDGING_CRITERIA.map((c) => [c.id, c]),
-  );
+  const data = await res.json() as {
+    choices: { message: { content: string } }[];
+    model: string;
+  };
 
-  const scores: CriterionScore[] = parsed.scores.map(
-    (s: { key: string; score: number; reasoning: string }) => {
-      const criterion = criteriaMap[s.key];
-      return {
-        key: s.key,
-        name: criterion?.name ?? s.key,
-        weight: criterion?.weight ?? 0,
-        score: Math.min(Math.max(Math.round(s.score), 0), criterion?.weight ?? 0),
-        reasoning: s.reasoning,
-      };
-    },
-  );
+  const raw = data.choices[0]?.message?.content ?? "";
+  // Strip markdown code fences if the model adds them
+  const clean = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+  const parsed = JSON.parse(clean) as {
+    scores: { key: string; score: number; reasoning: string }[];
+    summary: string;
+    strengths: string[];
+    improvements: string[];
+  };
 
-  const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
+  const criteriaMap = Object.fromEntries(JUDGING_CRITERIA.map((c) => [c.id, c]));
+
+  const scores: CriterionScore[] = parsed.scores.map((s) => {
+    const criterion = criteriaMap[s.key];
+    return {
+      key: s.key,
+      name: criterion?.name ?? s.key,
+      weight: criterion?.weight ?? 0,
+      score: Math.min(Math.max(Math.round(s.score), 0), criterion?.weight ?? 0),
+      reasoning: s.reasoning,
+    };
+  });
 
   return {
     scores,
-    totalScore,
+    totalScore: scores.reduce((sum, s) => sum + s.score, 0),
     summary: parsed.summary ?? "",
     strengths: parsed.strengths ?? [],
     improvements: parsed.improvements ?? [],
-    model: MODEL,
+    model: data.model ?? MODEL,
   };
 }
