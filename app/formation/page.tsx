@@ -27,7 +27,7 @@ export default function FormationPage() {
     {
       title: "Formation Adulte",
       tagline: "Maîtrisez le Vibe Coding & l'IA",
-      price: "10 000",
+      price: "Gratuit",
       description: "Pour les étudiants, entrepreneurs et professionnels qui souhaitent suivre le bootcamp intensif de formation et concevoir des applications réelles sans coder.",
       perks: [
         "Accès complet au Bootcamp de formation (3 jours)",
@@ -37,7 +37,7 @@ export default function FormationPage() {
         "Accès aux Studios d'expérience (Photo & Musique IA)",
         "Certificat de participation officiel",
       ],
-      link: "/billet?type=formation_adulte",
+      link: "https://forms.gle/mSpiMRyrmmBxXdq29",
       color: "#BA77FF", // Purple accent
     },
     {
@@ -53,7 +53,7 @@ export default function FormationPage() {
         "Encadrement personnalisé par des formateurs experts",
         "Attestation d'initiation nominative",
       ],
-      link: "https://forms.gle/zqtfDsZYHtYyGDxBA",
+      link: "https://forms.gle/RYk9d6mH3MWn63rg9",
       color: "#FF57E3", // Pink accent
     },
   ];

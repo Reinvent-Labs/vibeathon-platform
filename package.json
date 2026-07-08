@@ -18,6 +18,7 @@
     "db:setup": "npm run db:safe-migrate && npm run db:push && npm run db:seed",
     "db:bootstrap": "npm run db:setup && npm run db:import",
     "test:data-preservation": "node scripts/verify-preservation.mjs",
+    "db:check": "tsx scratch/check-db.ts",
     "test:scan-lifecycle": "tsx scripts/verify-scan-lifecycle.ts",
     "test:scan-demo:setup": "tsx scripts/setup-scan-demo.ts"
   },

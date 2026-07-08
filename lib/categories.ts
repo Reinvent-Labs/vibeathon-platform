@@ -72,7 +72,7 @@ export const CATEGORIES: Record<ParticipantCategory, CategoryConfig> = {
     slug: "formation-adulte",
     label: "Formation Adulte",
     color: "#BA77FF",
-    fee: 10_000,
+    fee: 0,
     qrLetter: "A",
     tagline: "Pour les adultes qui veulent suivre le bootcamp de formation",
     perks: [

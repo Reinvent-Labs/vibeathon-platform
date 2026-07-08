@@ -195,7 +195,7 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
   "category.formation_adulte.label": "Formation Adulte",
   "category.formation_adulte.tagline":
     "Pour les adultes qui veulent suivre le bootcamp de formation",
-  "category.formation_adulte.fee": "10000",
+  "category.formation_adulte.fee": "0",
   "category.formation_adulte.perks":
     "Accès au bootcamp de formation\nAccès à toutes les formations de la journée\nUn atelier au choix\nCertificat de participation (optionnel)",
 
