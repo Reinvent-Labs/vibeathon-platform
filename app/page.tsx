@@ -7,24 +7,6 @@ import { JUDGING_CRITERIA } from "@/lib/constants";
 import { CATEGORIES, formatFee } from "@/lib/categories";
 import { getSiteContent, get, getList } from "@/lib/site-content";
 import { Countdown } from "@/components/public/Countdown";
-const PARTNERS_GROUP_1 = [
-  { name: "Ministère de la Transition Numérique et de la Digitalisation", tier: "Partenaire Institutionnel", color: "#43D9FF" },
-  { name: "ANSUT", tier: "Partenaire Institutionnel", color: "#43D9FF" },
-  { name: "VITIB", tier: "Partenaire Institutionnel", color: "#43D9FF" },
-  { name: "Trésor Public", tier: "Partenaire Institutionnel", color: "#43D9FF" },
-  { name: "PEJ-CI", tier: "Sponsor Platinum", color: "#BA77FF" },
-  { name: "Orange", tier: "Sponsor Platinum", color: "#BA77FF" },
-];
-
-const PARTNERS_GROUP_2 = [
-  { name: "MTN", tier: "Sponsor Platinum", color: "#BA77FF" },
-  { name: "Moov Africa", tier: "Sponsor Platinum", color: "#BA77FF" },
-  { name: "Wave", tier: "Sponsor Platinum", color: "#BA77FF" },
-  { name: "Djamo", tier: "Sponsor Platinum", color: "#BA77FF" },
-  { name: "Yassir", tier: "Sponsor Silver", color: "#FF57E3" },
-  { name: "Lapaire", tier: "Sponsor Silver", color: "#FF57E3" },
-];
-
 export default async function HomePage() {
   const c = await getSiteContent();
 
@@ -357,7 +339,7 @@ export default async function HomePage() {
         </section>
 
         {/* ── PARTNERS MARQUEE ────────────────────────────────────── */}
-        <section className="partners-section">
+        <section className="partners-section" style={{ padding: "60px 0" }}>
           <div className="wrap">
             <div className="section-head" style={{ textAlign: "center", marginBottom: "40px" }} data-reveal>
               <span className="eyebrow">Soutien & Partenariat</span>
@@ -366,41 +348,21 @@ export default async function HomePage() {
           </div>
 
           <div className="partners-marquee-container">
-            {/* Track 1 (Left to Right) */}
-            <div className="partners-track-wrapper">
-              <div className="partners-track">
-                {PARTNERS_GROUP_1.map((p, idx) => (
-                  <div key={idx} className="partner-badge">
-                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
-                    <span className="partner-name">{p.name}</span>
-                  </div>
-                ))}
-                {/* Duplicate */}
-                {PARTNERS_GROUP_1.map((p, idx) => (
-                  <div key={`dup1-${idx}`} className="partner-badge">
-                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
-                    <span className="partner-name">{p.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Track 2 (Right to Left) */}
-            <div className="partners-track-wrapper">
-              <div className="partners-track-rev">
-                {PARTNERS_GROUP_2.map((p, idx) => (
-                  <div key={idx} className="partner-badge">
-                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
-                    <span className="partner-name">{p.name}</span>
-                  </div>
-                ))}
-                {/* Duplicate */}
-                {PARTNERS_GROUP_2.map((p, idx) => (
-                  <div key={`dup2-${idx}`} className="partner-badge">
-                    <span className="partner-tier" style={{ color: p.color }}>{p.tier}</span>
-                    <span className="partner-name">{p.name}</span>
-                  </div>
-                ))}
+            <div className="partners-track-wrapper" style={{ background: "rgba(255, 255, 255, 0.95)", padding: "20px 0", borderTop: "1px solid rgba(255, 255, 255, 0.15)", borderBottom: "1px solid rgba(255, 255, 255, 0.15)" }}>
+              <div className="partners-track" style={{ display: "flex", gap: "60px", width: "max-content", alignItems: "center" }}>
+                {/* Original */}
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                
+                {/* Duplicated for seamless loop */}
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
               </div>
             </div>
           </div>
