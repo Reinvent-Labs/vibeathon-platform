@@ -24,7 +24,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            cd "$HOME/vibeathon-platform"
+            echo "user=$(whoami) home=$HOME"
+            APP_DIR="$HOME/vibeathon-platform"
+            if [ ! -d "$APP_DIR" ]; then APP_DIR="/home/user/vibeathon-platform"; fi
+            cd "$APP_DIR"
             bash deploy/labtest/deploy.sh
           script_stop: true
 
