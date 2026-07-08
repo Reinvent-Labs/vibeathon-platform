@@ -14,19 +14,46 @@ export default function SoumettreePage() {
         <Logo size={145} />
         <Link href="/" className="back">← Retour à l&apos;accueil</Link>
       </div>
-      <div className="form-wrap">
-        <div className="form-intro">
-          <span className="eyebrow">Compétition · Vibe Coding</span>
-          <h1 className="display">
-            Soumets ton<br />
-            <span className="grad-text-lt">projet.</span>
-          </h1>
-          <p>
-            Renseigne le nom de ton équipe, l&apos;URL de ta démo et une description.
-            Notre IA évalue le projet instantanément.
-          </p>
+      <div className="split">
+        <aside className="aside">
+          <div className="top">
+            <span className="eyebrow">Compétition · Vibe Coding</span>
+            <h1>
+              Soumets<br />
+              <span className="grad-text-lt">ton projet.</span>
+            </h1>
+            <p className="lede">
+              Sélectionne ton équipe, dépose l&apos;URL de ta démo et tes slides.
+              L&apos;IA évalue ton projet instantanément et le jury voit les résultats en temps réel.
+            </p>
+          </div>
+          <div className="facts">
+            <div className="fact">
+              <span className="k" style={{ background: "#75FF8D" }} />
+              <div>
+                <b>Évaluation instantanée</b>
+                <span>Score IA généré en 15–30 secondes après soumission.</span>
+              </div>
+            </div>
+            <div className="fact">
+              <span className="k" style={{ background: "#BA77FF" }} />
+              <div>
+                <b>Visible par le jury</b>
+                <span>Les scores IA et slides apparaissent dans le tableau du jury.</span>
+              </div>
+            </div>
+            <div className="fact">
+              <span className="k" style={{ background: "#FF57E3" }} />
+              <div>
+                <b>Une seule soumission</b>
+                <span>La dernière soumission écrase la précédente. Assurez-vous que tout est prêt.</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+        <div className="formcol">
+          <SubmitForm />
         </div>
-        <SubmitForm />
       </div>
     </div>
   );

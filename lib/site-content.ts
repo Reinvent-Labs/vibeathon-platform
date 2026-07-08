@@ -11,8 +11,12 @@ export async function getSiteContent(): Promise<Record<string, string>> {
 
   let overrides: Record<string, string> = {};
   if (prisma) {
-    const rows = await prisma.siteContent.findMany();
-    overrides = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    try {
+      const rows = await prisma.siteContent.findMany();
+      overrides = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    } catch {
+      // DB unavailable — fall back to defaults silently
+    }
   }
 
   const data = { ...DEFAULT_SITE_CONTENT, ...overrides };

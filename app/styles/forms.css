@@ -312,3 +312,47 @@
 .submit-ai-note {
   font-size: 12px; color: var(--ink-faint); font-style: italic; margin: 0;
 }
+
+/* ---- File drop zone ---- */
+.file-drop {
+  border: 1.5px dashed var(--line);
+  border-radius: var(--r-md);
+  padding: 22px 20px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: border-color .2s, background .2s;
+  font-size: 14px; color: var(--ink-soft);
+  position: relative;
+}
+.file-drop:hover { border-color: var(--purple-lt); background: rgba(186,119,255,.05); }
+.file-drop.has-file { border-color: #75FF8D; background: rgba(117,255,141,.05); color: var(--ink); }
+.file-drop-icon { font-size: 20px; flex: none; }
+.file-drop-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.file-drop-clear {
+  flex: none; background: none; border: none; color: var(--ink-faint);
+  cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 4px;
+}
+.file-drop-clear:hover { color: var(--ink); background: rgba(255,255,255,.06); }
+
+/* Optional field label tag */
+.opt {
+  font-size: 11px; font-weight: 500; color: var(--ink-faint);
+  text-transform: uppercase; letter-spacing: .06em; margin-left: 6px;
+}
+
+/* Select element inherits .input styles */
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+  cursor: pointer;
+}
+select.input option { background: #0d1612; color: var(--ink); }
+
+/* Placeholder state for loading */
+.input-placeholder {
+  display: flex; align-items: center;
+  font-size: 15px; color: var(--ink-faint); font-style: italic;
+  pointer-events: none;
+}

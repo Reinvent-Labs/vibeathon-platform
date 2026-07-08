@@ -1,44 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-type Phase = "form" | "loading" | "done";
-
-type Result = {
-  teamName: string;
-  aiScore: number | null;
-  aiSummary: string | null;
-};
+type Team = { id: string; name: string; label: string };
+type Phase = "form" | "uploading" | "evaluating" | "done";
+type Result = { teamName: string; aiScore: number | null; aiSummary: string | null };
 
 export function SubmitForm() {
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
   const [phase, setPhase] = useState<Phase>("form");
   const [result, setResult] = useState<Result | null>(null);
+  const slidesRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
-    teamName: "",
+    teamId: "",
     demoUrl: "",
     repositoryUrl: "",
     description: "",
   });
+  const [slidesFile, setSlidesFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    fetch("/api/teams/list")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setTeams(d.data); })
+      .catch(() => {})
+      .finally(() => setTeamsLoading(false));
+  }, []);
 
   const update = (k: keyof typeof form, v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
-    setPhase("loading");
+    if (!form.teamId) { toast.error("Sélectionne ton équipe."); return; }
+
+    // Step 1: upload slides if provided
+    if (slidesFile) {
+      setPhase("uploading");
+      const fd = new FormData();
+      fd.append("file", slidesFile);
+      fd.append("teamId", form.teamId);
+      const uploadRes = await fetch("/api/teams/upload-slides", { method: "POST", body: fd });
+      const uploadPayload = await uploadRes.json();
+      if (!uploadRes.ok || !uploadPayload.success) {
+        toast.error(uploadPayload.error ?? "Erreur lors de l'upload des slides.");
+        setPhase("form");
+        return;
+      }
+    }
+
+    // Step 2: submit project + trigger AI eval
+    setPhase("evaluating");
     try {
       const res = await fetch("/api/teams/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          teamId: form.teamId,
+          demoUrl: form.demoUrl,
+          repositoryUrl: form.repositoryUrl || undefined,
+          description: form.description,
+        }),
       });
       const payload = await res.json();
-      if (!res.ok || !payload.success) {
-        throw new Error(payload.error ?? "Soumission impossible.");
-      }
+      if (!res.ok || !payload.success) throw new Error(payload.error ?? "Soumission impossible.");
       setResult(payload.data);
       setPhase("done");
     } catch (err) {
@@ -47,12 +76,22 @@ export function SubmitForm() {
     }
   }
 
-  if (phase === "loading") {
+  if (phase === "uploading") {
     return (
       <div className="submit-loading">
         <div className="submit-spinner" />
-        <p>Soumission en cours + évaluation par IA…</p>
-        <span>Ça peut prendre 15-30 secondes.</span>
+        <p>Upload des slides…</p>
+        <span>Ne ferme pas cette page.</span>
+      </div>
+    );
+  }
+
+  if (phase === "evaluating") {
+    return (
+      <div className="submit-loading">
+        <div className="submit-spinner" />
+        <p>Évaluation par IA en cours…</p>
+        <span>15 à 30 secondes. Ne ferme pas cette page.</span>
       </div>
     );
   }
@@ -62,9 +101,7 @@ export function SubmitForm() {
       <div className="ticket-success">
         <div className="ticket-success-icon">✓</div>
         <h2>Projet soumis !</h2>
-        <p>
-          <strong>{result.teamName}</strong> — ton projet a bien été enregistré.
-        </p>
+        <p><strong>{result.teamName}</strong> — projet enregistré avec succès.</p>
         {result.aiScore !== null && (
           <div className="submit-ai-result">
             <div className="submit-ai-score">
@@ -72,20 +109,15 @@ export function SubmitForm() {
               <span className="submit-ai-score-denom">/100</span>
             </div>
             <p className="submit-ai-score-label">Score IA préliminaire</p>
-            {result.aiSummary && (
-              <p className="submit-ai-summary">{result.aiSummary}</p>
-            )}
+            {result.aiSummary && <p className="submit-ai-summary">{result.aiSummary}</p>}
             <p className="submit-ai-note">
-              Ce score est indicatif. Les jurés humains évaluent le pitch en direct.
+              Score indicatif. Les jurés humains évaluent le pitch en direct.
             </p>
           </div>
         )}
         <div className="cluster" style={{ justifyContent: "center", marginTop: 24 }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => { setPhase("form"); setResult(null); }}
-          >
+          <button type="button" className="btn btn-ghost"
+            onClick={() => { setPhase("form"); setResult(null); setSlidesFile(null); }}>
             Nouvelle soumission
           </button>
           <Link href="/" className="btn btn-ghost">Accueil</Link>
@@ -97,21 +129,35 @@ export function SubmitForm() {
   return (
     <form className="ticket-form-wrap" onSubmit={handleSubmit}>
       <div className="ticket-fields">
+
+        {/* Team selector */}
         <div className="field">
-          <label htmlFor="teamName">
-            Nom de l&apos;équipe <span className="req">*</span>
+          <label htmlFor="teamId">
+            Ton équipe <span className="req">*</span>
           </label>
-          <input
-            id="teamName"
-            className="input"
-            required
-            value={form.teamName}
-            onChange={(e) => update("teamName", e.target.value)}
-            placeholder="Ex. Team Alpha"
-          />
-          <p className="field-hint">Exactement comme sur ton badge d&apos;équipe.</p>
+          {teamsLoading ? (
+            <div className="input input-placeholder">Chargement des équipes…</div>
+          ) : teams.length === 0 ? (
+            <div className="input input-placeholder" style={{ color: "var(--ink-faint)" }}>
+              Aucune équipe disponible pour l&apos;instant.
+            </div>
+          ) : (
+            <select
+              id="teamId"
+              className="input"
+              required
+              value={form.teamId}
+              onChange={(e) => update("teamId", e.target.value)}
+            >
+              <option value="">— Sélectionne ton équipe —</option>
+              {teams.map((t) => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+          )}
         </div>
 
+        {/* Demo URL */}
         <div className="field">
           <label htmlFor="demoUrl">
             URL de la démo <span className="req">*</span>
@@ -127,10 +173,9 @@ export function SubmitForm() {
           />
         </div>
 
+        {/* Repo URL — optional */}
         <div className="field">
-          <label htmlFor="repositoryUrl">
-            URL du dépôt (GitHub, etc.)
-          </label>
+          <label htmlFor="repositoryUrl">Dépôt GitHub <span className="opt">(optionnel)</span></label>
           <input
             id="repositoryUrl"
             className="input"
@@ -141,6 +186,50 @@ export function SubmitForm() {
           />
         </div>
 
+        {/* Slides upload — optional */}
+        <div className="field">
+          <label htmlFor="slides">Slides de présentation <span className="opt">(optionnel · PDF, max 30 Mo)</span></label>
+          <div
+            className={`file-drop${slidesFile ? " has-file" : ""}`}
+            onClick={() => slidesRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const f = e.dataTransfer.files[0];
+              if (f?.type === "application/pdf") setSlidesFile(f);
+              else toast.error("Utilise un fichier PDF.");
+            }}
+          >
+            {slidesFile ? (
+              <>
+                <span className="file-drop-icon">📄</span>
+                <span className="file-drop-name">{slidesFile.name}</span>
+                <button type="button" className="file-drop-clear"
+                  onClick={(e) => { e.stopPropagation(); setSlidesFile(null); if (slidesRef.current) slidesRef.current.value = ""; }}>
+                  ✕
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="file-drop-icon">⬆</span>
+                <span>Glisse ton PDF ici ou clique pour choisir</span>
+              </>
+            )}
+            <input
+              ref={slidesRef}
+              id="slides"
+              type="file"
+              accept="application/pdf,.pdf"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setSlidesFile(f);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Description */}
         <div className="field">
           <label htmlFor="description">
             Description du projet <span className="req">*</span>
@@ -149,11 +238,11 @@ export function SubmitForm() {
             id="description"
             className="input"
             required
-            rows={5}
+            rows={6}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
-            placeholder="Décris le problème que vous adressez, votre solution, les outils IA utilisés et l'impact attendu (200–500 mots)."
-            style={{ resize: "vertical", minHeight: 120 }}
+            placeholder="Décris le problème, ta solution, les outils IA utilisés et l'impact attendu (200–500 mots). L'IA utilisera ce texte pour évaluer ton projet."
+            style={{ resize: "vertical", minHeight: 130 }}
           />
         </div>
 
@@ -161,8 +250,7 @@ export function SubmitForm() {
           Soumettre mon projet →
         </button>
         <p className="form-note">
-          La soumission déclenche une évaluation par IA instantanée.
-          Les scores sont visibles dans le tableau de bord du jury.
+          La soumission déclenche une évaluation IA instantanée visible par le jury.
         </p>
       </div>
     </form>
