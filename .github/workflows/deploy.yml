@@ -24,9 +24,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "user=$(whoami) home=$HOME"
-            ls "$HOME"
-            cd /home/user/vibeathon-platform
+            cd "$HOME/vibeathon-platform"
             bash deploy/labtest/deploy.sh
           script_stop: true
 
