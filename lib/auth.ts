@@ -119,6 +119,8 @@ export function isSameOrigin(request: Request) {
   }
   addHost(process.env.APP_ORIGIN);
   addHost(process.env.NEXT_PUBLIC_APP_URL);
+  // DOMAIN is the Caddy/reverse-proxy hostname (e.g. vibethon.reinvent-labs.com)
+  addHost(process.env.DOMAIN ? `https://${process.env.DOMAIN}` : undefined);
 
   const source = request.headers.get("origin") ?? request.headers.get("referer");
   if (source) {
