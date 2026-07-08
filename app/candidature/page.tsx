@@ -50,30 +50,31 @@ export default async function CandidaturePage() {
           <RegistrationForm />
         </div>
       ) : (
-        <div className="lookup-wrap">
-        <div className="status-card" style={{ textAlign: "center" }}>
-          <span className="eyebrow">Compétition</span>
-          <h1
-            className="display"
-            style={{ fontSize: "clamp(32px,5vw,52px)", margin: "10px 0 14px" }}
-          >
-            Les candidatures<br />
-            <span className="grad-text-lt">sont closes.</span>
-          </h1>
-          <p className="body" style={{ margin: "0 auto 24px", maxWidth: 480 }}>
-            Les inscriptions à la compétition vibecoding sont terminées. Mais tu
-            peux toujours vivre le {EVENT.shortDate} : viens en visiteur ou
-            inscris-toi à une formation.
-          </p>
-          <div className="cluster" style={{ justifyContent: "center" }}>
-            <Link href="/billet" className="btn btn-grad">
-              Mon pass
-            </Link>
-            <Link href="/statut" className="btn btn-ghost">
-              Mon statut
-            </Link>
+        <div className="closed-wrap">
+          <div className="closed-inner">
+            <span className="eyebrow">Compétition · Vibe Coding</span>
+            <h1 className="display closed-title">
+              Les candidatures<br />
+              <span className="grad-text-lt">sont closes.</span>
+            </h1>
+            <p className="closed-body">
+              Les inscriptions à la compétition vibecoding sont terminées.
+              Mais l&apos;événement reste ouvert — rejoins-nous le {EVENT.shortDate}{" "}
+              en tant que visiteur.
+            </p>
+            <div className="closed-actions">
+              <Link href="/billet" className="btn btn-grad">
+                Prendre un pass visiteur →
+              </Link>
+              <Link href="/statut" className="btn btn-ghost">
+                Consulter mon statut
+              </Link>
+            </div>
+            <div className="closed-divider" />
+            <p className="closed-hint">
+              Tu es déjà sélectionné·e ? Consulte ton statut pour confirmer ta participation et obtenir ton badge.
+            </p>
           </div>
-        </div>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -14,22 +14,24 @@ import {
 
 const initialForm = { fullName: "", email: "", phone: "" };
 
-/**
- * Public ticket registration. Reads `?type=` to preselect a pass; otherwise
- * shows the three pass cards. Free passes confirm instantly and surface the
- * badge link; paid passes redirect to the PaiementPro checkout.
- */
 export function TicketForm() {
   const searchParams = useSearchParams();
   const preselected = categoryBySlug(searchParams.get("type") ?? "");
+
+  // Auto-select when only one pass type is available
+  const autoSelect = OPEN_CATEGORIES.length === 1 ? OPEN_CATEGORIES[0] : null;
   const [category, setCategory] = useState<OpenCategory | null>(
-    (preselected?.value as OpenCategory) ?? null,
+    (preselected?.value as OpenCategory) ?? autoSelect ?? null,
   );
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ badgeUrl: string } | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (!category && autoSelect) setCategory(autoSelect);
+  }, [autoSelect, category]);
+
+  async function handleSubmit(event: { preventDefault(): void }) {
     event.preventDefault();
     if (!category) return;
     setSubmitting(true);
@@ -60,19 +62,19 @@ export function TicketForm() {
   const update = (name: keyof typeof form, value: string) =>
     setForm((current) => ({ ...current, [name]: value }));
 
-  // Success screen for free (visitor) passes.
+  // Success screen
   if (done) {
     return (
-      <div className="success">
-        <div className="check">✓</div>
-        <h2>Bienvenue !</h2>
+      <div className="ticket-success">
+        <div className="ticket-success-icon">✓</div>
+        <h2>C&apos;est confirmé !</h2>
         <p>
-          Ton badge vient de t&apos;être envoyé par email et WhatsApp. Tu peux
-          aussi l&apos;ouvrir tout de suite.
+          Ton badge t&apos;a été envoyé par email et WhatsApp. Tu peux aussi
+          l&apos;ouvrir tout de suite.
         </p>
-        <div className="cluster" style={{ justifyContent: "center" }}>
+        <div className="cluster" style={{ justifyContent: "center", marginTop: 8 }}>
           <Link href={done.badgeUrl} className="btn btn-grad">
-            Voir mon badge
+            Voir mon badge →
           </Link>
           <Link href="/" className="btn btn-ghost">
             Accueil
@@ -82,14 +84,11 @@ export function TicketForm() {
     );
   }
 
-  // Step 1 — pick a pass.
+  // Pass picker — only shown when multiple categories are open
   if (!category) {
     return (
-      <div className="form-card">
-        <h2 style={{ margin: "0 0 6px" }}>Choisis ton pass</h2>
-        <p className="form-note" style={{ marginTop: 0 }}>
-          Sélectionne le type de participation qui te correspond.
-        </p>
+      <div className="ticket-picker-wrap">
+        <p className="ticket-picker-label">Choisis ton pass</p>
         <div className="ticket-pick">
           {OPEN_CATEGORIES.map((value) => {
             const config = CATEGORIES[value];
@@ -114,94 +113,94 @@ export function TicketForm() {
     );
   }
 
-  // Step 2 — fill in details for the chosen pass.
   const config = CATEGORIES[category];
+
   return (
-    <form className="form-card" onSubmit={handleSubmit}>
-      <div
-        className="ticket-chosen"
-        style={{ ["--cat" as string]: config.color }}
-      >
-        <div>
-          <span className="ticket-chosen-name" style={{ color: config.color }}>
-            {config.label}
-          </span>
-          <span className="ticket-chosen-fee">{formatFee(config.fee)}</span>
+    <form className="ticket-form-wrap" onSubmit={handleSubmit}>
+      {/* Featured pass card */}
+      <div className="ticket-featured" style={{ ["--cat" as string]: config.color }}>
+        <div className="ticket-featured-bar" />
+        <div className="ticket-featured-body">
+          <div className="ticket-featured-left">
+            <span className="ticket-featured-label">Ton pass</span>
+            <span className="ticket-featured-name" style={{ color: config.color }}>
+              {config.label}
+            </span>
+            <ul className="ticket-featured-perks">
+              {config.perks.map((perk) => (
+                <li key={perk}>{perk}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="ticket-featured-right">
+            <span className="ticket-featured-price">{formatFee(config.fee)}</span>
+            {OPEN_CATEGORIES.length > 1 && (
+              <button type="button" className="link-btn" onClick={() => setCategory(null)}>
+                Changer
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Registration fields */}
+      <div className="ticket-fields">
+        <div className="field">
+          <label htmlFor="fullName">
+            Nom complet <span className="req">*</span>
+          </label>
+          <input
+            id="fullName"
+            className="input"
+            required
+            value={form.fullName}
+            onChange={(e) => update("fullName", e.target.value)}
+            placeholder="Ex. Aïcha Koné"
+            autoComplete="name"
+          />
+        </div>
+        <div className="field two">
+          <div className="field">
+            <label htmlFor="email">
+              Email <span className="req">*</span>
+            </label>
+            <input
+              id="email"
+              className="input"
+              required
+              type="email"
+              value={form.email}
+              onChange={(e) => update("email", e.target.value)}
+              placeholder="toi@email.com"
+              autoComplete="email"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="phone">
+              WhatsApp <span className="req">*</span>
+            </label>
+            <input
+              id="phone"
+              className="input"
+              required
+              value={form.phone}
+              onChange={(e) => update("phone", e.target.value)}
+              placeholder="+225 ..."
+              autoComplete="tel"
+            />
+          </div>
         </div>
         <button
-          type="button"
-          className="link-btn"
-          onClick={() => setCategory(null)}
+          type="submit"
+          className="btn btn-grad btn-block"
+          disabled={submitting}
         >
-          Changer
+          {submitting ? "Traitement..." : "Recevoir mon badge →"}
         </button>
+        <p className="form-note">
+          Badge envoyé instantanément par email et WhatsApp. Entrée gratuite.
+        </p>
       </div>
-      <ul className="ticket-perks">
-        {config.perks.map((perk) => (
-          <li key={perk}>{perk}</li>
-        ))}
-      </ul>
-      <div className="field">
-        <label htmlFor="fullName">
-          Nom complet <span className="req">*</span>
-        </label>
-        <input
-          id="fullName"
-          className="input"
-          required
-          value={form.fullName}
-          onChange={(event) => update("fullName", event.target.value)}
-          placeholder="Ex. Aïcha Koné"
-          autoComplete="name"
-        />
-      </div>
-      <div className="field two">
-        <div className="field">
-          <label htmlFor="email">
-            Email <span className="req">*</span>
-          </label>
-          <input
-            id="email"
-            className="input"
-            required
-            type="email"
-            value={form.email}
-            onChange={(event) => update("email", event.target.value)}
-            placeholder="toi@email.com"
-            autoComplete="email"
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="phone">
-            WhatsApp <span className="req">*</span>
-          </label>
-          <input
-            id="phone"
-            className="input"
-            required
-            value={form.phone}
-            onChange={(event) => update("phone", event.target.value)}
-            placeholder="+225 ..."
-            autoComplete="tel"
-          />
-        </div>
-      </div>
-      <button
-        type="submit"
-        className="btn btn-grad btn-block"
-        disabled={submitting}
-      >
-        {submitting
-          ? "Traitement..."
-          : config.fee === 0
-            ? "Recevoir mon badge →"
-            : `Payer ${formatFee(config.fee)} →`}
-      </button>
-      <p className="form-note">
-        {config.fee === 0
-          ? "Ton badge te sera envoyé immédiatement par email et WhatsApp."
-          : "Après paiement, ton badge te sera envoyé par email et WhatsApp."}
-      </p>
     </form>
   );
 }
