@@ -348,21 +348,21 @@ export default async function HomePage() {
           </div>
 
           <div className="partners-marquee-container">
-            <div className="partners-track-wrapper" style={{ background: "rgba(255, 255, 255, 0.95)", padding: "20px 0", borderTop: "1px solid rgba(255, 255, 255, 0.15)", borderBottom: "1px solid rgba(255, 255, 255, 0.15)" }}>
-              <div className="partners-track" style={{ display: "flex", gap: "60px", width: "max-content", alignItems: "center" }}>
+            <div className="partners-track-wrapper" style={{ background: "rgba(255, 255, 255, 0.95)", padding: "30px 0", borderTop: "1px solid rgba(255, 255, 255, 0.15)", borderBottom: "1px solid rgba(255, 255, 255, 0.15)" }}>
+              <div className="partners-track" style={{ display: "flex", gap: "80px", width: "max-content", alignItems: "center" }}>
                 {/* Original */}
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
                 
                 {/* Duplicated for seamless loop */}
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "65px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
+                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
               </div>
             </div>
           </div>
