@@ -76,10 +76,7 @@ export const CATEGORIES: Record<ParticipantCategory, CategoryConfig> = {
     qrLetter: "A",
     tagline: "Pour les adultes qui veulent suivre le bootcamp de formation",
     perks: [
-      "Accès au bootcamp de formation",
-      "Accès à toutes les formations de la journée",
-      "Un atelier au choix",
-      "Certificat de participation (optionnel)",
+      "Accès au Panel",
     ],
   },
   FORMATION_KIDS: {
@@ -91,10 +88,7 @@ export const CATEGORIES: Record<ParticipantCategory, CategoryConfig> = {
     qrLetter: "K",
     tagline: "Le bootcamp de formation pensé pour les enfants",
     perks: [
-      "Accès au bootcamp de formation pour enfants",
-      "Un atelier adapté aux enfants",
-      "Goûter inclus",
-      "Encadrés par des formateurs",
+      "Accès au Panel",
     ],
   },
 };

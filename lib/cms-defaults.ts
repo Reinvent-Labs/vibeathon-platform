@@ -197,14 +197,14 @@ export const DEFAULT_SITE_CONTENT: Record<string, string> = {
     "Pour les adultes qui veulent suivre le bootcamp de formation",
   "category.formation_adulte.fee": "0",
   "category.formation_adulte.perks":
-    "Accès au bootcamp de formation\nAccès à toutes les formations de la journée\nUn atelier au choix\nCertificat de participation (optionnel)",
+    "Accès au Panel",
 
   "category.formation_kids.label": "Formation Kids",
   "category.formation_kids.tagline":
     "Le bootcamp de formation pensé pour les enfants",
   "category.formation_kids.fee": "0",
   "category.formation_kids.perks":
-    "Accès au bootcamp de formation pour enfants\nUn atelier adapté aux enfants\nGoûter inclus\nEncadrés par des formateurs",
+    "Accès au Panel",
 
   // ── Audience ──────────────────────────────────────────────────────────────
   "audience.eyebrow": "Pour qui ?",

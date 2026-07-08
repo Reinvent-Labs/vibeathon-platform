@@ -30,12 +30,7 @@ export default function FormationPage() {
       price: "Gratuit",
       description: "Pour les étudiants, entrepreneurs et professionnels qui souhaitent suivre le bootcamp intensif de formation et concevoir des applications réelles sans coder.",
       perks: [
-        "Accès complet au Bootcamp de formation (3 jours)",
-        "Formation pratique au Vibe Coding (langage naturel)",
-        "Formation au Pitch de projet & présentation",
-        "Accès aux 06 sessions d'ateliers interactifs",
-        "Accès aux Studios d'expérience (Photo & Musique IA)",
-        "Certificat de participation officiel",
+        "Accès au Panel",
       ],
       link: "https://forms.gle/mSpiMRyrmmBxXdq29",
       color: "#BA77FF", // Purple accent
@@ -46,12 +41,7 @@ export default function FormationPage() {
       price: "Gratuit",
       description: "Un parcours d'apprentissage ludique spécialement pensé pour initier les enfants aux technologies d'intelligence artificielle et stimuler leur créativité.",
       perks: [
-        "Accès au bootcamp de formation enfants",
-        "Ateliers pratiques adaptés et simplifiés",
-        "Introduction à la génération d'images et d'histoires",
-        "Goûter & rafraîchissements inclus",
-        "Encadrement personnalisé par des formateurs experts",
-        "Attestation d'initiation nominative",
+        "Accès au Panel",
       ],
       link: "https://forms.gle/RYk9d6mH3MWn63rg9",
       color: "#FF57E3", // Pink accent
