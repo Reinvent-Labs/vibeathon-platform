@@ -27,10 +27,14 @@ async function buildOverview() {
         name: true,
         isFinalist: true,
         rank: true,
+        demoUrl: true,
         members: { select: { id: true } },
         scores: {
           where: { lockedAt: { not: null } },
           select: { juryId: true, score: true },
+        },
+        aiEvaluation: {
+          select: { score: true, summary: true, updatedAt: true },
         },
       },
     }),
@@ -55,6 +59,10 @@ async function buildOverview() {
         averageScore: total,
         isFinalist: team.isFinalist,
         rank: team.rank,
+        demoUrl: team.demoUrl ?? null,
+        aiScore: team.aiEvaluation?.score ?? null,
+        aiSummary: team.aiEvaluation?.summary ?? null,
+        aiEvaluatedAt: team.aiEvaluation?.updatedAt ?? null,
       };
     })
     .sort(
