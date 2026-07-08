@@ -5,8 +5,6 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=user
-Group=user
 WorkingDirectory=/home/user/vibeathon-platform
 Environment=APP_DIR=/home/user/vibeathon-platform
 Environment=DEPLOY_BRANCH=main
