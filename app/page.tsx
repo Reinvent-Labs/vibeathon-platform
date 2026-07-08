@@ -55,10 +55,13 @@ export default async function HomePage() {
     get(c, "prizes.perk.3", "Opportunités d'incubation et accès à des investisseurs stratégiques."),
   ];
 
+  const activityColors = ["#75FF8D", "#BA77FF", "#FF57E3", "#82C880", "#C084FC"];
+
   return (
     <>
       <SiteNav />
 
+      {/* ── HERO ─────────────────────────────────────────────────── */}
       <header className="hero-home">
         <div className="ring" />
         <div className="mesh" aria-hidden="true">
@@ -90,7 +93,7 @@ export default async function HomePage() {
           <Link href="#billets" className="btn btn-grad">
             {get(c, "hero.cta.primary", "Prendre mon pass")} <ArrowRight size={18} />
           </Link>
-          <Link href="/programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
+          <Link href="#programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
         </div>
         <div className="hero-stats wrap">
           {[
@@ -107,20 +110,73 @@ export default async function HomePage() {
       </header>
 
       <main>
+
+        {/* ── CONCEPT ─────────────────────────────────────────────── */}
         <section id="concept" className="sec-pad">
           <div className="wrap concept">
             <div data-reveal="left">
-              <span className="eyebrow">{get(c, "concept.eyebrow", "Accueil")}</span>
+              <span className="eyebrow">{get(c, "concept.eyebrow", "Le concept")}</span>
               <p className="lead">{get(c, "concept.lead")}</p>
               <p className="body">{get(c, "concept.body")}</p>
             </div>
             <div className="grad-border quote" data-reveal="right">
               <div className="mark">&ldquo;</div>
-              <p>{get(c, "concept.quote")}</p>
+              <q>{get(c, "concept.quote")}</q>
             </div>
           </div>
         </section>
 
+        {/* ── ACTIVITIES ──────────────────────────────────────────── */}
+        {activities.length > 0 && (
+          <section id="activites" className="sec-pad" style={{ background: "var(--bg-0)" }}>
+            <div className="wrap">
+              <div className="section-head" data-reveal>
+                <span className="eyebrow">{get(c, "activities.eyebrow", "Au programme")}</span>
+                <h2 className="display">{get(c, "activities.title", "Cinq façons de vibrer.")}</h2>
+              </div>
+              <div className="act-grid" data-stagger>
+                {activities.map(({ number, title, desc }, i) => (
+                  <article
+                    className={`act-card${i === 0 ? " wide" : ""}`}
+                    key={number}
+                    data-reveal="scale"
+                  >
+                    <div className="swatch" style={{ background: activityColors[i] }} />
+                    <div className="num">{number}</div>
+                    <h3>{title}</h3>
+                    <p>{desc}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── SCHEDULE / TIMELINE ─────────────────────────────────── */}
+        {scheduleItems.length > 0 && (
+          <section id="programme" className="sec-pad">
+            <div className="wrap">
+              <div className="section-head" data-reveal>
+                <span className="eyebrow">{get(c, "schedule.eyebrow", "Le jour J · 11 juillet")}</span>
+                <h2 className="display">{get(c, "schedule.title", "Déroulé de la journée.")}</h2>
+              </div>
+              <div className="timeline" data-stagger>
+                {scheduleItems.map(({ time, title, desc }) => (
+                  <div className="tl-row" key={time} data-reveal>
+                    <div className="time grad-text-lt">{time}</div>
+                    <div className="dot" />
+                    <div className="body">
+                      <h4>{title}</h4>
+                      {desc && <p>{desc}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── PRIZES ──────────────────────────────────────────────── */}
         <section id="prix" className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
             <div className="section-head" data-reveal>
@@ -129,74 +185,111 @@ export default async function HomePage() {
             </div>
             <div className="prize-grid" data-stagger>
               {prizes.map(({ rank, amount, gold }) => (
-                <div className={`prize ${gold ? "gold" : ""}`} key={rank} data-reveal="scale">
+                <div className={`prize${gold ? " gold" : ""}`} key={rank} data-reveal="scale">
                   <div className="rank">{rank}</div>
-                  <div className={`amt ${gold ? "grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
+                  <div className={`amt${gold ? " grad-text-lt" : ""}`}>{amount}<small>FCFA</small></div>
                 </div>
               ))}
             </div>
-            <div className="perks">
-              {perks.map((perk, i) => (
-                <div className="perk" key={i}>
-                  <b className="grad-text">{perk.split(":")[0]}</b>
-                  {perk.includes(":") ? ` :${perk.split(":").slice(1).join(":")}` : ""}
-                </div>
-              ))}
+            <div className="perks" data-stagger>
+              {perks.map((perk, i) => {
+                const [title, ...rest] = perk.split(":");
+                return (
+                  <div className="perk" key={i} data-reveal="scale">
+                    <div className="perk-num">0{i + 1}</div>
+                    <strong className="perk-title grad-text">{title.trim()}</strong>
+                    {rest.length > 0 && <p className="perk-body">{rest.join(":").trim()}</p>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
+        {/* ── BILLETS / PASSES ────────────────────────────────────── */}
         <section id="billets" className="sec-pad">
           <div className="wrap">
             <div className="section-head" data-reveal>
               <span className="eyebrow">{get(c, "tickets.eyebrow", "Participer")}</span>
               <h2 className="display">{get(c, "tickets.title", "Choisis ton pass.")}</h2>
-              <p className="body" style={{ marginTop: 14, maxWidth: 560 }}>
-                {get(c, "tickets.body")}
-              </p>
+              <p>{get(c, "tickets.body")}</p>
             </div>
-            <div className="ticket-grid" data-stagger>
-              {openTickets.map(({ value, label, tagline, perks: ticketPerks, fee, color, slug }) => (
-                <article
-                  className="ticket-card"
-                  key={value}
-                  data-reveal="scale"
-                  style={{ ["--cat" as string]: color }}
-                >
-                  <div className="ticket-bar" />
-                  <h3 style={{ color }}>{label}</h3>
-                  <div className="ticket-price">{formatFee(fee)}</div>
-                  <p className="ticket-tag">{tagline}</p>
-                  <ul className="ticket-list">
-                    {ticketPerks.map((perk) => (
-                      <li key={perk}>{perk}</li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={`/billet?type=${slug}`}
-                    className="btn btn-grad btn-block"
+
+            {openTickets.length === 1 ? (
+              /* Single pass: full-width featured treatment */
+              <div className="pass-hero" style={{ ["--cat" as string]: openTickets[0].color }} data-reveal="scale">
+                <div className="pass-hero-bar" />
+                <div className="pass-hero-body">
+                  <div className="pass-hero-left">
+                    <span className="pass-hero-label">Pass disponible</span>
+                    <span className="pass-hero-name" style={{ color: openTickets[0].color }}>
+                      {openTickets[0].label}
+                    </span>
+                    <p className="pass-hero-tag">{openTickets[0].tagline}</p>
+                    <ul className="pass-hero-perks">
+                      {openTickets[0].perks.map((perk) => (
+                        <li key={perk}>{perk}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="pass-hero-right">
+                    <div className="pass-hero-price">{formatFee(openTickets[0].fee)}</div>
+                    <Link href={`/billet?type=${openTickets[0].slug}`} className="btn btn-grad">
+                      {openTickets[0].fee === 0
+                        ? get(c, "tickets.cta.free", "S'inscrire gratuitement")
+                        : get(c, "tickets.cta.paid", "Réserver")}{" "}
+                      <ArrowRight size={18} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="ticket-grid" data-stagger>
+                {openTickets.map(({ value, label, tagline, perks: ticketPerks, fee, color, slug }) => (
+                  <article
+                    className="ticket-card"
+                    key={value}
+                    data-reveal="scale"
+                    style={{ ["--cat" as string]: color }}
                   >
-                    {fee === 0
-                      ? get(c, "tickets.cta.free", "S'inscrire gratuitement")
-                      : get(c, "tickets.cta.paid", "Réserver")}{" "}
-                    <ArrowRight size={16} />
-                  </Link>
-                </article>
-              ))}
-            </div>
+                    <div className="ticket-bar" />
+                    <h3 style={{ color }}>{label}</h3>
+                    <div className="ticket-price">{formatFee(fee)}</div>
+                    <p className="ticket-tag">{tagline}</p>
+                    <ul className="ticket-list">
+                      {ticketPerks.map((perk) => (
+                        <li key={perk}>{perk}</li>
+                      ))}
+                    </ul>
+                    <Link href={`/billet?type=${slug}`} className="btn btn-grad btn-block">
+                      {fee === 0
+                        ? get(c, "tickets.cta.free", "S'inscrire gratuitement")
+                        : get(c, "tickets.cta.paid", "Réserver")}{" "}
+                      <ArrowRight size={16} />
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
-        <section className="sec-pad">
+        {/* ── JUDGING CRITERIA ────────────────────────────────────── */}
+        <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap criteria">
             <div data-reveal="left">
               <span className="eyebrow">Le jury évalue</span>
-              <h2 className="display" style={{ fontSize: "clamp(36px,4.5vw,64px)", marginTop: 18 }}>Comment<br />on est noté.</h2>
+              <h2 className="display" style={{ fontSize: "clamp(36px,4.5vw,64px)", marginTop: 18 }}>
+                Comment<br />on est noté.
+              </h2>
             </div>
             <div data-reveal="right">
               {JUDGING_CRITERIA.map((criterion) => (
                 <div className="crit-row" key={criterion.id}>
-                  <div className="lab"><span className="name">{criterion.name}</span><span className="pct grad-text-lt">{criterion.weight}%</span></div>
+                  <div className="lab">
+                    <span className="name">{criterion.name}</span>
+                    <span className="pct grad-text-lt">{criterion.weight}%</span>
+                  </div>
                   <div className="bar"><i style={{ width: `${(criterion.weight / 30) * 100}%` }} /></div>
                 </div>
               ))}
@@ -204,7 +297,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
+        {/* ── AUDIENCE ────────────────────────────────────────────── */}
+        <section className="sec-pad">
           <div className="wrap">
             <div className="section-head" data-reveal>
               <span className="eyebrow">{get(c, "audience.eyebrow", "Pour qui ?")}</span>
@@ -218,10 +312,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="sec-pad">
+        {/* ── FINAL CTA ───────────────────────────────────────────── */}
+        <section className="sec-pad" style={{ background: "var(--bg-0)" }}>
           <div className="wrap">
             <div className="final-cta">
-              <div className="mesh" aria-hidden="true"><span className="blob-g" /><span className="blob-p" /><span className="blob-k" /><span className="blob-m" /></div>
+              <div className="mesh" aria-hidden="true">
+                <span className="blob-g" /><span className="blob-p" />
+                <span className="blob-k" /><span className="blob-m" />
+              </div>
               <h2 className="display">
                 {(() => {
                   const words = get(c, "cta.final.title", "Prêt à lancer ?").split(" ");
@@ -233,11 +331,14 @@ export default async function HomePage() {
                 <Link href="/billet" className="btn btn-grad">
                   {get(c, "cta.final.primary", "Prendre mon pass")} <ArrowRight size={18} />
                 </Link>
-                <Link href="/statut" className="btn btn-ghost">{get(c, "cta.final.secondary", "Vérifier mon statut")}</Link>
+                <Link href="/statut" className="btn btn-ghost">
+                  {get(c, "cta.final.secondary", "Vérifier mon statut")}
+                </Link>
               </div>
             </div>
           </div>
         </section>
+
       </main>
 
       <ScrollReveal />
