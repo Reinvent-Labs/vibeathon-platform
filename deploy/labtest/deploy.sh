@@ -15,7 +15,7 @@ fi
 
 git reset --hard "origin/$BRANCH"
 docker compose build app
-docker compose run --rm migrate
+docker compose run --rm migrate sh -c 'npx prisma db push && npx prisma db seed' 2>&1 || true
 # Force recreate so the new image is always picked up (compose can otherwise
 # keep the old container running when it can't detect the image change).
 docker compose up -d --force-recreate app
