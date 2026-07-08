@@ -354,12 +354,8 @@ export default async function HomePage() {
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} />
                 
                 {/* Duplicated for seamless loop */}
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
-                <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
                 <img src="/images/partners.jpg" alt="Partenaires et Sponsors" style={{ height: "90px", width: "auto", display: "block" }} aria-hidden="true" />
