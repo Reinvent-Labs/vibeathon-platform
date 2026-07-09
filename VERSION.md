@@ -1,5 +1,9 @@
 # Version
 
+## Unreleased
+
+- Added admin participant deletion from the list and review drawer, with confirmation, audit logging, and live table updates.
+
 ## 0.1.0 — 2026-06-09
 
 - Rebuilt all seven VIBEATHON surfaces in Next.js using the approved brand designs.

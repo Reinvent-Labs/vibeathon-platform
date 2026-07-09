@@ -254,6 +254,27 @@ export async function updateParticipantStatus(
   return participant;
 }
 
+export async function deleteParticipants(ids: string[]) {
+  if (!ids.length) return 0;
+  if (prisma) {
+    const result = await prisma.participant.deleteMany({
+      where: { id: { in: ids } },
+    });
+    return result.count;
+  }
+
+  let deleted = 0;
+  for (const id of ids) {
+    const participant = [...runtimeParticipants.values()].find(
+      (item) => item.id === id,
+    );
+    if (!participant) continue;
+    runtimeParticipants.delete(participant.email);
+    deleted++;
+  }
+  return deleted;
+}
+
 /** Confirm participation without payment — SELECTED → CONFIRMED. */
 export async function confirmParticipationAtomic(id: string): Promise<boolean> {
   if (prisma) {

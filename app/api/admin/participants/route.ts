@@ -1,5 +1,9 @@
 import { apiError, apiSuccess, readJson } from "@/lib/api";
-import { listParticipants, updateParticipantStatus } from "@/lib/repository";
+import {
+  deleteParticipants,
+  listParticipants,
+  updateParticipantStatus,
+} from "@/lib/repository";
 import type { DemoParticipantStatus } from "@/lib/demo-data";
 import { isSameOrigin, requireRole } from "@/lib/auth";
 import { sendEmail, sendWhatsApp } from "@/lib/notifications";
@@ -176,4 +180,46 @@ export async function PATCH(request: Request) {
   }
 
   return apiSuccess({ updated: results.filter(Boolean).length });
+}
+
+export async function DELETE(request: Request) {
+  if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
+  const staff = await requireRole(["SUPER_ADMIN", "ADMIN"]);
+  if (!staff) {
+    return apiError("Non autorisé.", 401);
+  }
+
+  const body = await readJson<{ ids?: string[] }>(request);
+  const ids = [...new Set(body?.ids ?? [])];
+  if (!ids.length) return apiError("Sélection manquante.");
+
+  const participants = await listParticipants();
+  const targets = participants.filter((participant) =>
+    ids.includes(participant.id),
+  );
+  if (targets.length !== ids.length) {
+    return apiError("Un ou plusieurs participants sont introuvables.", 404);
+  }
+
+  const deleted = await deleteParticipants(ids);
+  await Promise.all(
+    targets.map((participant) =>
+      writeAuditLog({
+        actorId: staff.userId,
+        action: "PARTICIPANT_DELETED",
+        entityType: "Participant",
+        entityId: participant.id,
+        ipAddress: requestIp(request),
+        metadata: {
+          reference: participant.reference,
+          fullName: participant.fullName,
+          email: participant.email,
+          category: participant.category ?? null,
+          status: participant.status,
+        },
+      }),
+    ),
+  );
+
+  return apiSuccess({ deleted });
 }

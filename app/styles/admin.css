@@ -91,6 +91,8 @@
 .bulk { display:flex; gap:8px; align-items:center; padding:0 22px; height:0; overflow:hidden; transition:height .25s, padding .25s; background:rgba(186,119,255,.08); }
 .bulk.show { height:54px; }
 .bulk .cnt { font-size:13px; font-weight:600; }
+.danger-action { border-color: rgba(255,122,156,.36) !important; color: #ff7a9c !important; }
+.danger-action:hover { background: rgba(255,122,156,.12) !important; }
 table { width:100%; border-collapse:collapse; }
 thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-faint); font-weight:600; padding:13px 22px; border-bottom:1px solid var(--line-2); }
 tbody td { padding:14px 22px; border-bottom:1px solid var(--line-2); font-size:14px; }

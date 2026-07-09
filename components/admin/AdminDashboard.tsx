@@ -10,6 +10,7 @@ import {
   Mail,
   Search,
   Send,
+  Trash2,
   UserPlus,
   X,
 } from "lucide-react";
@@ -165,6 +166,34 @@ export function AdminDashboard({
     toast.success(`${payload.data.updated} dossier(s) mis à jour.`);
   }
 
+  async function deleteParticipant(participantIds = selected) {
+    if (!participantIds.length) {
+      return toast.error("Sélectionne au moins un participant.");
+    }
+    const message =
+      participantIds.length === 1
+        ? "Supprimer définitivement ce participant ? Cette action retire aussi son badge et ses accès."
+        : `Supprimer définitivement ${participantIds.length} participants ? Cette action retire aussi leurs badges et leurs accès.`;
+    if (!window.confirm(message)) return;
+
+    const response = await fetch("/api/admin/participants", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: participantIds }),
+    });
+    const payload = await response.json();
+    if (!payload.success) return toast.error(payload.error);
+
+    setParticipants((current) =>
+      current.filter((participant) => !participantIds.includes(participant.id)),
+    );
+    setFocusedParticipant((current) =>
+      current && participantIds.includes(current.id) ? null : current,
+    );
+    setSelected([]);
+    toast.success(`${payload.data.deleted} participant(s) supprimé(s).`);
+  }
+
   const counts = {
     total: participants.length,
     pending: participants.filter((item) => item.status === "PENDING").length,
@@ -203,6 +232,7 @@ export function AdminDashboard({
             onStatus={changeStatus}
             onOpen={setFocusedParticipant}
             onSendBadge={sendBadge}
+            onDelete={deleteParticipant}
             confirmedOnly={section === "participants"}
           />
         ) : section === "equipes" ? (
@@ -237,6 +267,7 @@ export function AdminDashboard({
             void changeStatus(status, [focusedParticipant.id])
           }
           onSendBadge={() => void sendBadge(focusedParticipant.id)}
+          onDelete={() => void deleteParticipant([focusedParticipant.id])}
         />
       ) : null}
     </>
@@ -327,6 +358,7 @@ function ParticipantTable({
   onStatus,
   onOpen,
   onSendBadge,
+  onDelete,
   confirmedOnly,
 }: {
   participants: DemoParticipant[];
@@ -339,6 +371,7 @@ function ParticipantTable({
   onStatus: (status: DemoParticipantStatus) => void;
   onOpen: (participant: DemoParticipant) => void;
   onSendBadge: (id: string) => void;
+  onDelete: (ids?: string[]) => void;
   confirmedOnly: boolean;
 }) {
   const [tab, setTab] = useState<"competiteurs" | "billets">("competiteurs");
@@ -447,11 +480,13 @@ function ParticipantTable({
           <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
           <button className="btn btn-ghost" onClick={() => void onStatus("WAITLIST")}><Mail size={16} /> Liste d&apos;attente</button>
           <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
+          <button className="btn btn-ghost danger-action" onClick={() => void onDelete()}><Trash2 size={16} /> Supprimer</button>
         </div>
       ) : (
         <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
           <span className="cnt"><b>{selected.length}</b> billet(s) coché(s)</span>
           <button className="btn btn-ghost" onClick={() => selected.forEach((id) => void onSendBadge(id))}><Send size={16} /> Renvoyer les badges</button>
+          <button className="btn btn-ghost danger-action" onClick={() => void onDelete()}><Trash2 size={16} /> Supprimer</button>
         </div>
       )}
 
@@ -498,6 +533,7 @@ function ParticipantTable({
                       <button className="btn btn-ghost" onClick={() => onSendBadge(participant.id)}><Send size={16} /> Envoyer</button>
                     </>
                   ) : null}
+                  <button className="btn btn-ghost danger-action" onClick={() => onDelete([participant.id])}><Trash2 size={16} /> Supprimer</button>
                 </div>
               </td>
             </tr>
@@ -513,11 +549,13 @@ function ParticipantReview({
   onClose,
   onStatus,
   onSendBadge,
+  onDelete,
 }: {
   participant: DemoParticipant;
   onClose: () => void;
   onStatus: (status: DemoParticipantStatus) => void;
   onSendBadge: () => void;
+  onDelete: () => void;
 }) {
   const category = participant.category ?? "HACKATHON";
   const isHackathon = category === "HACKATHON";
@@ -665,6 +703,9 @@ function ParticipantReview({
               </button>
             </>
           ) : null}
+          <button className="btn btn-ghost danger-action" onClick={onDelete}>
+            <Trash2 size={16} /> Supprimer définitivement
+          </button>
         </footer>
       </aside>
     </div>
