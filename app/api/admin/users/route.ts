@@ -151,15 +151,16 @@ export async function POST(request: Request) {
   });
   if (existing) return apiError("Un compte existe déjà pour cet email.", 409);
 
-  const password = temporaryPassword();
+  const isJury = parsed.data.role === "JURY";
+  const password = isJury ? "" : temporaryPassword();
   const created = await prisma.adminUser.create({
     data: {
       authUserId: `local-${randomUUID()}`,
       fullName: parsed.data.fullName,
       email: parsed.data.email,
       role: parsed.data.role,
-      passwordHash: await hash(password, 12),
-      mustChangePassword: true,
+      passwordHash: isJury ? null : await hash(password, 12),
+      mustChangePassword: !isJury,
       active: true,
     },
   });
@@ -183,7 +184,9 @@ export async function POST(request: Request) {
   return apiSuccess(
     {
       users: await listUsers(),
-      credentials: { email: created.email },
+      credentials: isJury
+        ? undefined
+        : { email: created.email, temporaryPassword: password },
       emailDelivery,
     },
     { status: 201 },
@@ -244,9 +247,22 @@ export async function PATCH(request: Request) {
   } else if (parsed.data.action === "set-role") {
     await prisma.adminUser.update({
       where: { id: target.id },
-      data: { role: parsed.data.role },
+      data:
+        parsed.data.role === "JURY"
+          ? {
+              role: parsed.data.role,
+              passwordHash: null,
+              mustChangePassword: false,
+            }
+          : { role: parsed.data.role },
     });
   } else {
+    if (target.role === "JURY") {
+      return apiError(
+        "Les jurés utilisent un lien de connexion par e-mail, sans mot de passe.",
+        409,
+      );
+    }
     const password = temporaryPassword();
     await prisma.adminUser.update({
       where: { id: target.id },

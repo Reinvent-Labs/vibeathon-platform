@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed the jury portal so unauthenticated jurors see the email-link login instead of staff password login, and removed jury password handling from staff-user management.
 - Refined the VIBEATHON UI system across public, auth, scanner, jury, and admin surfaces while preserving the official event colors, and optimized logo image sizing.
 - Added staff-user and event-session deletion controls with guarded admin APIs and audit logging.
 - Simplified accepted participants as confirmed/paid-ok in the admin workflow, removing payment-pending labels from dashboard decisions and default notification copy.

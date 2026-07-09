@@ -1630,16 +1630,22 @@ function UsersPanel() {
         throw new Error(payload.error ?? "Création impossible.");
       }
       setUsers(payload.data.users);
-      setCredentials(payload.data.credentials);
+      setCredentials(payload.data.credentials ?? null);
       setFullName("");
       setEmail("");
       setRole("JURY");
       const delivery = payload.data.emailDelivery as EmailDelivery;
       if (delivery.status === "SENT") {
-        toast.success("Compte créé et invitation envoyée par email.");
+        toast.success(
+          role === "JURY"
+            ? "Juré créé. Il recevra son lien de connexion par email."
+            : "Compte créé et invitation envoyée par email.",
+        );
       } else {
         toast.warning(
-          "Compte créé, mais l'email n'a pas été envoyé. Transmets les identifiants affichés.",
+          role === "JURY"
+            ? "Juré créé, mais l'email n'a pas été envoyé. Il pourra demander un lien depuis /jury."
+            : "Compte créé, mais l'email n'a pas été envoyé. Transmets les identifiants affichés.",
         );
       }
     } catch (error) {
@@ -1727,9 +1733,9 @@ function UsersPanel() {
           <span className="eyebrow">Accès staff</span>
           <h2>Créer un utilisateur</h2>
           <p>
-            Une invitation est envoyée automatiquement par email. Le mot de
-            passe temporaire reste affiché une seule fois ici comme solution
-            de secours et devra être remplacé à la première connexion.
+            Les jurés se connectent uniquement par lien email depuis le portail
+            jury. Les autres rôles reçoivent un mot de passe temporaire à
+            remplacer à la première connexion.
           </p>
         </div>
         <div className="settings-grid">
@@ -1862,7 +1868,9 @@ function UsersPanel() {
                         }`}
                       >
                         {user.active
-                          ? user.mustChangePassword
+                          ? user.role === "JURY"
+                            ? "Lien email"
+                            : user.mustChangePassword
                             ? "Invitation envoyée"
                             : "Actif"
                           : "Désactivé"}
@@ -1875,18 +1883,20 @@ function UsersPanel() {
                     </td>
                     <td>
                       <div className="cluster staff-actions">
-                        <button
-                          className="btn btn-ghost"
-                          type="button"
-                          onClick={() =>
-                            void updateUser({
-                              action: "reset-password",
-                              userId: user.id,
-                            })
-                          }
-                        >
-                          Réinitialiser
-                        </button>
+                        {user.role !== "JURY" ? (
+                          <button
+                            className="btn btn-ghost"
+                            type="button"
+                            onClick={() =>
+                              void updateUser({
+                                action: "reset-password",
+                                userId: user.id,
+                              })
+                            }
+                          >
+                            Réinitialiser
+                          </button>
+                        ) : null}
                         <button
                           className="btn btn-ghost"
                           type="button"
