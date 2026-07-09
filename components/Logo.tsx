@@ -25,6 +25,7 @@ export function Logo({
         width={4842}
         height={1351}
         priority
+        sizes={`${size}px`}
         style={{ width: size, height: "auto", maxWidth: "100%" }}
       />
     </Link>

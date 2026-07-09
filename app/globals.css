@@ -818,3 +818,68 @@ button:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Shared visual refinement layer ---- */
+body {
+  background:
+    radial-gradient(circle at 10% -10%, rgba(7,133,29,.16), transparent 34%),
+    radial-gradient(circle at 100% 8%, rgba(131,46,220,.12), transparent 32%),
+    var(--bg-1);
+}
+.surface {
+  border-radius: 20px;
+  background: rgba(16,23,26,.82);
+  backdrop-filter: blur(12px);
+}
+.metric-card {
+  border-radius: 18px;
+  background: rgba(16,23,26,.78);
+}
+.metric-card strong {
+  font-family: var(--font-display);
+  letter-spacing:0;
+}
+.status-pill {
+  min-height: 26px;
+  border-radius: 9px;
+  letter-spacing: .02em;
+}
+.scanner-head,
+.scanner-foot,
+.scanner-count,
+.jury-sidebar,
+.jury-total,
+.criterion-desc {
+  background: rgba(16,23,26,.86);
+}
+.scanner-count,
+.jury-team-info,
+.jury-scoring,
+.criterion-desc,
+.jury-total {
+  border-radius:18px;
+}
+.scanner-count strong,
+.scan-result h2,
+.jury-team-header h1,
+.jury-total strong,
+.empty-state .eyebrow {
+  font-family: var(--font-display);
+  letter-spacing:0;
+}
+.jury-nav-item {
+  min-height:44px;
+  border-radius:14px;
+}
+.jury-nav-item.active {
+  background: rgba(255,255,255,.065);
+}
+
+@media (max-width: 520px) {
+  .data-table { min-width: 640px; }
+  .scanner-head {
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+  .scanner-head-actions { width:100%; }
+}

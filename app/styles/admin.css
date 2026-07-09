@@ -411,6 +411,128 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   .session-meta { justify-content:flex-start; width:100%; }
 }
 
+/* ---- Harmonious admin refinement layer ---- */
+.app {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(7,133,29,.12), transparent 34%),
+    radial-gradient(circle at 100% 18%, rgba(131,46,220,.10), transparent 32%),
+    var(--bg-1);
+}
+.side {
+  width:248px;
+  background: rgba(5,8,7,.94);
+  box-shadow: 18px 0 56px -46px rgba(0,0,0,.95);
+}
+.side nav { gap:4px; }
+.side nav a {
+  min-height:44px;
+  border-radius:14px;
+  font-weight:650;
+}
+.side nav a.active {
+  background: rgba(255,255,255,.075);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.side .user {
+  border-radius:16px;
+  background: rgba(255,255,255,.035);
+}
+.topbar {
+  padding: 18px clamp(20px, 3vw, 34px);
+  background: rgba(10,15,13,.9);
+}
+.topbar h1 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 30px);
+  letter-spacing: 0;
+  line-height:1.05;
+}
+.content { padding: clamp(20px, 3vw, 34px) clamp(18px, 3vw, 34px) 70px; }
+.panel,
+.mini-panel,
+.metric-card,
+.kpi,
+.credential-card,
+.participant-review,
+.session-list,
+.review-grid div {
+  border-radius:18px;
+  background: rgba(16,23,26,.82);
+  box-shadow: 0 22px 58px -44px rgba(0,0,0,.95);
+}
+.panel .phead,
+.panel-head {
+  padding: 18px clamp(18px, 2.5vw, 24px);
+}
+.panel .phead h3,
+.panel-title,
+.mini-panel h3 {
+  font-family: var(--font-display);
+  letter-spacing:0;
+}
+.bulk {
+  background: rgba(131,46,220,.10);
+  border-bottom: 1px solid var(--line-2);
+}
+thead th { padding: 13px 18px; }
+tbody td { padding: 14px 18px; }
+.tab-bar { padding:0 18px; overflow-x:auto; }
+.tab-btn {
+  min-height:48px;
+  font-weight:700;
+}
+.cat-chip,
+.check-row,
+.session-add-form summary,
+.compact-select {
+  border-radius:14px;
+}
+.participant-review header h2 {
+  font-family: var(--font-display);
+  letter-spacing:0;
+}
+.review-grid dt { letter-spacing:.06em; }
+.review-grid dd { line-height:1.5; }
+.session-row { padding: 16px 18px; }
+.staff-actions .btn,
+.session-meta .btn,
+.review-button {
+  border-radius:12px;
+}
+.search-box .input { min-width:min(260px, 100%); }
+
+@media (max-width:860px){
+  .topbar {
+    position:relative;
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .topbar .tb-actions,
+  .topbar .tb-actions .btn { width:100%; }
+  .admin-mobile-nav {
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    border-top-color:var(--line-2);
+    backdrop-filter: blur(14px);
+  }
+}
+
+@media (max-width:640px){
+  .content { padding-inline:14px; padding-bottom:92px; }
+  .panel,
+  .mini-panel,
+  .metric-card,
+  .kpi { border-radius:16px; }
+  .panel .phead { align-items:stretch; }
+  .search-box,
+  .search-box .input { width:100%; }
+  .bulk.show { gap:10px; }
+  .bulk.show .btn { flex:1 1 150px; }
+  .participant-review { padding:18px 14px 98px; }
+}
+
 /* ── Rich text editor (TipTap) ──────────────────────────────────── */
 .editor-wrap { border:1px solid var(--line-2); border-radius:10px; overflow:hidden; background:var(--bg-1); }
 .editor-toolbar { display:flex; flex-wrap:wrap; gap:2px; padding:8px 10px; border-bottom:1px solid var(--line-2); background:var(--bg-0); }

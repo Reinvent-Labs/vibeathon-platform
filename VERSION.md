@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Refined the VIBEATHON UI system across public, auth, scanner, jury, and admin surfaces while preserving the official event colors, and optimized logo image sizing.
 - Added staff-user and event-session deletion controls with guarded admin APIs and audit logging.
 - Simplified accepted participants as confirmed/paid-ok in the admin workflow, removing payment-pending labels from dashboard decisions and default notification copy.
 - Removed Communications, Contenu du site, and Templates email from the admin navigation and tightened responsive admin action layouts.

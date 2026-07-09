@@ -4,6 +4,9 @@
    Body/UI: Inter
    ============================================================ */
 :root {
+  --font-display: Futura, "Futura PT", "Avenir Next", "Trebuchet MS", "Outfit", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
   /* Core brand gradient stops */
   --green:        #07851D;
   --purple:       #832EDC;
@@ -56,7 +59,7 @@ body {
   margin: 0;
   background: var(--bg-1);
   color: var(--ink);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -67,34 +70,35 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
+  letter-spacing: 0;
 }
 
 button,
 input,
 select,
 textarea {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 /* ---------- Type helpers ---------- */
 .display {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
+  letter-spacing: 0;
+  line-height: 0.98;
 }
 .cond {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-display);
   text-transform: uppercase;
 }
 .eyebrow {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   font-size: 0.78rem;
   color: var(--ink-soft);
 }
@@ -121,7 +125,7 @@ textarea {
   user-select: none;
 }
 .vbt-logo .word {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.005em;
@@ -139,7 +143,7 @@ textarea {
   justify-content: flex-end;
 }
 .vbt-logo .bar .yr {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-size: calc(var(--logo-size, 30px) * 0.30);
   color: rgba(0,0,0,0.78);
@@ -149,16 +153,18 @@ textarea {
 
 /* ---------- Gradient pill CTA ---------- */
 .btn {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 0.98rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.94rem;
   border: none;
   cursor: pointer;
-  border-radius: var(--r-pill);
-  height: 44px;
-  padding: 0 1.8em;
+  border-radius: 14px;
+  min-height: 46px;
+  height: auto;
+  padding: 0.78rem 1.15rem;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6em;
   text-decoration: none;
   transition: transform .25s var(--ease), box-shadow .25s var(--ease), filter .25s var(--ease);
@@ -166,11 +172,11 @@ textarea {
 .btn-grad {
   background: var(--grad-1);
   color: #fff;
-  box-shadow: 0 8px 30px -8px rgba(131,46,220,0.6);
+  box-shadow: 0 16px 34px -22px rgba(255,84,226,0.8);
 }
-.btn-grad:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 14px 40px -10px rgba(255,84,226,0.55); }
+.btn-grad:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 20px 42px -24px rgba(255,84,226,0.9); }
 .btn-ghost {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.035);
   color: var(--ink);
   border: 1px solid var(--line);
 }
