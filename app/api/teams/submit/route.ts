@@ -26,12 +26,17 @@ export async function POST(request: Request) {
 
   const team = await prisma.team.findFirst({
     where: { id: body.teamId, competition: { slug: "vibeathon-2026" } },
+    include: { competition: { select: { phase: true } } },
   });
   if (!team) return apiError("Équipe introuvable.", 404);
+  if (team.competition.phase !== "SUBMISSIONS_OPEN") {
+    return apiError("Les soumissions sont fermées. La Phase 1 a déjà démarré.", 409);
+  }
 
   await prisma.team.update({
     where: { id: team.id },
     data: {
+      description: body.description?.trim() || null,
       demoUrl: body.demoUrl.trim(),
       repositoryUrl: body.repositoryUrl?.trim() || null,
     },

@@ -6,21 +6,23 @@ import { prisma } from "@/lib/prisma";
 
 async function buildOverview() {
   if (!prisma) return null;
-  const [juryCount, criteriaCount, teams] = await Promise.all([
-    prisma.adminUser.count({ where: { role: "JURY", active: true } }),
+  const [competition, juryMembers, criteriaCount, teams] = await Promise.all([
+    prisma.competition.findUnique({
+      where: { slug: "vibeathon-2026" },
+      select: { phase: true },
+    }),
+    prisma.adminUser.findMany({
+      where: { role: "JURY", active: true },
+      select: { id: true, fullName: true, email: true },
+      orderBy: { fullName: "asc" },
+    }),
     prisma.judgingCriteria.count({
       where: { competition: { slug: "vibeathon-2026" } },
     }),
     prisma.team.findMany({
       where: {
         competition: { slug: "vibeathon-2026" },
-        members: {
-          some: {},
-          every: {
-            status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
-            isTest: false,
-          },
-        },
+        isFinalist: true,
       },
       select: {
         id: true,
@@ -31,7 +33,7 @@ async function buildOverview() {
         members: { select: { id: true } },
         scores: {
           where: { lockedAt: { not: null } },
-          select: { juryId: true, score: true },
+          select: { juryId: true, score: true, criteria: { select: { key: true } } },
         },
         aiEvaluation: {
           select: { score: true, summary: true, updatedAt: true },
@@ -42,15 +44,20 @@ async function buildOverview() {
 
   const ranking = teams
     .map((team) => {
-      const juryIds = new Set(team.scores.map((score) => score.juryId));
+      const juryIds = new Set(team.scores.map((s) => s.juryId));
       const total =
         juryIds.size === 0
           ? null
           : Math.round(
-              (team.scores.reduce((sum, score) => sum + score.score, 0) /
-                juryIds.size) *
-                10,
+              (team.scores.reduce((sum, s) => sum + s.score, 0) / juryIds.size) * 10,
             ) / 10;
+
+      // Per-jury score totals for the matrix
+      const juryTotals: Record<string, number> = {};
+      for (const s of team.scores) {
+        juryTotals[s.juryId] = (juryTotals[s.juryId] ?? 0) + s.score;
+      }
+
       return {
         id: team.id,
         name: team.name,
@@ -63,21 +70,29 @@ async function buildOverview() {
         aiScore: team.aiEvaluation?.score ?? null,
         aiSummary: team.aiEvaluation?.summary ?? null,
         aiEvaluatedAt: team.aiEvaluation?.updatedAt ?? null,
+        juryTotals, // { juryId → total score }
       };
     })
     .sort(
-      (left, right) =>
-        (left.rank ?? Number.MAX_SAFE_INTEGER) -
-          (right.rank ?? Number.MAX_SAFE_INTEGER) ||
-        (right.averageScore ?? -1) - (left.averageScore ?? -1),
+      (a, b) =>
+        (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER) ||
+        (b.averageScore ?? -1) - (a.averageScore ?? -1),
     );
 
+  const allJuryDone =
+    juryMembers.length > 0 &&
+    teams.length > 0 &&
+    ranking.every((t) => t.juryCount >= juryMembers.length);
+
   return {
-    juryCount,
+    phase: competition?.phase ?? "PHASE1_DONE",
+    juryCount: juryMembers.length,
+    juryMembers,
     criteriaCount,
     eligibleTeams: teams.length,
-    scoredTeams: ranking.filter((team) => team.juryCount > 0).length,
-    finalists: ranking.filter((team) => team.isFinalist).length,
+    scoredTeams: ranking.filter((t) => t.juryCount > 0).length,
+    finalists: ranking.filter((t) => t.isFinalist).length,
+    allJuryDone,
     ranking,
   };
 }

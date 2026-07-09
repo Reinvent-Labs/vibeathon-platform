@@ -19,6 +19,8 @@ import { CATEGORIES, type ParticipantCategory } from "@/lib/categories";
 import { ContentPanel } from "@/components/admin/ContentPanel";
 import { EmailTemplatesPanel } from "@/components/admin/EmailTemplatesPanel";
 import { PagesPanel } from "@/components/admin/PagesPanel";
+import { EvaluationPanel } from "@/components/admin/EvaluationPanel";
+import { JuryOverview } from "@/components/admin/JuryOverview";
 
 
 function categoryLabel(category?: ParticipantCategory | null) {
@@ -208,9 +210,9 @@ export function AdminDashboard({
         ) : section === "presence" ? (
           <Presence participants={participants} />
         ) : section === "evaluation" ? (
-          <EvaluationStub />
+          <EvaluationPanel />
         ) : section === "jury" ? (
-          <JuryAdmin />
+          <JuryOverview />
         ) : section === "communications" ? (
           <Communications />
         ) : section === "parametres" ? (
@@ -898,154 +900,6 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
           </div>
         ) : (
           <div className="empty-state">Aucune présence enregistrée.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function EvaluationStub() {
-  return <div className="surface empty-state"><span className="eyebrow">Phase suivante</span><h2 className="display">Évaluation IA</h2><p>Le schéma de données et cet espace sont prêts. Le microservice d&apos;évaluation sera branché après l&apos;événement.</p></div>;
-}
-
-function JuryAdmin() {
-  type JuryOverview = {
-    juryCount: number;
-    criteriaCount: number;
-    eligibleTeams: number;
-    scoredTeams: number;
-    finalists: number;
-    ranking: {
-      id: string;
-      name: string;
-      memberCount: number;
-      juryCount: number;
-      averageScore: number | null;
-      isFinalist: boolean;
-      rank: number | null;
-    }[];
-  };
-  const [data, setData] = useState<JuryOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const load = () => {
-    fetch("/api/admin/jury-overview")
-      .then(async (response) => {
-        const payload = await response.json();
-        if (!response.ok || !payload.success) {
-          throw new Error(payload.error ?? "Chargement impossible.");
-        }
-        setData(payload.data);
-      })
-      .catch((error) =>
-        toast.error(
-          error instanceof Error ? error.message : "Chargement impossible.",
-        ),
-      )
-      .finally(() => setLoading(false));
-  };
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function updateResult(
-    teamId: string,
-    value: "none" | "finalist" | "1" | "2" | "3",
-  ) {
-    const response = await fetch("/api/admin/jury-overview", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        teamId,
-        isFinalist: value !== "none",
-        rank: ["1", "2", "3"].includes(value) ? Number(value) : null,
-      }),
-    });
-    const payload = await response.json();
-    if (!response.ok || !payload.success) {
-      return toast.error(payload.error ?? "Mise à jour impossible.");
-    }
-    setData(payload.data);
-    toast.success("Résultat de l'équipe enregistré.");
-  }
-
-  if (loading) {
-    return <div className="surface empty-state">Chargement du jury…</div>;
-  }
-  return (
-    <div className="stack">
-      <div className="metric-grid">
-        <div className="metric-card">
-          <span>Jurés actifs</span>
-          <strong>{data?.juryCount ?? 0}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Équipes admissibles</span>
-          <strong>{data?.eligibleTeams ?? 0}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Équipes notées</span>
-          <strong>{data?.scoredTeams ?? 0}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Critères</span>
-          <strong>{data?.criteriaCount ?? 0}</strong>
-        </div>
-      </div>
-      <div className="panel">
-        <div className="phead">
-          <h3>Classement provisoire</h3>
-          <Link href="/jury">Ouvrir l&apos;espace jury</Link>
-        </div>
-        {(data?.ranking.length ?? 0) > 0 ? (
-          <div style={{ padding: 22 }}>
-            {data?.ranking.map((team, index) => (
-              <div className="bar-row" key={team.id}>
-                <span className="nm">
-                  {team.rank ? `${team.rank}.` : `${index + 1}.`} {team.name}
-                </span>
-                <span className="tk">
-                  <i style={{ width: `${team.averageScore ?? 0}%` }} />
-                </span>
-                <span className="vv">
-                  {team.averageScore === null ? "—" : team.averageScore}
-                </span>
-                <small>{team.juryCount} juré(s)</small>
-                <select
-                  className="select compact-select"
-                  value={
-                    team.rank
-                      ? String(team.rank)
-                      : team.isFinalist
-                        ? "finalist"
-                        : "none"
-                  }
-                  onChange={(event) =>
-                    void updateResult(
-                      team.id,
-                      event.target.value as
-                        | "none"
-                        | "finalist"
-                        | "1"
-                        | "2"
-                        | "3",
-                    )
-                  }
-                  aria-label={`Résultat de ${team.name}`}
-                >
-                  <option value="none">Non finaliste</option>
-                  <option value="finalist">Finaliste</option>
-                  <option value="1">1er prix</option>
-                  <option value="2">2e prix</option>
-                  <option value="3">3e prix</option>
-                </select>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            Aucune équipe entièrement payée n&apos;est encore admissible au jury.
-          </div>
         )}
       </div>
     </div>

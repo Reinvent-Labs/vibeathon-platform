@@ -22,8 +22,10 @@ type JuryTeam = {
   name: string;
   tableNumber: string;
   problem: string;
+  description: string;
   demoUrl: string;
   repositoryUrl: string;
+  slidesUrl: string;
   scored: boolean;
   scores: Scores;
   comment: string;
@@ -277,8 +279,14 @@ export function JuryPortal({
             <small className="eyebrow" style={{ fontSize: 11 }}>Problème adressé</small>
             <p style={{ marginTop: 6 }}>{team.problem}</p>
           </div>
-          {(team.demoUrl || team.repositoryUrl) && (
-            <div className="cluster" style={{ gap: 12 }}>
+          {team.description && (
+            <div>
+              <small className="eyebrow" style={{ fontSize: 11 }}>Description du projet</small>
+              <p style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{team.description}</p>
+            </div>
+          )}
+          {(team.demoUrl || team.repositoryUrl || team.slidesUrl) && (
+            <div className="cluster" style={{ gap: 10, flexWrap: "wrap" }}>
               {team.demoUrl && (
                 <a href={externalUrl(team.demoUrl)} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
                   Voir la démo →
@@ -287,6 +295,11 @@ export function JuryPortal({
               {team.repositoryUrl && (
                 <a href={externalUrl(team.repositoryUrl)} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
                   GitHub →
+                </a>
+              )}
+              {team.slidesUrl && (
+                <a href={team.slidesUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
+                  Slides PDF →
                 </a>
               )}
             </div>

@@ -9,6 +9,41 @@ export const EVENT = {
   competitorCapacity: 100,
 } as const;
 
+/** Criteria used exclusively by the AI for Phase 1 ranking (not the human jury). */
+export const AI_EVAL_CRITERIA = [
+  {
+    id: "problem",
+    name: "Problem Importance",
+    weight: 20,
+    description: "Is this a problem worth solving? How many people are affected? How painful is the problem?",
+  },
+  {
+    id: "execution",
+    name: "Execution Quality",
+    weight: 25,
+    description: "Does the product actually work? Is the demo convincing? Are the key features implemented well?",
+  },
+  {
+    id: "innovation",
+    name: "Innovation",
+    weight: 15,
+    description: "Is there a novel insight, approach, or technology? Does it advance the state of the art or create a new experience?",
+  },
+  {
+    id: "impact",
+    name: "Impact Potential",
+    weight: 20,
+    description: "Could this become a real product, company, or open-source project? Would people use it after the hackathon?",
+  },
+  {
+    id: "technical",
+    name: "Technical Excellence",
+    weight: 20,
+    description: "How difficult was the engineering challenge? Is the architecture thoughtful? Did the team demonstrate strong technical ability?",
+  },
+] as const;
+
+/** Criteria used by human jury members for Phase 2 scoring. */
 export const JUDGING_CRITERIA = [
   {
     id: "relevance",

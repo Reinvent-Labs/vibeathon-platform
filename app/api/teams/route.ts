@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const teams = await prisma.team.findMany({
     where: juryScope
       ? {
+          isFinalist: true,
           members: {
             some: {},
             every: {
@@ -58,8 +59,10 @@ export async function GET(request: Request) {
       name: team.name,
       tableNumber: team.tableNumber ?? `Table ${String(index + 1).padStart(2, "0")}`,
       problem: team.problem,
+      description: team.description ?? "",
       demoUrl: team.demoUrl ?? "",
       repositoryUrl: team.repositoryUrl ?? "",
+      slidesUrl: team.slidesUrl ?? "",
       members: team.members,
       scored: team.scores.some((score) => Boolean(score.lockedAt)),
       scores: Object.fromEntries(

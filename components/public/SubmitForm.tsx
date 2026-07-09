@@ -5,13 +5,14 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 type Team = { id: string; name: string; label: string };
-type Phase = "form" | "uploading" | "evaluating" | "done";
+type FormPhase = "form" | "uploading" | "evaluating" | "done";
 type Result = { teamName: string; aiScore: number | null; aiSummary: string | null };
 
 export function SubmitForm() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
-  const [phase, setPhase] = useState<Phase>("form");
+  const [submissionsOpen, setSubmissionsOpen] = useState<boolean | null>(null);
+  const [phase, setPhase] = useState<FormPhase>("form");
   const [result, setResult] = useState<Result | null>(null);
   const slidesRef = useRef<HTMLInputElement>(null);
 
@@ -24,10 +25,16 @@ export function SubmitForm() {
   const [slidesFile, setSlidesFile] = useState<File | null>(null);
 
   useEffect(() => {
-    fetch("/api/teams/list")
-      .then((r) => r.json())
-      .then((d) => { if (d.success) setTeams(d.data); })
-      .catch(() => {})
+    Promise.all([
+      fetch("/api/teams/list").then((r) => r.json()),
+      fetch("/api/competition/status").then((r) => r.json()),
+    ])
+      .then(([teamsData, statusData]) => {
+        if (teamsData.success) setTeams(teamsData.data);
+        if (statusData.success) setSubmissionsOpen(statusData.data.submissionsOpen);
+        else setSubmissionsOpen(true); // fallback open
+      })
+      .catch(() => setSubmissionsOpen(true))
       .finally(() => setTeamsLoading(false));
   }, []);
 
@@ -74,6 +81,19 @@ export function SubmitForm() {
       toast.error(err instanceof Error ? err.message : "Erreur inattendue.");
       setPhase("form");
     }
+  }
+
+  if (submissionsOpen === false) {
+    return (
+      <div className="ticket-success">
+        <div className="ticket-success-icon" style={{ background: "color-mix(in srgb, var(--ink-faint) 15%, transparent)", borderColor: "var(--line)" }}>🔒</div>
+        <h2>Soumissions fermées</h2>
+        <p>La Phase 1 a démarré. Les soumissions ne sont plus acceptées.</p>
+        <p style={{ fontSize: 13, color: "var(--ink-faint)" }}>
+          L'IA est en train d'évaluer tous les projets. Les résultats seront publiés sous peu.
+        </p>
+      </div>
+    );
   }
 
   if (phase === "uploading") {
