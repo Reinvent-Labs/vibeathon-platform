@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
 import { JuryPortal } from "@/components/jury/JuryPortal";
+import { JuryAuth } from "@/components/jury/JuryAuth";
 import { requireRole } from "@/lib/auth";
-import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Espace jury" };
+export const metadata: Metadata = { title: "Espace jury — VIBEATHON 2026" };
 
-export default async function JuryPage() {
+export default async function JuryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const user = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
-  if (!user) redirect("/login?next=%2Fjury");
+  if (!user) {
+    const { error } = await searchParams;
+    return <JuryAuth errorParam={error} />;
+  }
   return <JuryPortal user={user} />;
 }

@@ -416,22 +416,250 @@ button:disabled {
   .scanner-reticle { width:min(72vw,260px); border-radius:22px; }
 }
 
+/* ── Jury auth ── */
+.jury-auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--bg-0);
+}
+
+.jury-auth-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.jury-auth-head { display: flex; flex-direction: column; gap: 4px; }
+.jury-auth-head h1 { font-size: clamp(28px, 5vw, 38px); margin: 0; }
+
+.jury-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jury-auth-note {
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.jury-auth-error {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--red, #ff6b6b);
+  margin: 0;
+}
+
+.jury-auth-sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.jury-auth-sent-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 40%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+/* ── Jury portal layout ── */
 .jury-layout {
   display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .jury-sidebar {
-  padding: 1.5rem;
+  padding: 24px 20px;
   border-right: 1px solid var(--line);
   background: var(--bg-0);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
+
+.jury-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+}
+.jury-user strong { font-size: 14px; }
+.jury-user span { font-size: 12px; color: var(--ink-faint); }
+
+.jury-progress { display: flex; flex-direction: column; gap: 8px; }
+.jury-progress-label { display: flex; justify-content: space-between; }
+.jury-progress-bar { height: 4px; background: var(--line); border-radius: 2px; }
+.jury-progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+
+.jury-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.jury-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  color: var(--ink-2);
+  transition: background 0.15s, color 0.15s;
+}
+.jury-nav-item:hover { background: var(--bg-1); color: var(--ink); }
+.jury-nav-item.active { background: var(--bg-1); border-color: var(--line); color: var(--ink); }
+.jury-nav-item.done { color: var(--green); }
+.jury-nav-item small { margin-left: auto; font-size: 11px; color: var(--ink-faint); }
+.jury-nav-check { flex-shrink: 0; font-size: 12px; }
 
 .jury-main {
-  padding: clamp(1rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
+.jury-team-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.jury-team-header h1 { margin: 4px 0 0; font-size: clamp(24px, 4vw, 36px); }
+
+.jury-team-info {
+  padding: clamp(16px, 2.5vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.jury-scoring {
+  padding: clamp(16px, 2.5vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.jury-scoring-title { font-size: 16px; font-weight: 600; margin: 0; }
+
+.jury-criteria { display: flex; flex-direction: column; gap: 0; }
+
+/* ── Criterion row ── */
+.criterion-row {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.criterion-row:first-child { padding-top: 0; }
+.criterion-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.criterion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.criterion-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.criterion-name { font-size: 14px; font-weight: 500; }
+.criterion-weight { font-size: 12px; color: var(--ink-faint); }
+
+.criterion-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-faint);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, transform 0.2s;
+}
+.criterion-toggle:hover { color: var(--ink); }
+.criterion-toggle.open { transform: rotate(180deg); color: var(--ink); }
+
+.criterion-score {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.criterion-desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--bg-0);
+  border-radius: 6px;
+  border-left: 2px solid var(--line);
+}
+
+.criterion-slider-wrap {
+  position: relative;
+}
+
+.criterion-slider-wrap input[type="range"] {
+  width: 100%;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.criterion-slider-wrap input[type="range"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.jury-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-0);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.jury-total strong { font-size: 28px; font-weight: 700; }
+.jury-total small { font-size: 16px; opacity: 0.5; }
+
+/* Legacy score-row — kept for any other uses */
 .score-row {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) minmax(180px, 2fr) 56px;
@@ -505,17 +733,18 @@ button:disabled {
     border-bottom: 1px solid var(--line);
   }
 
-  .jury-sidebar nav.stack {
+  .jury-nav {
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 10px;
-    gap: 8px;
+    padding-bottom: 4px;
   }
 
-  .jury-sidebar nav.stack button {
+  .jury-nav-item {
     flex: 0 0 auto;
-    width: auto;
+    white-space: nowrap;
   }
+
+  .jury-nav-item small { display: none; }
 
   .score-row {
     grid-template-columns: 1fr 56px;

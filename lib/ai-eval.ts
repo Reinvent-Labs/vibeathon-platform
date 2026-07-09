@@ -59,11 +59,11 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte avant o
 
 {
   "scores": [
-    { "key": "impact", "score": <entier 0-30>, "reasoning": "<string>" },
-    { "key": "feasibility", "score": <entier 0-20>, "reasoning": "<string>" },
-    { "key": "ai", "score": <entier 0-20>, "reasoning": "<string>" },
+    { "key": "relevance", "score": <entier 0-20>, "reasoning": "<string>" },
+    { "key": "solution", "score": <entier 0-25>, "reasoning": "<string>" },
+    { "key": "product", "score": <entier 0-20>, "reasoning": "<string>" },
     { "key": "innovation", "score": <entier 0-15>, "reasoning": "<string>" },
-    { "key": "pitch", "score": <entier 0-15>, "reasoning": "<string>" }
+    { "key": "impact", "score": <entier 0-20>, "reasoning": "<string>" }
   ],
   "summary": "<synthèse globale du projet en 2-3 phrases>",
   "strengths": ["<point fort 1>", "<point fort 2>"],

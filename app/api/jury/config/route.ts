@@ -10,7 +10,7 @@ export async function GET() {
   const criteria = await prisma.judgingCriteria.findMany({
     where: { competition: { slug: "vibeathon-2026" } },
     orderBy: { order: "asc" },
-    select: { id: true, key: true, name: true, weight: true, order: true },
+    select: { id: true, key: true, name: true, weight: true, order: true, description: true },
   });
   return apiSuccess(criteria);
 }

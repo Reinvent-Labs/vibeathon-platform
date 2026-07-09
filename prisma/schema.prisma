@@ -187,10 +187,22 @@ model JudgingCriteria {
   key            String
   weight         Int
   order          Int
+  description    String?
   competition    Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   scores         JuryScore[]
 
   @@unique([competitionId, key])
+}
+
+model MagicToken {
+  id        String    @id @default(cuid())
+  email     String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
 }
 
 model JuryScore {
