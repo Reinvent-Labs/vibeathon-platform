@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   });
 
   let evalResult = null;
-  if (process.env.OPENROUTER_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY || process.env.AI_EVAL_MOCK === "1") {
     try {
       evalResult = await evaluateProject({
         teamName: team.name,

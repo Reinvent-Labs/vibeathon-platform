@@ -32,6 +32,15 @@ export async function POST(request: Request) {
     orderBy: { name: "asc" },
   });
 
+  // Refuse to qualify while some teams still lack an AI score — ranking would be meaningless
+  const unevaluated = teams.filter((t) => t.aiEvaluation?.score == null);
+  if (unevaluated.length > 0) {
+    return apiError(
+      `${unevaluated.length} équipe(s) sans évaluation IA. Terminez l'évaluation avant de qualifier.`,
+      409,
+    );
+  }
+
   const ranked = [...teams].sort(
     (a, b) => (b.aiEvaluation?.score ?? -1) - (a.aiEvaluation?.score ?? -1),
   );

@@ -71,7 +71,37 @@ Reply ONLY with a valid JSON object, no markdown, no text before or after:
 }`;
 }
 
+/**
+ * Deterministic mock evaluation for local development (AI_EVAL_MOCK=1).
+ * Scores derive from a hash of the team name so rankings are stable
+ * across runs without calling OpenRouter.
+ */
+function mockEvaluation(input: EvalInput): EvalResult {
+  let hash = 0;
+  for (const ch of input.teamName) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  const scores: CriterionScore[] = AI_EVAL_CRITERIA.map((c, i) => {
+    const ratio = 0.5 + (((hash >> (i * 4)) & 0xf) / 15) * 0.5; // 50–100% of weight
+    return {
+      key: c.id,
+      name: c.name,
+      weight: c.weight,
+      score: Math.round(c.weight * ratio),
+      reasoning: `[MOCK] Score simulé pour ${c.name}.`,
+    };
+  });
+  return {
+    scores,
+    totalScore: scores.reduce((sum, s) => sum + s.score, 0),
+    summary: `[MOCK] Évaluation simulée du projet de ${input.teamName}.`,
+    strengths: ["[MOCK] Point fort simulé"],
+    improvements: ["[MOCK] Amélioration simulée"],
+    model: "mock",
+  };
+}
+
 export async function evaluateProject(input: EvalInput): Promise<EvalResult> {
+  if (process.env.AI_EVAL_MOCK === "1") return mockEvaluation(input);
+
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error("OPENROUTER_API_KEY not set");
 

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   });
   if (!team) return apiError("Équipe introuvable.", 404);
 
-  if (!process.env.OPENROUTER_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY && process.env.AI_EVAL_MOCK !== "1") {
     return apiError("OPENROUTER_API_KEY non configurée.", 503);
   }
 
