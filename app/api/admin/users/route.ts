@@ -58,11 +58,29 @@ async function sendStaffAccessEmail({
 }) {
   const appUrl = appBaseUrl();
   const loginUrl = `${appUrl}/login`;
+  const juryUrl = `${appUrl}/jury`;
+
+  // Jury members use magic link auth — no password in email
+  if (!reset && user.role === "JURY") {
+    return sendEmail({
+      to: user.email,
+      subject: "Votre accès jury VIBEATHON 2026 est prêt",
+      text: `Bonjour ${user.fullName}, vous avez été invité(e) à rejoindre le jury de VIBEATHON 2026. Connectez-vous sur ${juryUrl} en saisissant votre adresse e-mail. Vous recevrez un lien de connexion à usage unique.`,
+      html: emailTemplates.juryInvitation({
+        name: user.fullName,
+        email: user.email,
+        juryUrl,
+        appUrl,
+      }),
+      template: "jury-invitation",
+    });
+  }
+
   return sendEmail({
     to: user.email,
     subject: reset
       ? "Votre accès VIBEATHON a été réinitialisé"
-      : "Votre compte staff VIBEATHON est prêt",
+      : "Votre compte VIBEATHON est prêt",
     text: reset
       ? `Bonjour ${user.fullName}, votre accès VIBEATHON a été réinitialisé. Email : ${user.email}. Mot de passe temporaire : ${password}. Connexion : ${loginUrl}. Vous devrez modifier ce mot de passe après connexion.`
       : `Bonjour ${user.fullName}, votre compte ${roleLabels[user.role]} VIBEATHON est prêt. Email : ${user.email}. Mot de passe temporaire : ${password}. Connexion : ${loginUrl}. Vous devrez modifier ce mot de passe après connexion.`,

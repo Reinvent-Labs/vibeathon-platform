@@ -93,6 +93,27 @@ function infoCard(label: string, value: string) {
 }
 
 export const emailTemplates = {
+  juryInvitation: ({
+    name,
+    email,
+    juryUrl,
+    appUrl,
+  }: {
+    name: string;
+    email: string;
+    juryUrl: string;
+    appUrl: string;
+  }) =>
+    frame({
+      appUrl,
+      eyebrow: "Espace jury VIBEATHON 2026",
+      title: "Votre accès jury est prêt",
+      introduction: `Bonjour ${name}, vous avez été invité(e) à rejoindre le jury de VIBEATHON 2026.`,
+      content: `${infoCard("Votre adresse e-mail", email)}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.65">La connexion se fait sans mot de passe. Rendez-vous sur le portail jury, saisissez cette adresse e-mail et vous recevrez un lien de connexion à usage unique.</p>`,
+      action: { label: "Accéder au portail jury", url: juryUrl },
+    }),
+
   staffInvitation: ({
     name,
     role,
@@ -111,7 +132,7 @@ export const emailTemplates = {
     frame({
       appUrl,
       eyebrow: "Accès équipe VIBEATHON",
-      title: "Votre compte staff est prêt",
+      title: "Votre compte est prêt",
       introduction: `Bonjour ${name}, un accès ${role} vient d'être créé pour vous sur la plateforme VIBEATHON 2026.`,
       content: `${infoCard("Adresse de connexion", email)}
         ${infoCard("Mot de passe temporaire", temporaryPassword)}
