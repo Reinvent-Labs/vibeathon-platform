@@ -7,6 +7,7 @@ type SubmitBody = {
   demoUrl?: string;
   repositoryUrl?: string;
   description?: string;
+  testCredentials?: string;
 };
 
 export const maxDuration = 60;
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       description: body.description?.trim() || null,
       demoUrl: body.demoUrl.trim(),
       repositoryUrl: body.repositoryUrl?.trim() || null,
+      testCredentials: body.testCredentials?.trim().slice(0, 500) || null,
     },
   });
 

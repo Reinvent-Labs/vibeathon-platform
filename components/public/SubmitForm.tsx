@@ -21,6 +21,7 @@ export function SubmitForm() {
     demoUrl: "",
     repositoryUrl: "",
     description: "",
+    testCredentials: "",
   });
   const [slidesFile, setSlidesFile] = useState<File | null>(null);
 
@@ -71,6 +72,7 @@ export function SubmitForm() {
           demoUrl: form.demoUrl,
           repositoryUrl: form.repositoryUrl || undefined,
           description: form.description,
+          testCredentials: form.testCredentials || undefined,
         }),
       });
       const payload = await res.json();
@@ -204,6 +206,26 @@ export function SubmitForm() {
             onChange={(e) => update("repositoryUrl", e.target.value)}
             placeholder="https://github.com/mon-equipe/mon-projet"
           />
+        </div>
+
+        {/* Test credentials — optional */}
+        <div className="field">
+          <label htmlFor="testCredentials">
+            Identifiants de test <span className="opt">(optionnel · si ton app demande une connexion)</span>
+          </label>
+          <textarea
+            id="testCredentials"
+            className="input"
+            rows={2}
+            maxLength={500}
+            value={form.testCredentials}
+            onChange={(e) => update("testCredentials", e.target.value)}
+            placeholder={"Email : demo@monapp.com\nMot de passe : Demo1234"}
+            style={{ resize: "vertical", minHeight: 60 }}
+          />
+          <p className="form-note" style={{ marginTop: 6 }}>
+            Utilisés par l&apos;IA et le jury pour tester ton application. Crée un compte de démonstration, pas un compte réel.
+          </p>
         </div>
 
         {/* Slides upload — optional */}

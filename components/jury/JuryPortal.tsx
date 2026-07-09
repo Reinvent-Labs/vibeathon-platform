@@ -26,6 +26,7 @@ type JuryTeam = {
   demoUrl: string;
   repositoryUrl: string;
   slidesUrl: string;
+  testCredentials: string;
   scored: boolean;
   scores: Scores;
   comment: string;
@@ -302,6 +303,12 @@ export function JuryPortal({
                   Slides PDF →
                 </a>
               )}
+            </div>
+          )}
+          {team.testCredentials && (
+            <div>
+              <small className="eyebrow" style={{ fontSize: 11 }}>Identifiants de test</small>
+              <p style={{ marginTop: 6, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 13 }}>{team.testCredentials}</p>
             </div>
           )}
         </div>

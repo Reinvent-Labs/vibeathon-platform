@@ -16,6 +16,10 @@ RUN npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# System Chromium for the Phase 1 browser-test agent (Playwright's bundled
+# build does not run on Alpine/musl)
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+ENV PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/chromium-browser
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads

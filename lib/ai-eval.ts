@@ -6,6 +6,9 @@ export type EvalInput = {
   description?: string | null;
   demoUrl?: string | null;
   repositoryUrl?: string | null;
+  testCredentials?: string | null;
+  /** Report from the live browser test agent (see lib/browser-agent.ts) */
+  browserReport?: string | null;
 };
 
 export type CriterionScore = {
@@ -42,6 +45,14 @@ function buildPrompt(input: EvalInput): string {
 ${input.description ? `**Project description:** ${input.description}` : ""}
 ${input.demoUrl ? `**Demo URL:** ${input.demoUrl}` : ""}
 ${input.repositoryUrl ? `**Repository:** ${input.repositoryUrl}` : ""}
+${input.browserReport ? `
+## Live Browser Test Report
+
+An automated QA agent opened the demo URL in a real browser and tested it. Its factual report:
+
+${input.browserReport}
+
+Weight this report heavily for "Execution Quality" and "Technical Excellence": it reflects what actually works, unlike the team's own description.` : ""}
 
 ## Evaluation Criteria
 

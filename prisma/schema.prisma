@@ -178,6 +178,7 @@ model Team {
   demoUrl         String?
   repositoryUrl   String?
   slidesUrl       String?
+  testCredentials String?
   isFinalist      Boolean        @default(false)
   rank            Int?
   competition     Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)

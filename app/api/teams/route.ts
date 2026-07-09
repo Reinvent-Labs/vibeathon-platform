@@ -63,6 +63,7 @@ export async function GET(request: Request) {
       demoUrl: team.demoUrl ?? "",
       repositoryUrl: team.repositoryUrl ?? "",
       slidesUrl: team.slidesUrl ?? "",
+      testCredentials: team.testCredentials ?? "",
       members: team.members,
       scored: team.scores.some((score) => Boolean(score.lockedAt)),
       scores: Object.fromEntries(
