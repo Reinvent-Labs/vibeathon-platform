@@ -35,10 +35,9 @@ function categoryColor(category?: ParticipantCategory | null) {
 function paymentState(participant: DemoParticipant) {
   const category = participant.category ?? "HACKATHON";
   if (CATEGORIES[category].fee === 0) return "FREE" as const;
-  if (["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
+  if (["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status)) {
     return "PAID" as const;
   }
-  if (participant.status === "SELECTED") return "PENDING" as const;
   return "NOT_APPLICABLE" as const;
 }
 
@@ -87,9 +86,9 @@ type JuryCriterion = {
 const statusLabels: Record<DemoParticipantStatus, string> = {
   PENDING: "Inscrit · à examiner",
   WAITLIST: "Liste d'attente",
-  SELECTED: "Accepté · paiement en attente",
-  PAID: "Accepté · paiement validé",
-  CONFIRMED: "Accepté · participant officiel",
+  SELECTED: "Accepté",
+  PAID: "Accepté",
+  CONFIRMED: "Participant officiel",
   CHECKED_IN: "Présent",
   REJECTED: "Non retenu",
 };
@@ -310,7 +309,7 @@ function Overview({
 }) {
   const workflow = [
     { label: "À examiner", value: counts.pending, href: "/admin/candidatures" },
-    { label: "Acceptés · paiement attendu", value: counts.selected, href: "/admin/candidatures" },
+    { label: "Acceptés", value: counts.selected, href: "/admin/candidatures" },
     { label: "Liste d'attente", value: counts.waitlist, href: "/admin/candidatures" },
     { label: "Participants officiels", value: counts.paid + counts.confirmed, href: "/admin/participants" },
     { label: "Non retenus", value: counts.rejected, href: "/admin/candidatures" },
@@ -335,7 +334,7 @@ function Overview({
           <div className="feed">
             <div className="ev"><span className="t" style={{ background: "#F5C842" }} /> {counts.pending} à examiner</div>
             <div className="ev"><span className="t" style={{ background: "#43d9ff" }} /> {counts.waitlist} en attente</div>
-            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> {counts.selected} acceptés, paiement attendu</div>
+            <div className="ev"><span className="t" style={{ background: "#75FF8D" }} /> {counts.selected} acceptés</div>
             <div className="ev"><span className="t" style={{ background: "#BA77FF" }} /> {counts.paid + counts.confirmed} participants officiels</div>
             <div className="ev"><span className="t" style={{ background: "#FF57E3" }} /> {counts.rejected} non retenus</div>
           </div>
@@ -382,7 +381,7 @@ function ParticipantTable({
 
   const baseRows = tab === "competiteurs" ? hackathon : billets;
   const rows = confirmedOnly
-    ? baseRows.filter((item) => ["PAID", "CONFIRMED", "CHECKED_IN"].includes(item.status))
+    ? baseRows.filter((item) => ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(item.status))
     : baseRows;
 
   const billetFilter = tab === "billets" ? categoryFilter : "ALL";
@@ -400,7 +399,7 @@ function ParticipantTable({
   const waitlistCount = hackathon.filter((p) => p.status === "WAITLIST").length;
 
   const canSendBadge = (status: string) =>
-    ["PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
+    ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
 
   return (
     <div className="panel">
@@ -439,7 +438,7 @@ function ParticipantTable({
             { value: "ALL" as const, label: "Tous" },
             { value: "PENDING" as const, label: "À examiner", color: "#f5d778" },
             { value: "WAITLIST" as const, label: `Liste d'attente${waitlistCount ? ` (${waitlistCount})` : ""}`, color: "#43d9ff" },
-            { value: "SELECTED" as const, label: "Acceptés · paiement attendu", color: "#ba77ff" },
+            { value: "SELECTED" as const, label: "Acceptés", color: "#ba77ff" },
             { value: "CONFIRMED" as const, label: "Confirmés", color: "#75ff8d" },
             { value: "REJECTED" as const, label: "Non retenus", color: "#ff7a9c" },
           ] as const).map((f) => (
@@ -475,15 +474,15 @@ function ParticipantTable({
 
       {/* Bulk actions — hackathon decisions only */}
       {tab === "competiteurs" ? (
-        <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
+        <div className={`bulk ${selected.length ? "show" : ""}`}>
           <span className="cnt"><b>{selected.length}</b> dossier(s) coché(s)</span>
-          <button className="btn btn-grad" onClick={() => void onStatus("SELECTED")}><Check size={16} /> Accepter · paiement attendu</button>
+          <button className="btn btn-grad" onClick={() => void onStatus("CONFIRMED")}><Check size={16} /> Accepter</button>
           <button className="btn btn-ghost" onClick={() => void onStatus("WAITLIST")}><Mail size={16} /> Liste d&apos;attente</button>
           <button className="btn btn-ghost" onClick={() => void onStatus("REJECTED")}><X size={16} /> Rejeter</button>
           <button className="btn btn-ghost danger-action" onClick={() => void onDelete()}><Trash2 size={16} /> Supprimer</button>
         </div>
       ) : (
-        <div className="bulk" style={{ display: selected.length ? "flex" : "none" }}>
+        <div className={`bulk ${selected.length ? "show" : ""}`}>
           <span className="cnt"><b>{selected.length}</b> billet(s) coché(s)</span>
           <button className="btn btn-ghost" onClick={() => selected.forEach((id) => void onSendBadge(id))}><Send size={16} /> Renvoyer les badges</button>
           <button className="btn btn-ghost danger-action" onClick={() => void onDelete()}><Trash2 size={16} /> Supprimer</button>
@@ -512,11 +511,9 @@ function ParticipantTable({
               <td>
                 {paymentState(participant) === "PAID" ? (
                   <span className="payment-state paid">
-                    Payé
+                    OK
                     {paymentDate(participant) ? <small>{paymentDate(participant)}</small> : null}
                   </span>
-                ) : paymentState(participant) === "PENDING" ? (
-                  <span className="payment-state pending">À payer</span>
                 ) : paymentState(participant) === "FREE" ? (
                   <span className="payment-state free">Gratuit</span>
                 ) : (
@@ -559,13 +556,12 @@ function ParticipantReview({
 }) {
   const category = participant.category ?? "HACKATHON";
   const isHackathon = category === "HACKATHON";
-  const isFreePass = CATEGORIES[category as keyof typeof CATEGORIES]?.fee === 0;
   const canDecide =
     isHackathon &&
     ["PENDING", "WAITLIST", "REJECTED"].includes(participant.status);
   const canReset =
     isHackathon &&
-    ["SELECTED", "WAITLIST", "REJECTED"].includes(participant.status);
+    ["SELECTED", "CONFIRMED", "WAITLIST", "REJECTED"].includes(participant.status);
   const details = [
     ["Téléphone", participant.phone],
     ["Ville", participant.city],
@@ -654,8 +650,8 @@ function ParticipantReview({
         <footer>
           {canDecide ? (
             <>
-              <button className="btn btn-grad" onClick={() => onStatus("SELECTED")}>
-                <Check size={16} /> {participant.status === "WAITLIST" ? "Promouvoir · accepter" : "Accepter · paiement attendu"}
+              <button className="btn btn-grad" onClick={() => onStatus("CONFIRMED")}>
+                <Check size={16} /> {participant.status === "WAITLIST" ? "Promouvoir · accepter" : "Accepter"}
               </button>
               {participant.status !== "WAITLIST" ? (
                 <button className="btn btn-ghost" onClick={() => onStatus("WAITLIST")}>
@@ -677,23 +673,7 @@ function ParticipantReview({
               🎟 Assister à l&apos;événement (billet visiteur)
             </Link>
           ) : null}
-          {participant.status === "SELECTED" && !isFreePass ? (
-            <p>
-              Cette personne est acceptée, mais ne participe pas encore au
-              bootcamp. Elle doit payer depuis sa page de statut. Après
-              paiement, elle devient participante officielle et reçoit son
-              badge.
-            </p>
-          ) : null}
-          {participant.status === "SELECTED" && isFreePass ? (
-            <>
-              <p>Pass gratuit — aucun paiement requis. Confirme la place pour générer le badge.</p>
-              <button className="btn btn-grad" onClick={() => onStatus("CONFIRMED")}>
-                <Check size={16} /> Confirmer la place (gratuit)
-              </button>
-            </>
-          ) : null}
-          {["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? (
+          {["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status) ? (
             <>
               <Link className="btn btn-ghost" href={`/badge/${participant.qrCode}`} target="_blank">
                 <Eye size={16} /> Voir / imprimer le badge
@@ -770,7 +750,7 @@ function Teams() {
     <form className="surface stack" style={{ padding: 24 }} onSubmit={createTeam}>
       <span className="eyebrow">Équipe officielle</span>
       <h2>Former une équipe</h2>
-      <p>Seuls les participants acceptés ayant payé peuvent être répartis en équipes de 1 à 5 membres pour le bootcamp et la compétition. Les candidatures individuelles peuvent rejoindre une équipe plus tard.</p>
+      <p>Seuls les participants acceptés peuvent être répartis en équipes de 1 à 5 membres pour le bootcamp et la compétition. Les candidatures individuelles peuvent rejoindre une équipe plus tard.</p>
       <input className="input" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nom de l'équipe" required />
       <textarea className="textarea" value={problem} onChange={(event) => setProblem(event.target.value)} placeholder="Problème adressé" required />
       <div className="table-wrap">
@@ -784,7 +764,7 @@ function Teams() {
     {teams.length ? <div className="team-grid">{teams.map((team) => {
       const remaining = 5 - team.members.length;
       return <article className="surface stack" style={{ padding: 24 }} key={team.id}><span className="eyebrow">{team.tableNumber}</span><h2>{team.name}</h2><p>{team.problem}</p><strong>{team.members.length}/5 membres</strong>{team.members.map((member) => <div className="cluster" style={{ justifyContent: "space-between" }} key={member.id}><span>{member.fullName}</span><button className="btn btn-ghost" onClick={() => void updateTeam(team.id, [], [member.id])}>Retirer</button></div>)}{remaining > 0 && eligible.length ? <select className="select" defaultValue="" onChange={(event) => { if (event.target.value) void updateTeam(team.id, [event.target.value]); event.target.value = ""; }}><option value="">Ajouter un membre ({remaining} place{remaining > 1 ? "s" : ""})</option>{eligible.map((participant) => <option value={participant.id} key={participant.id}>{participant.fullName} · {participant.proposedTeamName || "Individuel"}</option>)}</select> : null}<span>{team.averageScore === null ? "Pas encore notée" : `${team.averageScore}/100`}</span></article>;
-    })}</div> : <div className="surface empty-state">Aucune équipe officielle. Sélectionne d&apos;abord les participants, puis forme les équipes ici. Elles ne seront visibles par le jury qu&apos;après paiement de tous leurs membres.</div>}
+    })}</div> : <div className="surface empty-state">Aucune équipe officielle. Sélectionne d&apos;abord les participants, puis forme les équipes ici. Elles seront visibles par le jury dès que les membres seront confirmés.</div>}
   </div>;
 }
 
@@ -844,7 +824,7 @@ function Presence({ participants }: { participants: DemoParticipant[] }) {
     return <div className="surface empty-state">Chargement des présences…</div>;
   }
   const eligible = participants.filter((participant) =>
-    ["PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status),
+    ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status),
   ).length;
   return (
     <div className="stack">
@@ -998,7 +978,7 @@ function Communications() {
   }
 
   const audienceOptions = [
-    { value: "selected", label: "Acceptés · paiement attendu" },
+    { value: "selected", label: "Acceptés" },
     { value: "official", label: "Participants officiels" },
     { value: "pending", label: "Inscrits à examiner" },
     { value: "rejected", label: "Non retenus" },
@@ -1006,9 +986,9 @@ function Communications() {
   ];
   const emailTemplateOptions = [
     { value: "results-available", label: "Résultats disponibles" },
-    { value: "accepted-payment", label: "Accepté + paiement à faire" },
-    { value: "payment-reminder", label: "Rappel paiement" },
-    { value: "payment-confirmed", label: "Badge QR après paiement" },
+    { value: "accepted-payment", label: "Accepté" },
+    { value: "payment-reminder", label: "Rappel participant" },
+    { value: "payment-confirmed", label: "Badge QR" },
     { value: "bootcamp-info", label: "Infos pratiques bootcamp" },
     { value: "event-reminder", label: "Rappel événement" },
     { value: "custom", label: "Message personnalisé" },
@@ -1203,6 +1183,17 @@ function SessionsManager() {
     if (payload.success) toast.success(ok);
   }
 
+  async function deleteSession(session: AdminSession) {
+    if (
+      !window.confirm(
+        `Supprimer définitivement la session "${session.name}" ? Les scans liés à cette session seront aussi retirés.`,
+      )
+    ) {
+      return;
+    }
+    await send("DELETE", { id: session.id }, "Session supprimée.");
+  }
+
   async function createSession(event: FormEvent) {
     event.preventDefault();
     if (!name.trim()) return;
@@ -1269,6 +1260,13 @@ function SessionsManager() {
                   onClick={() => void send("PATCH", { id: session.id, archived: !Boolean(session.archivedAt) }, session.archivedAt ? "Session restaurée." : "Session archivée.")}
                 >
                   {session.archivedAt ? "Restaurer" : "Archiver"}
+                </button>
+                <button
+                  className="btn btn-ghost danger-action"
+                  style={{ padding: "4px 10px", fontSize: 12, minHeight: 0 }}
+                  onClick={() => void deleteSession(session)}
+                >
+                  Supprimer
                 </button>
               </div>
             </div>
@@ -1686,6 +1684,27 @@ function UsersPanel() {
     toast.success("Accès mis à jour.");
   }
 
+  async function deleteUser(user: StaffUser) {
+    if (
+      !window.confirm(
+        `Supprimer définitivement le compte staff de ${user.fullName} ?`,
+      )
+    ) {
+      return;
+    }
+    const response = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) {
+      return toast.error(payload.error ?? "Suppression impossible.");
+    }
+    setUsers(payload.data.users);
+    toast.success("Utilisateur supprimé.");
+  }
+
   async function copyCredentials() {
     if (!credentials) return;
     await navigator.clipboard.writeText(
@@ -1880,6 +1899,13 @@ function UsersPanel() {
                           }
                         >
                           {user.active ? "Désactiver" : "Réactiver"}
+                        </button>
+                        <button
+                          className="btn btn-ghost danger-action"
+                          type="button"
+                          onClick={() => void deleteUser(user)}
+                        >
+                          Supprimer
                         </button>
                       </div>
                     </td>

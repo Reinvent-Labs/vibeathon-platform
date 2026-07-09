@@ -3,6 +3,7 @@ import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { isSameOrigin, requireRole } from "@/lib/auth";
 import {
   createSession,
+  deleteSession,
   listSessions,
   updateSession,
 } from "@/lib/repository";
@@ -34,6 +35,9 @@ const updateSchema = z.object({
   archived: z.boolean().optional(),
   startsAt: z.string().trim().min(1).optional().nullable(),
   endsAt: z.string().trim().min(1).optional().nullable(),
+});
+const deleteSchema = z.object({
+  id: z.string().min(1),
 });
 
 async function guard(request: Request) {
@@ -88,6 +92,25 @@ export async function PATCH(request: Request) {
       : data.archived === false
         ? "SESSION_RESTORED"
         : "SESSION_UPDATED",
+    entityType: "Session",
+    entityId: session.id,
+    ipAddress: requestIp(request),
+    metadata: { name: session.name },
+  });
+  return apiSuccess(await listSessions({ includeArchived: true }));
+}
+
+export async function DELETE(request: Request) {
+  const authorized = await guard(request);
+  if (typeof authorized === "string") {
+    return apiError(authorized, authorized === "Non autorisé." ? 401 : 403);
+  }
+  const parsed = deleteSchema.safeParse(await readJson<unknown>(request));
+  if (!parsed.success) return apiError("Session invalide.");
+  const session = await deleteSession(parsed.data.id);
+  await writeAuditLog({
+    actorId: authorized.userId,
+    action: "SESSION_DELETED",
     entityType: "Session",
     entityId: session.id,
     ipAddress: requestIp(request),

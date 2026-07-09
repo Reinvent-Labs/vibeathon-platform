@@ -215,8 +215,8 @@ export function JuryPortal({
         <Logo size={160} />
         <h1>Aucune équipe à évaluer</h1>
         <p>
-          Seules les équipes dont tous les membres ont payé sont affichées ici.
-          L&apos;administration doit former les équipes et confirmer leurs paiements.
+          Seules les équipes dont tous les membres sont acceptés sont affichées ici.
+          L&apos;administration doit former les équipes et confirmer les participants.
         </p>
         <LogoutButton />
       </main>

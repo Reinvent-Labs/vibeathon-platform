@@ -31,6 +31,9 @@ const updateUserSchema = z.discriminatedUnion("action", [
     userId: z.string().min(1),
   }),
 ]);
+const deleteUserSchema = z.object({
+  userId: z.string().min(1),
+});
 
 function temporaryPassword() {
   return `Vbt!${randomBytes(12).toString("base64url")}9a`;
@@ -283,4 +286,46 @@ export async function PATCH(request: Request) {
             : undefined,
   });
   return apiSuccess({ users: await listUsers(), credentials, emailDelivery });
+}
+
+export async function DELETE(request: Request) {
+  const authorization = await authorize(request);
+  if ("error" in authorization) return authorization.error;
+  if (!prisma) return apiError("Base de données indisponible.", 503);
+
+  const parsed = deleteUserSchema.safeParse(await readJson<unknown>(request));
+  if (!parsed.success) return apiError("Utilisateur invalide.");
+
+  const target = await prisma.adminUser.findUnique({
+    where: { id: parsed.data.userId },
+  });
+  if (!target) return apiError("Utilisateur introuvable.", 404);
+  if (target.id === authorization.user.userId) {
+    return apiError("Tu ne peux pas supprimer ton propre compte.", 409);
+  }
+  if (target.role === "SUPER_ADMIN" && target.active) {
+    const activeSuperAdmins = await prisma.adminUser.count({
+      where: { role: "SUPER_ADMIN", active: true },
+    });
+    if (activeSuperAdmins <= 1) {
+      return apiError(
+        "Le dernier super-administrateur actif ne peut pas être supprimé.",
+        409,
+      );
+    }
+  }
+
+  await prisma.adminUser.delete({ where: { id: target.id } });
+  await writeAuditLog({
+    actorId: authorization.user.userId,
+    action: "STAFF_USER_DELETED",
+    entityType: "AdminUser",
+    entityId: target.id,
+    ipAddress: requestIp(request),
+    metadata: {
+      email: target.email,
+      role: target.role,
+    },
+  });
+  return apiSuccess({ users: await listUsers() });
 }

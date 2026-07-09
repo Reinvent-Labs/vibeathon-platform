@@ -107,13 +107,13 @@ export async function POST(request: Request) {
       id: { in: body.memberIds },
       category: "HACKATHON",
       isTest: false,
-      status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
+      status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },
   });
   if (eligibleMembers.length !== new Set(body.memberIds).size) {
     return apiError(
-      "Tous les membres doivent avoir payé et être sans équipe.",
+      "Tous les membres doivent être acceptés et sans équipe.",
       409,
     );
   }
@@ -166,13 +166,13 @@ export async function PATCH(request: Request) {
         id: { in: addMemberIds },
         category: "HACKATHON",
         isTest: false,
-        status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
+        status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
         teamId: null,
       },
     });
     if (eligible !== addMemberIds.length) {
       return apiError(
-        "Les nouveaux membres doivent avoir payé et être sans équipe.",
+        "Les nouveaux membres doivent être acceptés et sans équipe.",
         409,
       );
     }

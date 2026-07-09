@@ -89,7 +89,7 @@
 .filters button:hover { color:var(--ink); }
 .filters button.active { background:var(--ink); color:var(--bg-0); border-color:transparent; font-weight:600; }
 .bulk { display:flex; gap:8px; align-items:center; padding:0 22px; height:0; overflow:hidden; transition:height .25s, padding .25s; background:rgba(186,119,255,.08); }
-.bulk.show { height:54px; }
+.bulk.show { min-height:54px; height:auto; padding:10px 22px; flex-wrap:wrap; }
 .bulk .cnt { font-size:13px; font-weight:600; }
 .danger-action { border-color: rgba(255,122,156,.36) !important; color: #ff7a9c !important; }
 .danger-action:hover { background: rgba(255,122,156,.12) !important; }
@@ -150,7 +150,7 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   word-break:break-all;
 }
 .compact-select { min-width:140px; padding-block:9px; }
-.staff-actions { flex-wrap:nowrap; }
+.staff-actions { flex-wrap:wrap; }
 .staff-actions .btn { padding:.65rem .85rem; font-size:.78rem; white-space:nowrap; }
 
 @media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,1fr);} .two-col{grid-template-columns:1fr;} }
@@ -332,7 +332,7 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
 .session-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 .session-info b { font-size:14px; font-weight:600; }
 .session-info span { font-size:12px; color:var(--ink-faint); }
-.session-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.session-meta { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-shrink:0; flex-wrap:wrap; }
 .session-add-form summary {
   cursor:pointer; font-size:13px; font-weight:600; color:var(--ink-soft);
   padding:10px 14px; border:1px solid var(--line); border-radius:10px;
@@ -407,6 +407,8 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
 .payment-state.neutral { color:var(--ink-faint); font-weight:500; }
 @media(max-width:700px) {
   .filter-row { grid-template-columns:1fr; }
+  .session-row { align-items:flex-start; flex-direction:column; }
+  .session-meta { justify-content:flex-start; width:100%; }
 }
 
 /* ── Rich text editor (TipTap) ──────────────────────────────────── */

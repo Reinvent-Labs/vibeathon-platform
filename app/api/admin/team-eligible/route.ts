@@ -11,7 +11,7 @@ export async function GET() {
     where: {
       category: "HACKATHON",
       isTest: false,
-      status: { in: ["PAID", "CONFIRMED", "CHECKED_IN"] },
+      status: { in: ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"] },
       teamId: null,
     },
     select: {

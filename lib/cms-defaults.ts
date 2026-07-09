@@ -19,8 +19,8 @@ export const DEFAULT_EMAIL_TEMPLATES: EmailTemplateDefault[] = [
     introduction:
       "Bonjour {{name}}, nous avons le plaisir de vous informer que votre candidature a été retenue pour participer à la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire 2026.",
     bodyHtml:
-      "<p>Félicitations ! Vous faites partie des 100 participants sélectionnés pour cette première édition.</p><p>Afin de confirmer définitivement votre participation, réglez vos frais de 20 000 FCFA via le bouton ci-dessous au plus tard le mardi 16 juin 2026. Passé ce délai, votre place pourra être attribuée à un candidat figurant sur la liste d'attente.</p><p>Les prochaines informations concernant le bootcamp et le déroulement de la compétition vous seront communiquées prochainement. À très bientôt pour cette belle aventure !</p><p style=\"color:#8d9a95\">L'équipe VIBEATHON Côte d'Ivoire</p>",
-    actionLabel: "Régler mes frais de participation",
+      "<p>Félicitations ! Vous faites partie des 100 participants sélectionnés pour cette première édition.</p><p>Votre participation est confirmée. Vous pouvez ouvrir votre espace de suivi pour vérifier vos informations et retrouver votre badge QR.</p><p>Les prochaines informations concernant le bootcamp et le déroulement de la compétition vous seront communiquées prochainement. À très bientôt pour cette belle aventure !</p><p style=\"color:#8d9a95\">L'équipe VIBEATHON Côte d'Ivoire</p>",
+    actionLabel: "Voir mon statut",
   },
   {
     slug: "competitionWaitlist",

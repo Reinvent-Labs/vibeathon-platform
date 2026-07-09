@@ -618,3 +618,10 @@ export async function updateSession(
     });
   });
 }
+
+export async function deleteSession(id: string) {
+  if (!prisma) throw new Error("Base de données indisponible.");
+  const current = await prisma.session.findUnique({ where: { id } });
+  if (!current) throw new Error("Session introuvable.");
+  return prisma.session.delete({ where: { id } });
+}

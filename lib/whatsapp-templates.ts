@@ -34,9 +34,9 @@ export const whatsAppMessages = {
     message:
       `🎉 FÉLICITATIONS ${name} ! 🚀\n\n` +
       `Tu fais partie des *100 sélectionnés* pour la compétition Vibe Coding du VIBEATHON Côte d'Ivoire 2026 ! 🇨🇮🔥\n\n` +
-      `Pour verrouiller ta place, règle tes frais de participation de *20 000 FCFA* avant le *mardi 16 juin* ⏳\n` +
+      `Ta participation est confirmée. Retrouve ton statut et ton badge ici :\n` +
       `👉 ${statusUrl}\n\n` +
-      `Sans paiement à temps, ta place ira à la liste d'attente. On compte sur toi ! 💚\n` +
+      `Les prochaines informations sur le bootcamp et la compétition te seront communiquées très bientôt. On compte sur toi ! 💚\n` +
       `L'équipe VIBEATHON`,
     waTemplate: {
       name: WHATSAPP_TEMPLATE_NAMES.accepted,

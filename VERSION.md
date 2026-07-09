@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added staff-user and event-session deletion controls with guarded admin APIs and audit logging.
+- Simplified accepted participants as confirmed/paid-ok in the admin workflow, removing payment-pending labels from dashboard decisions and default notification copy.
+- Removed Communications, Contenu du site, and Templates email from the admin navigation and tightened responsive admin action layouts.
 - Added admin participant deletion from the list and review drawer, with confirmation, audit logging, and live table updates.
 
 ## 0.1.0 — 2026-06-09

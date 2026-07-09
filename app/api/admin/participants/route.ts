@@ -58,12 +58,12 @@ export async function PATCH(request: Request) {
     "CHECKED_IN",
   ];
   const transitions: Record<DemoParticipantStatus, DemoParticipantStatus[]> = {
-    PENDING: ["PENDING", "WAITLIST", "SELECTED", "REJECTED"],
-    WAITLIST: ["WAITLIST", "SELECTED", "REJECTED", "PENDING"],
-    SELECTED: ["SELECTED", "WAITLIST", "PENDING", "REJECTED"],
-    REJECTED: ["REJECTED", "WAITLIST", "PENDING", "SELECTED"],
+    PENDING: ["PENDING", "WAITLIST", "CONFIRMED", "REJECTED"],
+    WAITLIST: ["WAITLIST", "CONFIRMED", "REJECTED", "PENDING"],
+    SELECTED: ["SELECTED", "CONFIRMED", "WAITLIST", "PENDING", "REJECTED"],
+    REJECTED: ["REJECTED", "WAITLIST", "PENDING", "CONFIRMED"],
     PAID: ["PAID", "CONFIRMED"],
-    CONFIRMED: ["CONFIRMED", "CHECKED_IN"],
+    CONFIRMED: ["CONFIRMED", "CHECKED_IN", "PENDING", "WAITLIST", "REJECTED"],
     CHECKED_IN: ["CHECKED_IN"],
   };
   const invalidTransition = targets.find(
@@ -75,8 +75,8 @@ export async function PATCH(request: Request) {
       409,
     );
   }
-  // Enforce the 100-slot cap when selecting / promoting from the waitlist.
-  if (nextStatus === "SELECTED") {
+  // Enforce the 100-slot cap when accepting / promoting from the waitlist.
+  if (["SELECTED", "CONFIRMED"].includes(nextStatus)) {
     const competition = prisma
       ? await prisma.competition.findUnique({
           where: { slug: "vibeathon-2026" },
@@ -98,7 +98,7 @@ export async function PATCH(request: Request) {
     ).length;
     if (alreadyActive + newlyActive > capacity) {
       return apiError(
-        `La sélection est limitée à ${capacity} personnes. Il reste ${Math.max(0, capacity - alreadyActive)} place(s). Libère une place (non-payeur → liste d'attente/refusé) avant de promouvoir.`,
+        `La sélection est limitée à ${capacity} personnes. Il reste ${Math.max(0, capacity - alreadyActive)} place(s). Libère une place avant de promouvoir.`,
         409,
       );
     }
@@ -128,6 +128,7 @@ export async function PATCH(request: Request) {
   // by passing notify=false.
   const decisionStatuses: DemoParticipantStatus[] = [
     "SELECTED",
+    "CONFIRMED",
     "WAITLIST",
     "REJECTED",
   ];
@@ -139,7 +140,7 @@ export async function PATCH(request: Request) {
         const name = participant.fullName;
 
         const email = await renderCmsEmail(
-          nextStatus === "SELECTED"
+          ["SELECTED", "CONFIRMED"].includes(nextStatus)
             ? "competitionSelected"
             : nextStatus === "WAITLIST"
               ? "competitionWaitlist"
@@ -162,7 +163,7 @@ export async function PATCH(request: Request) {
         });
 
         const wa =
-          nextStatus === "SELECTED"
+          ["SELECTED", "CONFIRMED"].includes(nextStatus)
             ? whatsAppMessages.competitionSelected(name, statusUrl)
             : nextStatus === "WAITLIST"
               ? whatsAppMessages.competitionWaitlist(name, statusUrl)

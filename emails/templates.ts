@@ -192,10 +192,10 @@ export const emailTemplates = {
       appUrl,
       eyebrow: "Dossier accepté",
       title: "Tu passes à l'étape suivante",
-      introduction: `Félicitations ${name}. Ton dossier est accepté. Ta place au bootcamp et à la compétition sera confirmée après le paiement.`,
-      content: `${infoCard("Statut", "Accepté · paiement en attente")}
-        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.6">Ouvre ton espace de suivi, vérifie tes informations puis finalise le paiement pour recevoir ton badge QR.</p>`,
-      action: { label: "Voir mon statut et payer", url: statusUrl },
+      introduction: `Félicitations ${name}. Ton dossier est accepté et ta participation au bootcamp comme à la compétition est confirmée.`,
+      content: `${infoCard("Statut", "Participant confirmé")}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.6">Ouvre ton espace de suivi pour vérifier tes informations et retrouver ton badge QR.</p>`,
+      action: { label: "Voir mon statut", url: statusUrl },
     }),
 
   rejection: (name: string, statusUrl: string, appUrl: string) =>
@@ -209,7 +209,7 @@ export const emailTemplates = {
       action: { label: "Consulter mon statut", url: statusUrl },
     }),
 
-  /** Official selection email — competition, with payment link + deadline. */
+  /** Official selection email — competition. */
   competitionSelected: (name: string, statusUrl: string, appUrl: string) =>
     frame({
       appUrl,
@@ -217,12 +217,11 @@ export const emailTemplates = {
       title: "Félicitations, vous êtes sélectionné(e)",
       introduction: `Bonjour ${name}, nous avons le plaisir de vous informer que votre candidature a été retenue pour participer à la compétition de Vibe Coding du VIBEATHON Côte d'Ivoire 2026.`,
       content: `<p style="margin:0 0 16px;color:#c9d1ce;font-size:15px;line-height:1.7">Félicitations ! Vous faites partie des 100 participants sélectionnés pour cette première édition.</p>
-        ${infoCard("Frais de participation", "20 000 FCFA")}
-        ${infoCard("Date limite de paiement", "Mardi 16 juin 2026")}
-        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:15px;line-height:1.7">Afin de confirmer définitivement votre participation, réglez vos frais via le bouton ci-dessous au plus tard le mardi 16 juin 2026. Passé ce délai, votre place pourra être attribuée à un candidat figurant sur la liste d'attente.</p>
+        ${infoCard("Statut", "Participant confirmé")}
+        <p style="margin:18px 2px 0;color:#c9d1ce;font-size:15px;line-height:1.7">Votre participation est confirmée. Vous pouvez ouvrir votre espace de suivi pour vérifier vos informations et retrouver votre badge QR.</p>
         <p style="margin:14px 2px 0;color:#c9d1ce;font-size:15px;line-height:1.7">Les prochaines informations concernant le bootcamp et le déroulement de la compétition vous seront communiquées prochainement. À très bientôt pour cette belle aventure !</p>
         <p style="margin:14px 2px 0;color:#8d9a95;font-size:14px">L'équipe VIBEATHON Côte d'Ivoire</p>`,
-      action: { label: "Régler mes frais de participation", url: statusUrl },
+      action: { label: "Voir mon statut", url: statusUrl },
     }),
 
   /** Waitlist email — candidate kept in reserve. */
