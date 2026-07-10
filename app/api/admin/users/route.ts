@@ -63,12 +63,12 @@ async function sendStaffAccessEmail({
   const loginUrl = `${appUrl}/login`;
   const juryUrl = `${appUrl}/jury`;
 
-  // Jury members use magic link auth — no password in email
+  // Jury members log in with their email only — no password in email
   if (!reset && user.role === "JURY") {
     return sendEmail({
       to: user.email,
       subject: "Votre accès jury VIBEATHON 2026 est prêt",
-      text: `Bonjour ${user.fullName}, vous avez été invité(e) à rejoindre le jury de VIBEATHON 2026. Connectez-vous sur ${juryUrl} en saisissant votre adresse e-mail. Vous recevrez un lien de connexion à usage unique.`,
+      text: `Bonjour ${user.fullName}, vous avez été invité(e) à rejoindre le jury de VIBEATHON 2026. Connectez-vous sur ${juryUrl} en saisissant simplement votre adresse e-mail.`,
       html: emailTemplates.juryInvitation({
         name: user.fullName,
         email: user.email,
@@ -259,7 +259,7 @@ export async function PATCH(request: Request) {
   } else {
     if (target.role === "JURY") {
       return apiError(
-        "Les jurés utilisent un lien de connexion par e-mail, sans mot de passe.",
+        "Les jurés se connectent avec leur e-mail uniquement, sans mot de passe.",
         409,
       );
     }
