@@ -92,7 +92,7 @@ function scanForInjection(text: string): boolean {
 export async function auditRepository(repositoryUrl: string): Promise<RepoAudit> {
   let tmpDir: string | null = null;
   try {
-    tmpDir = await mkdtemp(path.join(tmpdir(), "vibe-repo-"));
+    tmpDir = await mkdtemp(path.join(/* turbopackIgnore: true */ tmpdir(), "vibe-repo-"));
 
     await execFileAsync(
       "git",
