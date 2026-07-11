@@ -12,6 +12,7 @@
 @import "./styles/forms.css";
 @import "./styles/badge.css";
 @import "./styles/admin.css";
+@import "./styles/timer.css";
 
 :root {
   color-scheme: dark;
@@ -573,10 +574,122 @@ button:disabled {
 .jury-team-header h1 { margin: 4px 0 0; font-size: clamp(24px, 4vw, 36px); }
 
 .jury-team-info {
-  padding: clamp(16px, 2.5vw, 24px);
+  overflow: hidden;
+}
+
+.jury-project-dossier-head {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
+  padding: 16px clamp(16px, 2.5vw, 22px);
+  border-bottom: 1px solid var(--line-2);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--green) 7%, transparent), transparent 56%);
+}
+.jury-project-dossier-kicker { display: block; font-size: 10px; }
+.jury-project-dossier-head h2 { margin: 5px 0 0; font-size: 1.05rem; letter-spacing: -.01em; }
+.jury-project-dossier-status {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--green) 38%, var(--line));
+  border-radius: 999px;
+  color: var(--green-lt);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+}
+.jury-project-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+}
+.jury-dossier-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: rgba(5, 8, 7, .28);
+}
+.jury-dossier-card-head { display: flex; align-items: flex-start; gap: 10px; }
+.jury-dossier-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--green) 33%, var(--line));
+  border-radius: 10px;
+  color: var(--green-lt);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+}
+.jury-dossier-label {
+  display: block;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .075em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.jury-dossier-card h3 { margin: 4px 0 0; font-size: 13px; line-height: 1.25; }
+.jury-project-topic-card { border-color: color-mix(in srgb, var(--green) 33%, var(--line)); }
+.jury-project-topic-value {
+  margin: 15px 0 1px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -.015em;
+  line-height: 1.32;
+}
+.jury-project-description {
+  margin: 14px 0 1px;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--green) 55%, var(--line));
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.jury-project-resources { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 14px; }
+.jury-project-resource-link {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink-soft);
+  background: rgba(255,255,255,.025);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color .18s ease, background .18s ease, color .18s ease;
+}
+.jury-project-resource-link span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jury-project-resource-link svg:last-child { color: var(--ink-faint); }
+.jury-project-resource-link:hover { border-color: color-mix(in srgb, var(--green) 54%, var(--line)); background: color-mix(in srgb, var(--green) 8%, transparent); color: var(--ink); }
+.jury-project-access-card { border-color: color-mix(in srgb, var(--green) 40%, var(--line)); background: rgba(5, 8, 7, .28); }
+.jury-project-access-note { margin: 13px 0 8px; color: var(--ink-faint); font-size: 12px; line-height: 1.45; }
+.jury-project-credentials {
+  display: block;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  border: 1px solid color-mix(in srgb, var(--green) 30%, var(--line));
+  border-radius: 10px;
+  color: var(--ink);
+  background: rgba(0,0,0,.22);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
 }
 
 .jury-scoring {
@@ -1044,4 +1157,12 @@ body {
     align-items:flex-start;
   }
   .scanner-head-actions { width:100%; }
+  .jury-project-dossier-head { align-items: stretch; flex-direction: column; }
+  .jury-project-dossier-status { align-self: flex-start; }
+}
+
+@media (min-width: 760px) {
+  .jury-project-grid { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  .jury-project-resources-card { grid-column: 1; }
+  .jury-project-access-card { grid-column: 2; }
 }
