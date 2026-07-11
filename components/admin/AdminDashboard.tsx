@@ -219,7 +219,9 @@ export function AdminDashboard({
           <div className="sub">VIBEATHON 2026 · Édition 1 · Abidjan</div>
         </div>
         <div className="tb-actions">
-          <Link href="/api/export/participants" className="btn btn-grad"><Download size={16} /> Exporter</Link>
+          {exportHrefFor(section) && (
+            <Link href={exportHrefFor(section)!} className="btn btn-grad"><Download size={16} /> Exporter</Link>
+          )}
         </div>
       </div>
       <div className="content">
@@ -277,6 +279,18 @@ export function AdminDashboard({
       ) : null}
     </>
   );
+}
+
+function exportHrefFor(section: string): string | null {
+  const hrefs: Record<string, string> = {
+    candidatures: "/api/export/participants",
+    participants: "/api/export/participants?confirmedOnly=1",
+    equipes: "/api/export/teams",
+    evaluation: "/api/export/evaluation",
+    jury: "/api/export/jury",
+    presence: "/api/export/presence",
+  };
+  return hrefs[section] ?? null;
 }
 
 function sectionTitle(section: string) {
