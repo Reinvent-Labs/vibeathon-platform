@@ -11,6 +11,10 @@ type Team = {
   id: string;
   name: string;
   hasSubmission: boolean;
+  description: string | null;
+  demoUrl: string | null;
+  repositoryUrl: string | null;
+  slidesUrl: string | null;
   aiScore: number | null;
   aiSummary: string | null;
   aiEvaluatedAt: string | null;
@@ -428,7 +432,7 @@ export function EvaluationPanel() {
                           </div>
                         </td>
                         <td>
-                          {team.aiScores && team.aiScores.length > 0 && (
+                          {(team.hasSubmission || (team.aiScores && team.aiScores.length > 0)) && (
                             <button
                               type="button"
                               className="btn btn-ghost"
@@ -451,10 +455,41 @@ export function EvaluationPanel() {
                           )}
                         </td>
                       </tr>
-                      {expanded && team.aiScores && (
+                      {expanded && (team.hasSubmission || team.aiScores) && (
                         <tr>
                           <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "24px 26px" }}>
                             <div style={{ display: "grid", gap: 22 }}>
+                              {team.hasSubmission && (
+                                <div>
+                                  <small className="eyebrow" style={{ fontSize: 11 }}>Éléments soumis</small>
+                                  <div className="cluster" style={{ gap: 10, marginTop: 8 }}>
+                                    {team.demoUrl && (
+                                      <a href={team.demoUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
+                                        Voir la démo →
+                                      </a>
+                                    )}
+                                    {team.repositoryUrl && (
+                                      <a href={team.repositoryUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
+                                        Voir le dépôt →
+                                      </a>
+                                    )}
+                                    {team.slidesUrl && (
+                                      <a href={team.slidesUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
+                                        Slides PDF →
+                                      </a>
+                                    )}
+                                    {!team.demoUrl && !team.repositoryUrl && !team.slidesUrl && (
+                                      <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>Aucun lien fourni.</span>
+                                    )}
+                                  </div>
+                                  {team.description && (
+                                    <p style={{ fontSize: 13, color: "var(--ink-soft)", marginTop: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                                      {team.description}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
                               {team.promptInjectionDetected && (
                                 <div style={{
                                   padding: "10px 14px",
@@ -474,33 +509,35 @@ export function EvaluationPanel() {
                                 </div>
                               )}
 
-                              <div>
-                                <small className="eyebrow" style={{ fontSize: 11 }}>Note par critère</small>
-                                <div style={{ overflowX: "auto", marginTop: 8 }}>
-                                  <table className="data-table" style={{ minWidth: 480 }}>
-                                    <thead>
-                                      <tr>
-                                        <th>Critère</th>
-                                        <th>Note</th>
-                                        <th>Justification</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {team.aiScores.map((s) => (
-                                        <tr key={s.key}>
-                                          <td><b>{s.name}</b></td>
-                                          <td>
-                                            <span className="grad-text-lt" style={{ fontWeight: 700 }}>
-                                              {s.score}<small style={{ opacity: 0.5 }}>/{s.weight}</small>
-                                            </span>
-                                          </td>
-                                          <td style={{ fontSize: 13, color: "var(--ink-faint)" }}>{s.reasoning}</td>
+                              {team.aiScores && (
+                                <div>
+                                  <small className="eyebrow" style={{ fontSize: 11 }}>Note par critère</small>
+                                  <div style={{ overflowX: "auto", marginTop: 8 }}>
+                                    <table className="data-table" style={{ minWidth: 480 }}>
+                                      <thead>
+                                        <tr>
+                                          <th>Critère</th>
+                                          <th>Note</th>
+                                          <th>Justification</th>
                                         </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                      </thead>
+                                      <tbody>
+                                        {team.aiScores.map((s) => (
+                                          <tr key={s.key}>
+                                            <td><b>{s.name}</b></td>
+                                            <td>
+                                              <span className="grad-text-lt" style={{ fontWeight: 700 }}>
+                                                {s.score}<small style={{ opacity: 0.5 }}>/{s.weight}</small>
+                                              </span>
+                                            </td>
+                                            <td style={{ fontSize: 13, color: "var(--ink-faint)" }}>{s.reasoning}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
                                 </div>
-                              </div>
+                              )}
 
                               {team.browserReport && (
                                 <div style={{ paddingTop: 12, borderTop: "1px solid var(--line)" }}>
