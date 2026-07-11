@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-/** End the current staff session and return to the staff login page. */
-export function LogoutButton({ compact = false }: { compact?: boolean }) {
+type StaffLogoutDestination = "/login" | "/jury" | "/scan";
+
+/** Ends the current staff session and returns to the appropriate portal entry point. */
+export function LogoutButton({
+  compact = false,
+  redirectTo = "/login",
+}: {
+  compact?: boolean;
+  redirectTo?: StaffLogoutDestination;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +23,7 @@ export function LogoutButton({ compact = false }: { compact?: boolean }) {
     try {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok) throw new Error("Déconnexion impossible.");
-      router.replace("/login");
+      router.replace(redirectTo);
       router.refresh();
     } catch (error) {
       toast.error(
