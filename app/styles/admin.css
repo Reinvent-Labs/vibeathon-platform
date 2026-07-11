@@ -234,6 +234,19 @@ tbody tr:hover { background:rgba(255,255,255,.025); }
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
+.team-management-card { overflow:hidden; }
+.team-management-header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:18px 18px 14px; border-bottom:1px solid var(--line-2); }
+.team-management-header > div { min-width:0; }
+.team-management-domain { margin-bottom:9px; }
+.team-management-header h2 { margin:0; font-size:1.15rem; line-height:1.18; }
+.team-management-header p { display:-webkit-box; margin:6px 0 0; overflow:hidden; color:var(--ink-soft); font-size:.82rem; line-height:1.45; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.team-management-score { flex:0 0 auto; padding:5px 8px; border:1px solid var(--line); border-radius:999px; color:var(--ink-faint); font-size:.68rem; font-weight:700; white-space:nowrap; }
+.team-management-members { display:flex; flex-direction:column; padding:2px 18px; }
+.team-management-member { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:42px; border-bottom:1px solid var(--line-2); font-size:.84rem; }
+.team-management-member > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.team-management-remove { min-height:32px; padding:4px 8px; border:0; color:var(--ink-faint); font-size:.68rem; }
+.team-management-remove:hover { color:#ff9bef; background:rgba(255,87,227,.08); }
+.team-management-add { width:calc(100% - 36px); min-height:40px; margin:12px 18px 16px; font-size:.78rem; }
 
 /* ---- Field helpers ---- */
 .field.two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }

@@ -22,7 +22,6 @@ type JuryTeam = {
   id: string;
   name: string;
   domain: string;
-  tableNumber: string;
   problem: string;
   description: string;
   demoUrl: string;
@@ -264,7 +263,6 @@ export function JuryPortal({
             >
               {completed.includes(item.id) && <span className="jury-nav-check">✓</span>}
               <span>{item.name}</span>
-              {item.tableNumber && <small>Table {item.tableNumber}</small>}
             </button>
           ))}
         </nav>
@@ -277,7 +275,6 @@ export function JuryPortal({
         {/* Team header */}
         <div className="jury-team-header">
           <div>
-            {team.tableNumber && <span className="eyebrow">Table {team.tableNumber}</span>}
             <h1 className="display">{team.name}</h1>
           </div>
           <span className={`status-pill ${locked ? "confirmed" : "selected"}`}>

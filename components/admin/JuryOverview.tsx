@@ -73,6 +73,9 @@ export function JuryOverview() {
         <span className="eyebrow">Phase 2</span>
         <h2>Aucune équipe finaliste</h2>
         <p>Terminez la Phase 1 pour qualifier les équipes finalistes. Elles apparaîtront ici.</p>
+        <Link className="btn btn-grad" href="/admin/evaluation">
+          Ouvrir l&apos;évaluation Phase 1
+        </Link>
       </div>
     );
   }

@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   QrCode,
   Settings,
+  Sparkles,
   Star,
   Users,
   UserRoundCog,
@@ -17,6 +18,7 @@ const navigation = [
   { href: "/admin/candidatures", label: "Candidatures", icon: ClipboardList },
   { href: "/admin/participants", label: "Participants", icon: Users },
   { href: "/admin/equipes", label: "Équipes", icon: Users },
+  { href: "/admin/evaluation", label: "Évaluation Phase 1", icon: Sparkles },
   { href: "/admin/presence", label: "Présence", icon: QrCode },
   { href: "/admin/jury", label: "Jury & Scores", icon: Star },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings },
@@ -38,17 +40,15 @@ export function AdminShell({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+  const visibleNavigation = navigation.filter(
+    ({ href }) => href !== "/admin/utilisateurs" || user.role === "SUPER_ADMIN",
+  );
   return (
     <div className="app">
       <aside className="side">
         <Logo size={155} className="brand" />
         <nav>
-          {navigation
-            .filter(
-              ({ href }) =>
-                href !== "/admin/utilisateurs" || user.role === "SUPER_ADMIN",
-            )
-            .map(({ href, label, icon: Icon }) => (
+          {visibleNavigation.map(({ href, label, icon: Icon }) => (
             <Link href={href} className={active === href ? "active" : ""} key={href}>
               <Icon className="ic" size={18} /> {label}
             </Link>
@@ -65,7 +65,7 @@ export function AdminShell({
       </aside>
       <main className="main">{children}</main>
       <nav className="admin-mobile-nav" aria-label="Navigation admin mobile">
-        {navigation.slice(0, 7).map(({ href, label, icon: Icon }) => (
+        {visibleNavigation.map(({ href, label, icon: Icon }) => (
           <Link href={href} className={active === href ? "active" : ""} key={href}>
             <Icon size={18} />
             {label.split(" ")[0]}

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Restored the dedicated Phase 1 evaluation workspace in the admin navigation, removed table labels, and redesigned team cards into compact, hierarchical team and member views; jury phone numbers are no longer exposed by the directory API or interface.
 - Added a protected jury directory for all 20 definitive teams, including their domain and five-member contact roster, without changing finalist-only scoring.
 - Added an idempotent definitive-roster importer and an explicit Team domain field, preserving the previous stored domain values during migration.
 - Finalized the hackathon database at the definitive 100 competitors, closed further competition registration, and corrected the admin competitor count.

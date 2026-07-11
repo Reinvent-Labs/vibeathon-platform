@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Users } from "lucide-react";
+import { ChevronDown, Mail, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
@@ -12,7 +12,6 @@ type DirectoryMember = {
   fullName: string;
   gender: string | null;
   email: string;
-  phone: string;
 };
 
 type DirectoryTeam = {
@@ -23,6 +22,15 @@ type DirectoryTeam = {
 };
 
 const ALL_DOMAINS = "Toutes les thématiques";
+
+const memberInitials = (fullName: string) =>
+  fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
 /** Displays the non-scoring, private directory of all definitive teams. */
 export function JuryTeamDirectory({
@@ -83,7 +91,7 @@ export function JuryTeamDirectory({
           <div>
             <span className="eyebrow">Espace jury · Répertoire confidentiel</span>
             <h1 id="directory-title" className="display">Les 20 équipes en compétition</h1>
-            <p>Consultez les thématiques et les coordonnées des cinq membres de chaque équipe.</p>
+            <p>Consultez les thématiques et les coordonnées e-mail des membres de chaque équipe.</p>
           </div>
           <div className="jury-directory-user">
             <strong>{user.fullName}</strong>
@@ -132,23 +140,29 @@ export function JuryTeamDirectory({
                 {visibleTeams.map((team) => (
                   <details className="surface jury-directory-team" key={team.id}>
                     <summary>
-                      <span>
-                        <small>Thématique</small>
+                      <span className="jury-directory-team-heading">
+                        <span className="jury-directory-domain">{team.domain}</span>
                         <strong>{team.name}</strong>
                       </span>
-                      <span className="jury-directory-domain">{team.domain}</span>
-                      <span className="jury-directory-member-count">{team.members.length} membres</span>
+                      <ChevronDown className="jury-directory-disclosure" aria-hidden="true" size={18} />
                     </summary>
                     <div className="jury-directory-members">
                       {team.members.map((member) => (
                         <article className="jury-directory-member" key={member.id}>
-                          <div>
-                            <h2>{member.fullName}</h2>
-                            <p>{member.gender ?? "Genre non renseigné"}</p>
+                          <div className="jury-directory-member-identity">
+                            <span className="jury-directory-member-avatar" aria-hidden="true">
+                              {memberInitials(member.fullName)}
+                            </span>
+                            <div>
+                              <h2>{member.fullName}</h2>
+                              <p>{member.gender ?? "Genre non renseigné"}</p>
+                            </div>
                           </div>
                           <div className="jury-directory-contact">
-                            <a href={`mailto:${member.email}`}>{member.email}</a>
-                            <a href={`tel:${member.phone.replace(/[^+\d]/g, "")}`}>{member.phone}</a>
+                            <a href={`mailto:${member.email}`} aria-label={`Envoyer un e-mail à ${member.fullName}`}>
+                              <Mail aria-hidden="true" size={14} />
+                              <span>{member.email}</span>
+                            </a>
                           </div>
                         </article>
                       ))}

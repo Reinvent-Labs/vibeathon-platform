@@ -54,11 +54,10 @@ export async function GET(request: Request) {
     orderBy: { name: "asc" },
   });
   return apiSuccess(
-    teams.map((team, index) => ({
+    teams.map((team) => ({
       id: team.id,
       name: team.name,
       domain: team.domain || team.problem,
-      tableNumber: team.tableNumber ?? `Table ${String(index + 1).padStart(2, "0")}`,
       problem: team.problem,
       description: team.description ?? "",
       demoUrl: team.demoUrl ?? "",

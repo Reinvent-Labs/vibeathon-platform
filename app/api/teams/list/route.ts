@@ -14,7 +14,6 @@ export async function GET() {
     select: {
       id: true,
       name: true,
-      tableNumber: true,
     },
     orderBy: { name: "asc" },
   });
@@ -23,7 +22,7 @@ export async function GET() {
     teams.map((t) => ({
       id: t.id,
       name: t.name,
-      label: t.tableNumber ? `${t.name} (Table ${t.tableNumber})` : t.name,
+      label: t.name,
     })),
   );
 }

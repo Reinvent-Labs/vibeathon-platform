@@ -66,7 +66,7 @@ type AdminDashboardProps = {
 type AdminTeam = {
   id: string;
   name: string;
-  tableNumber: string;
+  domain: string;
   problem: string;
   members: { id: string; fullName: string; email: string; status: string }[];
   averageScore: number | null;
@@ -740,14 +740,17 @@ function Teams() {
     teamId: string,
     addMemberIds: string[] = [],
     removeMemberIds: string[] = [],
-  ) {
+  ): Promise<void> {
     const response = await fetch("/api/teams", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ teamId, addMemberIds, removeMemberIds }),
     });
     const payload = await response.json();
-    if (!payload.success) return toast.error(payload.error);
+    if (!payload.success) {
+      toast.error(payload.error);
+      return;
+    }
     toast.success("Composition de l'équipe mise à jour.");
     load();
   }
@@ -767,11 +770,75 @@ function Teams() {
       </div>
       <button className="btn btn-grad" disabled={!memberIds.length}>Créer l&apos;équipe</button>
     </form>
-    {teams.length ? <div className="team-grid">{teams.map((team) => {
-      const remaining = 5 - team.members.length;
-      return <article className="surface stack" style={{ padding: 24 }} key={team.id}><span className="eyebrow">{team.tableNumber}</span><h2>{team.name}</h2><p>{team.problem}</p><strong>{team.members.length}/5 membres</strong>{team.members.map((member) => <div className="cluster" style={{ justifyContent: "space-between" }} key={member.id}><span>{member.fullName}</span><button className="btn btn-ghost" onClick={() => void updateTeam(team.id, [], [member.id])}>Retirer</button></div>)}{remaining > 0 && eligible.length ? <select className="select" defaultValue="" onChange={(event) => { if (event.target.value) void updateTeam(team.id, [event.target.value]); event.target.value = ""; }}><option value="">Ajouter un membre ({remaining} place{remaining > 1 ? "s" : ""})</option>{eligible.map((participant) => <option value={participant.id} key={participant.id}>{participant.fullName} · {participant.proposedTeamName || "Individuel"}</option>)}</select> : null}<span>{team.averageScore === null ? "Pas encore notée" : `${team.averageScore}/100`}</span></article>;
-    })}</div> : <div className="surface empty-state">Aucune équipe officielle. Sélectionne d&apos;abord les participants, puis forme les équipes ici. Elles seront visibles par le jury dès que les membres seront confirmés.</div>}
+    {teams.length ? <div className="team-grid">{teams.map((team) => (
+      <TeamManagementCard
+        eligible={eligible}
+        key={team.id}
+        onUpdate={updateTeam}
+        team={team}
+      />
+    ))}</div> : <div className="surface empty-state">Aucune équipe officielle. Sélectionne d&apos;abord les participants, puis forme les équipes ici. Elles seront visibles par le jury dès que les membres seront confirmés.</div>}
   </div>;
+}
+
+function TeamManagementCard({
+  eligible,
+  onUpdate,
+  team,
+}: {
+  eligible: EligibleMember[];
+  onUpdate: (teamId: string, addMemberIds?: string[], removeMemberIds?: string[]) => Promise<void>;
+  team: AdminTeam;
+}) {
+  const canAddMember = team.members.length < 5 && eligible.length > 0;
+
+  return (
+    <article className="surface team-management-card">
+      <header className="team-management-header">
+        <div>
+          {team.domain && <span className="cat-tag team-management-domain">{team.domain}</span>}
+          <h2>{team.name}</h2>
+          <p>{team.problem}</p>
+        </div>
+        <span className="team-management-score">
+          {team.averageScore === null ? "Pas encore notée" : `${team.averageScore}/100`}
+        </span>
+      </header>
+
+      <div className="team-management-members" aria-label={`Membres de ${team.name}`}>
+        {team.members.map((member) => (
+          <div className="team-management-member" key={member.id}>
+            <span>{member.fullName}</span>
+            <button
+              className="btn btn-ghost team-management-remove"
+              onClick={() => void onUpdate(team.id, [], [member.id])}
+            >
+              Retirer
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {canAddMember && (
+        <select
+          aria-label={`Ajouter un membre à ${team.name}`}
+          className="select team-management-add"
+          defaultValue=""
+          onChange={(event) => {
+            if (event.target.value) void onUpdate(team.id, [event.target.value]);
+            event.target.value = "";
+          }}
+        >
+          <option value="">Ajouter un membre</option>
+          {eligible.map((participant) => (
+            <option value={participant.id} key={participant.id}>
+              {participant.fullName} · {participant.proposedTeamName || "Individuel"}
+            </option>
+          ))}
+        </select>
+      )}
+    </article>
+  );
 }
 
 function Presence({ participants }: { participants: DemoParticipant[] }) {

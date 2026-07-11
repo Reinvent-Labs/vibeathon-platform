@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Returns the definitive competitor directory for authenticated jury staff.
- * Contact details remain private and must never be reused by public endpoints.
+ * E-mail contacts remain private and must never be reused by public endpoints.
+ * Phone numbers stay in the database but are deliberately not exposed here.
  */
 export async function GET() {
   if (!(await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]))) {
@@ -30,7 +31,6 @@ export async function GET() {
           fullName: true,
           gender: true,
           email: true,
-          phone: true,
         },
         orderBy: { fullName: "asc" },
       },
