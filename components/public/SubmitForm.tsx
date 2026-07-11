@@ -21,7 +21,8 @@ export function SubmitForm() {
     demoUrl: "",
     repositoryUrl: "",
     description: "",
-    testCredentials: "",
+    testEmail: "",
+    testPassword: "",
   });
   const [slidesFile, setSlidesFile] = useState<File | null>(null);
 
@@ -64,6 +65,15 @@ export function SubmitForm() {
     // Step 2: submit project
     setPhase("submitting");
     try {
+      // The rest of the system (browser-test agent, AI evaluator, jury view)
+      // expects a single free-text credentials string — combine the two
+      // clearer form fields into that same format here, so nothing else
+      // needs to change.
+      const testCredentials =
+        form.testEmail || form.testPassword
+          ? `Email : ${form.testEmail}\nMot de passe : ${form.testPassword}`
+          : undefined;
+
       const res = await fetch("/api/teams/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,7 +82,7 @@ export function SubmitForm() {
           demoUrl: form.demoUrl,
           repositoryUrl: form.repositoryUrl || undefined,
           description: form.description,
-          testCredentials: form.testCredentials || undefined,
+          testCredentials,
         }),
       });
       const payload = await res.json();
@@ -198,20 +208,36 @@ export function SubmitForm() {
           />
         </div>
 
-        {/* Test credentials — optional */}
+        {/* Test credentials — optional, split for clarity */}
         <div className="field">
-          <label htmlFor="testCredentials">
-            Identifiants de test <span className="opt">(optionnel · si ton app demande une connexion)</span>
+          <label htmlFor="testEmail">
+            Email / identifiant de test <span className="opt">(optionnel · si ton app demande une connexion)</span>
           </label>
-          <textarea
-            id="testCredentials"
+          <input
+            id="testEmail"
             className="input"
-            rows={2}
-            maxLength={500}
-            value={form.testCredentials}
-            onChange={(e) => update("testCredentials", e.target.value)}
-            placeholder={"Email : demo@monapp.com\nMot de passe : Demo1234"}
-            style={{ resize: "vertical", minHeight: 60 }}
+            type="text"
+            maxLength={200}
+            value={form.testEmail}
+            onChange={(e) => update("testEmail", e.target.value)}
+            placeholder="demo@monapp.com"
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="testPassword">
+            Mot de passe de test <span className="opt">(optionnel)</span>
+          </label>
+          <input
+            id="testPassword"
+            className="input"
+            type="text"
+            maxLength={200}
+            value={form.testPassword}
+            onChange={(e) => update("testPassword", e.target.value)}
+            placeholder="Demo1234"
+            autoComplete="off"
           />
           <p className="form-note" style={{ marginTop: 6 }}>
             Utilisés par l&apos;IA et le jury pour tester ton application. Crée un compte de démonstration, pas un compte réel.
