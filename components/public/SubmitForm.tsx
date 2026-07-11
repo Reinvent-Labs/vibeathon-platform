@@ -240,7 +240,7 @@ export function SubmitForm() {
               placeholder="https://youtube.com/watch?v=..."
             />
             <p className="form-note" style={{ marginTop: 6 }}>
-              Lien YouTube (non répertorié si besoin), Loom, ou autre lien de vidéo public. L&apos;IA regarde la vidéo pour vérifier que l&apos;app fonctionne réellement.
+              Utilise un lien <strong>YouTube</strong> (non répertorié si tu ne veux pas qu&apos;elle soit publique) ou un lien direct vers un fichier vidéo. ⚠️ Les liens Google Drive et Loom ne fonctionnent pas — l&apos;IA ne peut pas y accéder. L&apos;IA regarde la vidéo pour vérifier que l&apos;app fonctionne réellement.
             </p>
           </div>
         )}
