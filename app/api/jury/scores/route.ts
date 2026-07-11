@@ -6,8 +6,12 @@ import { sendEmail } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
-  const session = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
-  if (!session) return apiError("Non autorisé.", 401);
+  // Only real jury accounts can submit scores. Admins can view the jury
+  // portal for oversight, but must never be able to score as a stand-in
+  // juror — that would silently count toward "all jury done" and pollute
+  // the average under an account that isn't a real judge.
+  const session = await requireRole(["JURY"]);
+  if (!session) return apiError("Seuls les membres du jury peuvent soumettre des notes.", 403);
   const body = await readJson<unknown>(request);
   const parsed = scoreSubmissionSchema.safeParse(body);
   if (!parsed.success) return apiError("Scores invalides.");
@@ -142,7 +146,29 @@ async function checkPhase2Complete(db: NonNullable<typeof prisma>) {
 
   await Promise.allSettled(
     staff.map((member) => {
-      const link = member.role === "JURY" ? `${appUrl}/jury` : `${appUrl}/admin/jury`;
+      // Jurors get a soft "you're done, results coming soon" — they don't
+      // see the aggregate ranking themselves. Admins get the real link,
+      // since they can view the matrix/ranking immediately.
+      if (member.role === "JURY") {
+        return sendEmail({
+          to: member.email,
+          subject: "VIBEATHON 2026 — Merci, toutes les notes ont été soumises",
+          template: "phase2-complete-jury",
+          html: `
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;background:#0a0a0a;color:#e5e5e5;padding:40px 20px;max-width:560px;margin:0 auto;">
+  <h1 style="font-size:22px;margin:0 0 8px;">Merci pour votre évaluation ✓</h1>
+  <p style="color:#a3a3a3;margin:0 0 24px;">Bonjour ${member.fullName},</p>
+  <p>Tous les membres du jury ont terminé leur évaluation. Vos notes ont bien été prises en compte.</p>
+  <p style="color:#a3a3a3;">Les résultats seront annoncés prochainement. Merci pour votre temps et votre implication dans VIBEATHON 2026 !</p>
+  <p style="color:#525252;font-size:12px;margin-top:32px;">VIBEATHON 2026 · Abidjan</p>
+</body>
+</html>`,
+          text: `Bonjour ${member.fullName},\n\nTous les membres du jury ont terminé leur évaluation. Vos notes ont bien été prises en compte.\n\nLes résultats seront annoncés prochainement. Merci pour votre temps et votre implication dans VIBEATHON 2026 !`,
+        });
+      }
+      const link = `${appUrl}/admin/jury`;
       return sendEmail({
         to: member.email,
         subject: "VIBEATHON 2026 — Phase 2 terminée · Résultats finaux disponibles",
