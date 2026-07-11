@@ -214,7 +214,7 @@ Règles :
         body: JSON.stringify({
           model: browserModel(),
           max_tokens: 800,
-          temperature: 0.1,
+          temperature: 0,
           messages,
           tools: TOOLS,
           tool_choice: mustFinish

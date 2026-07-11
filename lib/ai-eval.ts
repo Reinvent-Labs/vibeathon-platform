@@ -110,7 +110,12 @@ Evaluate this project on each criterion. For each, provide:
 - An integer score from 0 to the criterion's maximum
 - A concise reasoning in French (1–2 sentences)
 
-If no description or demo URL is provided, score conservatively based on the problem statement alone.
+CRITICAL — score every criterion INDEPENDENTLY. Each one has its own question; do not let your impression of one criterion bleed into another:
+- "Problem Importance" is judged SOLELY on the **Problem addressed** text above — is the problem itself real, significant, worth solving? This has nothing to do with the quality of the description, the demo, or the code. A team can have a genuinely important problem and a terrible product, or a weak problem and a polished product — score them independently. A bad or missing description/demo must NOT drag down the Problem Importance score, and a great problem must NOT inflate Execution/Technical scores if there's no evidence the team built anything.
+- "Execution Quality" and "Technical Excellence" are judged on the live browser-test report and repository evidence — NOT on the quality of the team's prose.
+- If the description is empty, garbled, generic filler, or nonsensical, that by itself only affects criteria that legitimately depend on the description (e.g. Innovation, if no real approach is described) — it does not justify zeroing out every criterion.
+
+If no description or demo URL is provided, score conservatively based on the problem statement alone for Problem Importance, and near-zero for the criteria that require evidence you don't have — but never let missing evidence in one place lower a score that doesn't depend on it.
 
 Reply ONLY with a valid JSON object, no markdown, no text before or after:
 
@@ -180,7 +185,7 @@ export async function evaluateProject(input: EvalInput): Promise<EvalResult> {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 1400,
-      temperature: 0.2,
+      temperature: 0,
       messages: [{ role: "user", content: buildPrompt(input) }],
     }),
   });
