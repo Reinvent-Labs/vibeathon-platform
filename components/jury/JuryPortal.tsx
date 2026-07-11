@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, BookOpen, ChevronDown, Lock, Send } from "lucide-react";
+import {
+  AlertCircle,
+  BookOpen,
+  ChevronDown,
+  Code2,
+  ExternalLink,
+  FileText,
+  KeyRound,
+  Lightbulb,
+  Lock,
+  MonitorSmartphone,
+  Send,
+} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -205,7 +217,7 @@ export function JuryPortal({
         <AlertCircle size={38} />
         <h1>Portail jury indisponible</h1>
         <p>{loadError}</p>
-        <LogoutButton />
+        <LogoutButton redirectTo="/jury" />
       </main>
     );
   }
@@ -223,7 +235,7 @@ export function JuryPortal({
           <BookOpen size={17} />
           Voir les 20 équipes
         </Link>
-        <LogoutButton />
+        <LogoutButton redirectTo="/jury" />
       </main>
     );
   }
@@ -267,7 +279,7 @@ export function JuryPortal({
           ))}
         </nav>
 
-        <LogoutButton />
+        <LogoutButton redirectTo="/jury" />
       </aside>
 
       {/* Main content */}
@@ -282,44 +294,94 @@ export function JuryPortal({
           </span>
         </div>
 
-        {/* Team info */}
-        <div className="surface jury-team-info">
-          <div>
-            <small className="eyebrow" style={{ fontSize: 11 }}>Thématique de l&apos;équipe</small>
-            <p style={{ marginTop: 6 }}>{team.domain || team.problem}</p>
+        {/* Project dossier keeps the facts jurors need distinct and scannable. */}
+        <section className="surface jury-team-info" aria-labelledby="project-dossier-title">
+          <div className="jury-project-dossier-head">
+            <div>
+              <span className="eyebrow jury-project-dossier-kicker">Dossier projet</span>
+              <h2 id="project-dossier-title">Éléments à examiner</h2>
+            </div>
+            <span className="jury-project-dossier-status">
+              <Lightbulb aria-hidden="true" size={15} />
+              Projet soumis
+            </span>
           </div>
-          {team.description && (
-            <div>
-              <small className="eyebrow" style={{ fontSize: 11 }}>Description du projet</small>
-              <p style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{team.description}</p>
-            </div>
-          )}
-          {(team.demoUrl || team.repositoryUrl || team.slidesUrl) && (
-            <div className="cluster" style={{ gap: 10, flexWrap: "wrap" }}>
-              {team.demoUrl && (
-                <a href={externalUrl(team.demoUrl)} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
-                  Voir la démo →
-                </a>
-              )}
-              {team.repositoryUrl && (
-                <a href={externalUrl(team.repositoryUrl)} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
-                  GitHub →
-                </a>
-              )}
-              {team.slidesUrl && (
-                <a href={team.slidesUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
-                  Slides PDF →
-                </a>
-              )}
-            </div>
-          )}
-          {team.testCredentials && (
-            <div>
-              <small className="eyebrow" style={{ fontSize: 11 }}>Identifiants de test</small>
-              <p style={{ marginTop: 6, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 13 }}>{team.testCredentials}</p>
-            </div>
-          )}
-        </div>
+
+          <div className="jury-project-grid">
+            <article className="jury-dossier-card jury-project-topic-card">
+              <div className="jury-dossier-card-head">
+                <span className="jury-dossier-icon" aria-hidden="true"><Lightbulb size={18} /></span>
+                <div>
+                  <span className="jury-dossier-label">Thématique de l&apos;équipe</span>
+                  <h3>Problème adressé</h3>
+                </div>
+              </div>
+              <p className="jury-project-topic-value">{team.domain || team.problem}</p>
+            </article>
+
+            {team.description && (
+              <article className="jury-dossier-card jury-project-description-card">
+                <div className="jury-dossier-card-head">
+                  <span className="jury-dossier-icon" aria-hidden="true"><FileText size={18} /></span>
+                  <div>
+                    <span className="jury-dossier-label">Description du projet</span>
+                    <h3>Ce que l&apos;équipe propose</h3>
+                  </div>
+                </div>
+                <p className="jury-project-description">{team.description}</p>
+              </article>
+            )}
+
+            {(team.demoUrl || team.repositoryUrl || team.slidesUrl) && (
+              <article className="jury-dossier-card jury-project-resources-card">
+                <div className="jury-dossier-card-head">
+                  <span className="jury-dossier-icon" aria-hidden="true"><MonitorSmartphone size={18} /></span>
+                  <div>
+                    <span className="jury-dossier-label">Ressources de vérification</span>
+                    <h3>Tester le projet</h3>
+                  </div>
+                </div>
+                <div className="jury-project-resources">
+                  {team.demoUrl && (
+                    <a href={externalUrl(team.demoUrl)} target="_blank" rel="noreferrer" className="jury-project-resource-link">
+                      <MonitorSmartphone aria-hidden="true" size={17} />
+                      <span>Ouvrir la démo</span>
+                      <ExternalLink aria-hidden="true" size={15} />
+                    </a>
+                  )}
+                  {team.repositoryUrl && (
+                    <a href={externalUrl(team.repositoryUrl)} target="_blank" rel="noreferrer" className="jury-project-resource-link">
+                      <Code2 aria-hidden="true" size={17} />
+                      <span>Voir le dépôt</span>
+                      <ExternalLink aria-hidden="true" size={15} />
+                    </a>
+                  )}
+                  {team.slidesUrl && (
+                    <a href={team.slidesUrl} target="_blank" rel="noreferrer" className="jury-project-resource-link">
+                      <FileText aria-hidden="true" size={17} />
+                      <span>Consulter les slides</span>
+                      <ExternalLink aria-hidden="true" size={15} />
+                    </a>
+                  )}
+                </div>
+              </article>
+            )}
+
+            {team.testCredentials && (
+              <article className="jury-dossier-card jury-project-access-card">
+                <div className="jury-dossier-card-head">
+                  <span className="jury-dossier-icon" aria-hidden="true"><KeyRound size={18} /></span>
+                  <div>
+                    <span className="jury-dossier-label">Accès de démonstration</span>
+                    <h3>Identifiants de test</h3>
+                  </div>
+                </div>
+                <p className="jury-project-access-note">Utilisez uniquement ce compte pour vérifier le parcours proposé.</p>
+                <code className="jury-project-credentials">{team.testCredentials}</code>
+              </article>
+            )}
+          </div>
+        </section>
 
         {/* Scoring */}
         <div className="surface jury-scoring">
