@@ -12,7 +12,7 @@ const prisma = new PrismaClient({
 });
 
 const apply = process.argv.includes("--apply");
-const officialStatuses = new Set(["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"]);
+const finalizedStatuses = new Set(["CONFIRMED", "CHECKED_IN"]);
 const normalize = (value: string) =>
   value
     .trim()
@@ -112,7 +112,7 @@ async function main() {
             participantsByName.get(normalize(member.fullName));
 
           if (existingMember) {
-            const needsPromotion = !officialStatuses.has(existingMember.status);
+            const needsPromotion = !finalizedStatuses.has(existingMember.status);
             const needsUpdate =
               existingMember.teamId !== team.id ||
               existingMember.preferredDomain !== rosterTeam.domain ||
@@ -129,7 +129,8 @@ async function main() {
                 gender: member.gender,
                 phone: member.phone,
                 isTest: false,
-                status: needsPromotion ? "SELECTED" : undefined,
+                status: needsPromotion ? "CONFIRMED" : undefined,
+                confirmedAt: needsPromotion ? new Date() : undefined,
               },
             });
             membersUpdated++;
@@ -148,7 +149,8 @@ async function main() {
               phone: member.phone,
               gender: member.gender,
               preferredDomain: rosterTeam.domain,
-              status: "SELECTED",
+              status: "CONFIRMED",
+              confirmedAt: new Date(),
               teamId: team.id,
             },
           });
@@ -176,7 +178,7 @@ async function main() {
           existingMember.gender !== member.gender ||
           existingMember.phone !== member.phone ||
           existingMember.isTest ||
-          !officialStatuses.has(existingMember.status)
+          !finalizedStatuses.has(existingMember.status)
         ) {
           membersUpdated++;
         }

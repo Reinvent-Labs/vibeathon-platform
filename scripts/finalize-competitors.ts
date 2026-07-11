@@ -49,7 +49,7 @@ async function main() {
   );
   const removed = competitors.filter((participant) => !retained.includes(participant));
   const active = retained.filter((participant) =>
-    ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(participant.status),
+    ["CONFIRMED", "CHECKED_IN"].includes(participant.status),
   );
 
   if (retained.length !== 100 || active.length !== 100) {
