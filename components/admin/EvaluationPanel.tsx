@@ -453,8 +453,8 @@ export function EvaluationPanel() {
                       </tr>
                       {expanded && team.aiScores && (
                         <tr>
-                          <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "16px 20px" }}>
-                            <div style={{ display: "grid", gap: 16 }}>
+                          <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "24px 26px" }}>
+                            <div style={{ display: "grid", gap: 22 }}>
                               {team.promptInjectionDetected && (
                                 <div style={{
                                   padding: "10px 14px",
