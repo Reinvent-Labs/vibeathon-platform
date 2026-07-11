@@ -652,16 +652,80 @@ button:disabled {
 
 .criterion-slider-wrap {
   position: relative;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+/* Visual fill bar — the actual <input type=range> track is made transparent
+   below and this div renders the green progress fill up to --pct instead,
+   since native range-track fills aren't reliably stylable cross-browser. */
+.criterion-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 6px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: linear-gradient(to right, var(--green-lt) var(--pct), var(--line) var(--pct));
+  pointer-events: none;
 }
 
 .criterion-slider-wrap input[type="range"] {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  accent-color: var(--green);
+  margin: 0;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
 }
 .criterion-slider-wrap input[type="range"]:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+}
+.criterion-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+}
+.criterion-slider-wrap input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: transparent;
+  border: none;
+}
+.criterion-slider-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--green-lt);
+  border: 3px solid var(--bg-0);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green-lt) 55%, transparent), 0 2px 8px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s var(--ease, ease);
+}
+.criterion-slider-wrap input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green-lt);
+  border: 3px solid var(--bg-0);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green-lt) 55%, transparent), 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.criterion-slider-wrap input[type="range"]:hover::-webkit-slider-thumb,
+.criterion-slider-wrap input[type="range"]:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.criterion-slider-wrap input[type="range"]:disabled::-webkit-slider-thumb,
+.criterion-slider-wrap input[type="range"]:disabled::-moz-range-thumb {
+  background: var(--ink-faint);
+  box-shadow: none;
+}
+.criterion-slider-wrap input[type="range"]:disabled ~ .criterion-track {
+  background: linear-gradient(to right, var(--ink-faint) var(--pct), var(--line) var(--pct));
+  opacity: 0.6;
 }
 
 .jury-total {
@@ -832,6 +896,16 @@ button:disabled {
   .score-row input[type="range"] {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+
+  .criterion-header {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .criterion-meta {
+    flex-basis: 100%;
+    flex-wrap: wrap;
   }
 }
 
