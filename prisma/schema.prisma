@@ -181,6 +181,7 @@ model Team {
   slidesUrl       String?
   testCredentials String?
   isFinalist      Boolean        @default(false)
+  phase1Rank      Int?
   rank            Int?
   competition     Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   members         Participant[]
@@ -190,6 +191,7 @@ model Team {
   updatedAt       DateTime       @updatedAt
 
   @@unique([competitionId, name])
+  @@index([competitionId, isFinalist, phase1Rank])
 }
 
 model JudgingCriteria {

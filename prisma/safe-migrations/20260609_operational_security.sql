@@ -64,3 +64,11 @@ ALTER TABLE "Team"
 UPDATE "Team"
   SET "domain" = "problem"
   WHERE "domain" = '';
+
+-- Freeze the Phase 1 selection position before the human jury begins. This is
+-- intentionally separate from "rank", which is reserved for final prizes.
+ALTER TABLE "Team"
+  ADD COLUMN IF NOT EXISTS "phase1Rank" INTEGER;
+
+CREATE INDEX IF NOT EXISTS "Team_competitionId_isFinalist_phase1Rank_idx"
+  ON "Team" ("competitionId", "isFinalist", "phase1Rank");
