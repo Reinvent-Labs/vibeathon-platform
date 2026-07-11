@@ -12,6 +12,24 @@ export const maxDuration = 300;
 
 type Body = { teamId?: string };
 
+/**
+ * Postgres text/jsonb columns reject NUL bytes outright (22P05:
+ * "\u0000 cannot be converted to text"). Browser-agent/repo-audit/video
+ * reports occasionally pick one up (binary content, truncated streams),
+ * which silently kills every persistence attempt for that team forever —
+ * strip them before anything reaches the DB.
+ */
+function stripNulls<T>(value: T): T {
+  if (typeof value === "string") return value.split(String.fromCharCode(0)).join("") as unknown as T;
+  if (Array.isArray(value)) return value.map(stripNulls) as unknown as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, stripNulls(v)]),
+    ) as T;
+  }
+  return value;
+}
+
 /** POST — runs AI evaluation for a single team. Called per-team from the admin UI. */
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
@@ -61,14 +79,14 @@ export async function POST(request: Request) {
         model: "no-submission",
         score: 0,
         summary,
-        raw: { scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true },
+        raw: stripNulls({ scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true }),
       },
       update: {
         provider: "system",
         model: "no-submission",
         score: 0,
         summary,
-        raw: { scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true },
+        raw: stripNulls({ scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true }),
         updatedAt: new Date(),
       },
     });
@@ -151,6 +169,9 @@ export async function POST(request: Request) {
     videoInjectionEvidence,
   });
 
+  const cleanSummary = stripNulls(evalResult.summary);
+  const cleanRaw = stripNulls(JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit, videoReport })));
+
   await prisma.aIEvaluation.upsert({
     where: { teamId: team.id },
     create: {
@@ -158,15 +179,15 @@ export async function POST(request: Request) {
       provider: "openrouter",
       model: evalResult.model,
       score: evalResult.totalScore,
-      summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit, videoReport })),
+      summary: cleanSummary,
+      raw: cleanRaw,
     },
     update: {
       provider: "openrouter",
       model: evalResult.model,
       score: evalResult.totalScore,
-      summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit, videoReport })),
+      summary: cleanSummary,
+      raw: cleanRaw,
       updatedAt: new Date(),
     },
   });
