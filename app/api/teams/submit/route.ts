@@ -36,9 +36,16 @@ export async function POST(request: Request) {
   if (team.competition.phase !== "SUBMISSIONS_OPEN") {
     return apiError("Les soumissions sont fermées. La Phase 1 a déjà démarré.", 409);
   }
+  if (team.demoUrl) {
+    return apiError("Cette équipe a déjà soumis son projet. Une seule soumission par équipe est autorisée.", 409);
+  }
 
-  await prisma.team.update({
-    where: { id: team.id },
+  // Guard against a double-submit race (two rapid requests for the same
+  // team): only update rows that are still unsubmitted, so the second
+  // concurrent request finds nothing to update and fails cleanly instead of
+  // overwriting the first submission.
+  const updated = await prisma.team.updateMany({
+    where: { id: team.id, demoUrl: null },
     data: {
       description: body.description?.trim() || null,
       demoUrl: body.demoUrl.trim(),
@@ -46,6 +53,9 @@ export async function POST(request: Request) {
       testCredentials: body.testCredentials?.trim().slice(0, 500) || null,
     },
   });
+  if (updated.count === 0) {
+    return apiError("Cette équipe a déjà soumis son projet. Une seule soumission par équipe est autorisée.", 409);
+  }
 
   // AI evaluation happens only during Phase 1 (admin-controlled) — candidates
   // never see a score at submission time. Confirmation emails are sent in the

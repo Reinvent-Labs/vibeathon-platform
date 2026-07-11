@@ -10,6 +10,7 @@ export async function GET() {
     where: {
       competition: { slug: "vibeathon-2026" },
       members: { some: {} },
+      demoUrl: null, // already-submitted teams are hidden from the dropdown
     },
     select: {
       id: true,
