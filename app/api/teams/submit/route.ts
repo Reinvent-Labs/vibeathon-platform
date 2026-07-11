@@ -48,9 +48,11 @@ export async function POST(request: Request) {
   });
 
   // AI evaluation happens only during Phase 1 (admin-controlled) — candidates
-  // never see a score at submission time.
+  // never see a score at submission time. Confirmation emails are sent in the
+  // background (SMTP round-trips are slow) so the candidate isn't stuck
+  // waiting on the submission response.
   const appUrl = appBaseUrl();
-  await Promise.allSettled(
+  void Promise.allSettled(
     team.members.map((member) =>
       sendEmail({
         to: member.email,
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
         text: `Bonjour, le dossier de l'équipe ${team.name} a bien été soumis. Tu recevras un e-mail dès que les résultats de la première phase seront disponibles.`,
       }),
     ),
-  );
+  ).catch((err) => console.error("[submit] confirmation email failed:", err));
 
   return apiSuccess({ teamName: team.name, submitted: true });
 }
