@@ -3,6 +3,8 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSameOrigin } from "@/lib/auth";
 import { readJson } from "@/lib/api";
+import { orderByPhase1Preselection } from "@/lib/phase1-ranking";
+import { hasTestableProject } from "@/lib/project-submission";
 
 export async function GET(request: Request) {
   const session = await requireRole(["SUPER_ADMIN", "ADMIN", "JURY"]);
@@ -50,11 +52,26 @@ export async function GET(request: Request) {
           lockedAt: true,
         },
       },
+      aiEvaluation: {
+        select: { score: true },
+      },
     },
-    orderBy: { name: "asc" },
   });
+  // A stale/manual finalist flag must not bypass the Phase 1 requirements.
+  // Scores and ranks remain private; only the selected order reaches jurors.
+  const visibleTeams = juryScope
+    ? teams.filter(
+        (team) =>
+          team.aiEvaluation?.score != null && hasTestableProject(team),
+      )
+    : teams;
+  const orderedTeams = juryScope
+    ? orderByPhase1Preselection(visibleTeams)
+    : [...visibleTeams].sort((left, right) =>
+        left.name.localeCompare(right.name, "fr"),
+      );
   return apiSuccess(
-    teams.map((team) => ({
+    orderedTeams.map((team) => ({
       id: team.id,
       name: team.name,
       domain: team.domain || team.problem,
@@ -63,6 +80,7 @@ export async function GET(request: Request) {
       demoUrl: team.demoUrl ?? "",
       repositoryUrl: team.repositoryUrl ?? "",
       slidesUrl: team.slidesUrl ?? "",
+      videoUrl: team.videoUrl ?? "",
       testCredentials: team.testCredentials ?? "",
       members: team.members,
       scored: team.scores.some((score) => Boolean(score.lockedAt)),

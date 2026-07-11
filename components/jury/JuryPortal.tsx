@@ -14,6 +14,7 @@ import {
   MonitorSmartphone,
   Send,
   Trophy,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ type JuryTeam = {
   demoUrl: string;
   repositoryUrl: string;
   slidesUrl: string;
+  videoUrl: string;
   testCredentials: string;
   scored: boolean;
   scores: Scores;
@@ -350,7 +352,7 @@ export function JuryPortal({
               </article>
             )}
 
-            {(team.demoUrl || team.repositoryUrl || team.slidesUrl) && (
+            {(team.demoUrl || team.repositoryUrl || team.slidesUrl || team.videoUrl) && (
               <article className="jury-dossier-card jury-project-resources-card">
                 <div className="jury-dossier-card-head">
                   <span className="jury-dossier-icon" aria-hidden="true"><MonitorSmartphone size={18} /></span>
@@ -378,6 +380,13 @@ export function JuryPortal({
                     <a href={team.slidesUrl} target="_blank" rel="noreferrer" className="jury-project-resource-link">
                       <FileText aria-hidden="true" size={17} />
                       <span>Consulter les slides</span>
+                      <ExternalLink aria-hidden="true" size={15} />
+                    </a>
+                  )}
+                  {team.videoUrl && (
+                    <a href={externalUrl(team.videoUrl)} target="_blank" rel="noreferrer" className="jury-project-resource-link">
+                      <Video aria-hidden="true" size={17} />
+                      <span>Voir la vidéo de démo</span>
                       <ExternalLink aria-hidden="true" size={15} />
                     </a>
                   )}

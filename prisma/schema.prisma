@@ -179,6 +179,7 @@ model Team {
   demoUrl         String?
   repositoryUrl   String?
   slidesUrl       String?
+  videoUrl        String?
   testCredentials String?
   isFinalist      Boolean        @default(false)
   phase1Rank      Int?

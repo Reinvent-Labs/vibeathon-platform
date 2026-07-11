@@ -15,11 +15,13 @@ type Team = {
   demoUrl: string | null;
   repositoryUrl: string | null;
   slidesUrl: string | null;
+  videoUrl: string | null;
   aiScore: number | null;
   aiSummary: string | null;
   aiEvaluatedAt: string | null;
   aiScores: CriterionScore[] | null;
   browserReport: string | null;
+  videoReport: string | null;
   promptInjectionDetected: boolean;
   promptInjectionEvidence: string | null;
   penalty: number;
@@ -188,6 +190,7 @@ export function EvaluationPanel() {
                     aiSummary: payload.data.summary,
                     aiScores: payload.data.scores,
                     browserReport: payload.data.browserReport,
+                    videoReport: payload.data.videoReport,
                     promptInjectionDetected: payload.data.promptInjectionDetected,
                     promptInjectionEvidence: payload.data.promptInjectionEvidence,
                     penalty: payload.data.penalty,
@@ -230,6 +233,7 @@ export function EvaluationPanel() {
                   aiSummary: payload.data.summary,
                   aiScores: payload.data.scores,
                   browserReport: payload.data.browserReport,
+                  videoReport: payload.data.videoReport,
                   promptInjectionDetected: payload.data.promptInjectionDetected,
                   promptInjectionEvidence: payload.data.promptInjectionEvidence,
                   penalty: payload.data.penalty,
@@ -478,7 +482,12 @@ export function EvaluationPanel() {
                                         Slides PDF →
                                       </a>
                                     )}
-                                    {!team.demoUrl && !team.repositoryUrl && !team.slidesUrl && (
+                                    {team.videoUrl && (
+                                      <a href={team.videoUrl} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: 13 }}>
+                                        Vidéo de démo →
+                                      </a>
+                                    )}
+                                    {!team.demoUrl && !team.repositoryUrl && !team.slidesUrl && !team.videoUrl && (
                                       <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>Aucun lien fourni.</span>
                                     )}
                                   </div>
@@ -544,6 +553,15 @@ export function EvaluationPanel() {
                                   <small className="eyebrow" style={{ fontSize: 11 }}>Rapport du test navigateur</small>
                                   <div style={{ marginTop: 8 }}>
                                     <Report text={team.browserReport} />
+                                  </div>
+                                </div>
+                              )}
+
+                              {team.videoReport && (
+                                <div style={{ paddingTop: 12, borderTop: "1px solid var(--line)" }}>
+                                  <small className="eyebrow" style={{ fontSize: 11 }}>Analyse de la vidéo de démonstration</small>
+                                  <div style={{ marginTop: 8 }}>
+                                    <Report text={team.videoReport} />
                                   </div>
                                 </div>
                               )}

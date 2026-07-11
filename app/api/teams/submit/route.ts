@@ -8,6 +8,7 @@ type SubmitBody = {
   teamId?: string;
   demoUrl?: string;
   repositoryUrl?: string;
+  videoUrl?: string;
   description?: string;
   testCredentials?: string;
 };
@@ -18,11 +19,21 @@ export async function POST(request: Request) {
   const body = await readJson<SubmitBody>(request);
   if (!body?.teamId?.trim()) return apiError("Équipe manquante.");
   if (!body.description?.trim()) return apiError("Description du projet manquante.");
-  if (!body.demoUrl?.trim()) return apiError("URL de démo manquante.");
+  // A web demo URL and a demo video are alternative forms of evidence — a
+  // mobile-only team may have no testable web build at all, so we require
+  // at least one rather than mandating demoUrl specifically.
+  if (!body.demoUrl?.trim() && !body.videoUrl?.trim()) {
+    return apiError("Fournis une URL de démo ou une vidéo de démonstration.");
+  }
 
-  try { new URL(body.demoUrl); } catch { return apiError("URL de démo invalide."); }
+  if (body.demoUrl?.trim()) {
+    try { new URL(body.demoUrl); } catch { return apiError("URL de démo invalide."); }
+  }
   if (body.repositoryUrl?.trim()) {
     try { new URL(body.repositoryUrl); } catch { return apiError("URL du dépôt invalide."); }
+  }
+  if (body.videoUrl?.trim()) {
+    try { new URL(body.videoUrl); } catch { return apiError("URL de la vidéo invalide."); }
   }
 
   const team = await prisma.team.findFirst({
@@ -36,7 +47,7 @@ export async function POST(request: Request) {
   if (team.competition.phase !== "SUBMISSIONS_OPEN") {
     return apiError("Les soumissions sont fermées. La Phase 1 a déjà démarré.", 409);
   }
-  if (team.demoUrl) {
+  if (team.demoUrl || team.videoUrl) {
     return apiError("Cette équipe a déjà soumis son projet. Une seule soumission par équipe est autorisée.", 409);
   }
 
@@ -45,11 +56,12 @@ export async function POST(request: Request) {
   // concurrent request finds nothing to update and fails cleanly instead of
   // overwriting the first submission.
   const updated = await prisma.team.updateMany({
-    where: { id: team.id, demoUrl: null },
+    where: { id: team.id, demoUrl: null, videoUrl: null },
     data: {
       description: body.description?.trim() || null,
-      demoUrl: body.demoUrl.trim(),
+      demoUrl: body.demoUrl?.trim() || null,
       repositoryUrl: body.repositoryUrl?.trim() || null,
+      videoUrl: body.videoUrl?.trim() || null,
       testCredentials: body.testCredentials?.trim().slice(0, 500) || null,
     },
   });

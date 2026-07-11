@@ -16,10 +16,12 @@ export function SubmitForm() {
   const [result, setResult] = useState<Result | null>(null);
   const slidesRef = useRef<HTMLInputElement>(null);
 
+  const [isWebApp, setIsWebApp] = useState<boolean | null>(null);
   const [form, setForm] = useState({
     teamId: "",
     demoUrl: "",
     repositoryUrl: "",
+    videoUrl: "",
     description: "",
     testEmail: "",
     testPassword: "",
@@ -46,6 +48,9 @@ export function SubmitForm() {
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     if (!form.teamId) { toast.error("Sélectionne ton équipe."); return; }
+    if (isWebApp === null) { toast.error("Indique si ton application est une application web."); return; }
+    if (isWebApp && !form.demoUrl.trim()) { toast.error("Fournis l'URL de ta démo web."); return; }
+    if (!isWebApp && !form.videoUrl.trim()) { toast.error("Fournis le lien de ta vidéo de démonstration."); return; }
 
     // Step 1: upload slides if provided
     if (slidesFile) {
@@ -79,8 +84,9 @@ export function SubmitForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId: form.teamId,
-          demoUrl: form.demoUrl,
+          demoUrl: form.demoUrl || undefined,
           repositoryUrl: form.repositoryUrl || undefined,
+          videoUrl: form.videoUrl || undefined,
           description: form.description,
           testCredentials,
         }),
@@ -179,21 +185,65 @@ export function SubmitForm() {
           )}
         </div>
 
-        {/* Demo URL */}
+        {/* Web app? Determines whether we ask for a demo URL or a video. */}
         <div className="field">
-          <label htmlFor="demoUrl">
-            URL de la démo <span className="req">*</span>
+          <label>
+            Ton application est-elle une application web ? <span className="req">*</span>
           </label>
-          <input
-            id="demoUrl"
-            className="input"
-            required
-            type="url"
-            value={form.demoUrl}
-            onChange={(e) => update("demoUrl", e.target.value)}
-            placeholder="https://mon-app.vercel.app"
-          />
+          <div className="cluster" style={{ gap: 10 }}>
+            <button
+              type="button"
+              className={`btn ${isWebApp === true ? "btn-grad" : "btn-ghost"}`}
+              onClick={() => setIsWebApp(true)}
+            >
+              Oui, application web
+            </button>
+            <button
+              type="button"
+              className={`btn ${isWebApp === false ? "btn-grad" : "btn-ghost"}`}
+              onClick={() => setIsWebApp(false)}
+            >
+              Non (mobile, desktop…)
+            </button>
+          </div>
         </div>
+
+        {isWebApp === true && (
+          <div className="field">
+            <label htmlFor="demoUrl">
+              URL de la démo <span className="req">*</span>
+            </label>
+            <input
+              id="demoUrl"
+              className="input"
+              type="url"
+              required
+              value={form.demoUrl}
+              onChange={(e) => update("demoUrl", e.target.value)}
+              placeholder="https://mon-app.vercel.app"
+            />
+          </div>
+        )}
+
+        {isWebApp === false && (
+          <div className="field">
+            <label htmlFor="videoUrl">
+              Vidéo de démonstration <span className="req">*</span>
+            </label>
+            <input
+              id="videoUrl"
+              className="input"
+              type="url"
+              required
+              value={form.videoUrl}
+              onChange={(e) => update("videoUrl", e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            <p className="form-note" style={{ marginTop: 6 }}>
+              Lien YouTube (non répertorié si besoin), Loom, ou autre lien de vidéo public. L&apos;IA regarde la vidéo pour vérifier que l&apos;app fonctionne réellement.
+            </p>
+          </div>
+        )}
 
         {/* Repo URL — optional */}
         <div className="field">

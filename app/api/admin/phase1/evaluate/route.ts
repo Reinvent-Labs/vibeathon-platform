@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { evaluateProject } from "@/lib/ai-eval";
 import { testAppInBrowser } from "@/lib/browser-agent";
 import { auditRepository, type RepoAudit } from "@/lib/repo-audit";
+import { analyzeVideo } from "@/lib/video-audit";
 import { AI_EVAL_CRITERIA } from "@/lib/constants";
+import { hasTestableProject } from "@/lib/project-submission";
 
 export const maxDuration = 300;
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
 
   const team = await prisma.team.findFirst({
     where: { id: body.teamId, competition: { slug: "vibeathon-2026" } },
-    select: { id: true, name: true, problem: true, description: true, demoUrl: true, repositoryUrl: true, testCredentials: true },
+    select: { id: true, name: true, problem: true, description: true, demoUrl: true, repositoryUrl: true, videoUrl: true, testCredentials: true },
   });
   if (!team) return apiError("Équipe introuvable.", 404);
 
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
   // No submission at all → automatic zero, no AI call. A team that never
   // submitted shouldn't get partial credit for its registered problem
   // statement alone.
-  if (!team.demoUrl && !team.description) {
+  if (!hasTestableProject(team)) {
     const zeroScores = AI_EVAL_CRITERIA.map((c) => ({
       key: c.id,
       name: c.name,
@@ -115,6 +117,24 @@ export async function POST(request: Request) {
     }
   }
 
+  // Demo video analysis — the fair alternative for mobile-only teams or
+  // anything the browser agent structurally can't interact with (e.g.
+  // canvas-rendered Flutter Web). Failure here is non-fatal too.
+  let videoReport: string | null = null;
+  let videoInjectionDetected = false;
+  let videoInjectionEvidence: string | null = null;
+  if (team.videoUrl && process.env.AI_EVAL_MOCK !== "1") {
+    try {
+      const result = await analyzeVideo(team.videoUrl, team.name);
+      videoReport = result.report;
+      videoInjectionDetected = result.injectionDetected;
+      videoInjectionEvidence = result.injectionEvidence;
+    } catch (err) {
+      console.error(`Video analysis failed for ${team.name}:`, err);
+      videoReport = "L'analyse automatisée de la vidéo n'a pas pu être effectuée (erreur technique, pas nécessairement la faute de l'application).";
+    }
+  }
+
   const evalResult = await evaluateProject({
     teamName: team.name,
     problem: team.problem,
@@ -126,6 +146,9 @@ export async function POST(request: Request) {
     browserInjectionDetected,
     browserInjectionEvidence,
     repoAudit,
+    videoReport,
+    videoInjectionDetected,
+    videoInjectionEvidence,
   });
 
   await prisma.aIEvaluation.upsert({
@@ -136,14 +159,14 @@ export async function POST(request: Request) {
       model: evalResult.model,
       score: evalResult.totalScore,
       summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit })),
+      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit, videoReport })),
     },
     update: {
       provider: "openrouter",
       model: evalResult.model,
       score: evalResult.totalScore,
       summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit })),
+      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit, videoReport })),
       updatedAt: new Date(),
     },
   });
@@ -155,6 +178,7 @@ export async function POST(request: Request) {
     summary: evalResult.summary,
     scores: evalResult.scores,
     browserReport,
+    videoReport,
     promptInjectionDetected: evalResult.promptInjectionDetected,
     promptInjectionEvidence: evalResult.promptInjectionEvidence,
     penalty: evalResult.penalty,

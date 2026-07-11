@@ -26,6 +26,7 @@ export async function GET() {
         demoUrl: true,
         repositoryUrl: true,
         slidesUrl: true,
+        videoUrl: true,
         isFinalist: true,
         phase1Rank: true,
         rank: true,
@@ -47,6 +48,7 @@ export async function GET() {
         | {
             scores?: { key: string; name: string; weight: number; score: number; reasoning: string }[];
             browserReport?: string | null;
+            videoReport?: string | null;
             promptInjectionDetected?: boolean;
             promptInjectionEvidence?: string | null;
             penalty?: number;
@@ -62,11 +64,13 @@ export async function GET() {
         demoUrl: t.demoUrl ?? null,
         repositoryUrl: t.repositoryUrl ?? null,
         slidesUrl: t.slidesUrl ?? null,
+        videoUrl: t.videoUrl ?? null,
         aiScore: t.aiEvaluation?.score ?? null,
         aiSummary: t.aiEvaluation?.summary ?? null,
         aiEvaluatedAt: t.aiEvaluation?.updatedAt ?? null,
         aiScores: raw?.scores ?? null,
         browserReport: raw?.browserReport ?? null,
+        videoReport: raw?.videoReport ?? null,
         promptInjectionDetected: raw?.promptInjectionDetected ?? false,
         promptInjectionEvidence: raw?.promptInjectionEvidence ?? null,
         penalty: raw?.penalty ?? 0,
@@ -117,6 +121,7 @@ export async function POST(request: Request) {
       description: true,
       demoUrl: true,
       repositoryUrl: true,
+      videoUrl: true,
       aiEvaluation: { select: { score: true, updatedAt: true } },
     },
     orderBy: { name: "asc" },
