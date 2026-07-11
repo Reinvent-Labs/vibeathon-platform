@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type CompPhase = "SUBMISSIONS_OPEN" | "PHASE1_RUNNING" | "PHASE1_DONE" | "PHASE2_RUNNING" | "PHASE2_DONE";
+
+type CriterionScore = { key: string; name: string; weight: number; score: number; reasoning: string };
 
 type Team = {
   id: string;
@@ -12,6 +14,8 @@ type Team = {
   aiScore: number | null;
   aiSummary: string | null;
   aiEvaluatedAt: string | null;
+  aiScores: CriterionScore[] | null;
+  browserReport: string | null;
   isFinalist: boolean;
   rank: number | null;
   position: number;
@@ -28,6 +32,7 @@ export function EvaluationPanel() {
   const [running, setRunning] = useState(false);
   const [finalistCount, setFinalistCount] = useState(10);
   const [qualifying, setQualifying] = useState(false);
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
   const abortRef = useRef(false);
 
   const load = async () => {
@@ -71,7 +76,14 @@ export function EvaluationPanel() {
             if (!prev) return prev;
             const updated = prev.teams.map((t) =>
               t.id === team.id
-                ? { ...t, aiScore: payload.data.score, aiSummary: payload.data.summary, aiEvaluatedAt: new Date().toISOString() }
+                ? {
+                    ...t,
+                    aiScore: payload.data.score,
+                    aiSummary: payload.data.summary,
+                    aiScores: payload.data.scores,
+                    browserReport: payload.data.browserReport,
+                    aiEvaluatedAt: new Date().toISOString(),
+                  }
                 : t,
             );
             return { ...prev, teams: [...updated].sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1)) };
@@ -101,7 +113,18 @@ export function EvaluationPanel() {
       return {
         ...prev,
         teams: prev.teams
-          .map((t) => t.id === teamId ? { ...t, aiScore: payload.data.score, aiSummary: payload.data.summary, aiEvaluatedAt: new Date().toISOString() } : t)
+          .map((t) =>
+            t.id === teamId
+              ? {
+                  ...t,
+                  aiScore: payload.data.score,
+                  aiSummary: payload.data.summary,
+                  aiScores: payload.data.scores,
+                  browserReport: payload.data.browserReport,
+                  aiEvaluatedAt: new Date().toISOString(),
+                }
+              : t,
+          )
           .sort((a, b) => (b.aiScore ?? -1) - (a.aiScore ?? -1)),
       };
     });
@@ -242,58 +265,101 @@ export function EvaluationPanel() {
                   <th>Soumission</th>
                   <th>Statut</th>
                   <th></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {teams.map((team, i) => {
                   const isTopN = i < finalistCount;
                   const qualifier = phase === "PHASE1_DONE" ? team.isFinalist : (phase === "PHASE1_RUNNING" && isTopN);
+                  const expanded = expandedTeamId === team.id;
                   return (
-                    <tr key={team.id} style={qualifier ? { background: "color-mix(in srgb, var(--green) 6%, transparent)" } : undefined}>
-                      <td>
-                        <strong style={{ color: i < 3 ? "var(--green)" : undefined }}>
-                          {i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`}
-                        </strong>
-                      </td>
-                      <td>
-                        <b>{team.name}</b>
-                        {team.aiSummary && (
-                          <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "2px 0 0", maxWidth: 360 }}>
-                            {team.aiSummary.slice(0, 120)}{team.aiSummary.length > 120 ? "…" : ""}
-                          </p>
-                        )}
-                      </td>
-                      <td>
-                        {team.aiScore !== null ? (
-                          <strong className="grad-text-lt">{team.aiScore}<small style={{ opacity: 0.5 }}>/100</small></strong>
-                        ) : running ? (
-                          <span style={{ color: "var(--ink-faint)" }}>En cours…</span>
-                        ) : (
-                          <span style={{ color: "var(--ink-faint)" }}>—</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className={`status-pill ${team.hasSubmission ? "confirmed" : "pending"}`}>
-                          {team.hasSubmission ? "Soumis" : "Non soumis"}
-                        </span>
-                      </td>
-                      <td>
-                        {qualifier && (
-                          <span className="status-pill selected">Finaliste</span>
-                        )}
-                      </td>
-                      <td>
-                        {(phase === "PHASE1_RUNNING" || phase === "PHASE1_DONE") && !running && (
-                          <button
-                            className="btn btn-ghost"
-                            style={{ fontSize: 12, padding: "4px 10px" }}
-                            onClick={() => void retryTeam(team.id)}
-                          >
-                            {team.aiScore !== null ? "↺ Re-évaluer" : "Évaluer"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+                    <Fragment key={team.id}>
+                      <tr style={qualifier ? { background: "color-mix(in srgb, var(--green) 6%, transparent)" } : undefined}>
+                        <td>
+                          <strong style={{ color: i < 3 ? "var(--green)" : undefined }}>
+                            {i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`}
+                          </strong>
+                        </td>
+                        <td>
+                          <b>{team.name}</b>
+                          {team.aiSummary && (
+                            <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "2px 0 0", maxWidth: 360 }}>
+                              {team.aiSummary.slice(0, 120)}{team.aiSummary.length > 120 ? "…" : ""}
+                            </p>
+                          )}
+                        </td>
+                        <td>
+                          {team.aiScore !== null ? (
+                            <strong className="grad-text-lt">{team.aiScore}<small style={{ opacity: 0.5 }}>/100</small></strong>
+                          ) : running ? (
+                            <span style={{ color: "var(--ink-faint)" }}>En cours…</span>
+                          ) : (
+                            <span style={{ color: "var(--ink-faint)" }}>—</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`status-pill ${team.hasSubmission ? "confirmed" : "pending"}`}>
+                            {team.hasSubmission ? "Soumis" : "Non soumis"}
+                          </span>
+                        </td>
+                        <td>
+                          {qualifier && (
+                            <span className="status-pill selected">Finaliste</span>
+                          )}
+                        </td>
+                        <td>
+                          {team.aiScores && team.aiScores.length > 0 && (
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              style={{ fontSize: 12, padding: "4px 10px" }}
+                              onClick={() => setExpandedTeamId(expanded ? null : team.id)}
+                            >
+                              {expanded ? "Masquer le détail ▲" : "Voir le détail ▼"}
+                            </button>
+                          )}
+                        </td>
+                        <td>
+                          {(phase === "PHASE1_RUNNING" || phase === "PHASE1_DONE") && !running && (
+                            <button
+                              className="btn btn-ghost"
+                              style={{ fontSize: 12, padding: "4px 10px" }}
+                              onClick={() => void retryTeam(team.id)}
+                            >
+                              {team.aiScore !== null ? "↺ Re-évaluer" : "Évaluer"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                      {expanded && team.aiScores && (
+                        <tr>
+                          <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "16px 20px" }}>
+                            <div style={{ display: "grid", gap: 10 }}>
+                              {team.aiScores.map((s) => (
+                                <div key={s.key} style={{ display: "flex", gap: 12, alignItems: "baseline", flexWrap: "wrap" }}>
+                                  <strong style={{ minWidth: 160 }}>{s.name}</strong>
+                                  <span className="grad-text-lt" style={{ fontWeight: 700 }}>
+                                    {s.score}<small style={{ opacity: 0.5 }}>/{s.weight}</small>
+                                  </span>
+                                  <span style={{ fontSize: 13, color: "var(--ink-faint)", flex: 1, minWidth: 200 }}>
+                                    {s.reasoning}
+                                  </span>
+                                </div>
+                              ))}
+                              {team.browserReport && (
+                                <div style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
+                                  <small className="eyebrow" style={{ fontSize: 11 }}>Rapport du test navigateur</small>
+                                  <p style={{ fontSize: 13, color: "var(--ink-faint)", whiteSpace: "pre-wrap", marginTop: 6 }}>
+                                    {team.browserReport}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

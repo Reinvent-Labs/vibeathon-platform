@@ -93,6 +93,21 @@ function infoCard(label: string, value: string) {
 }
 
 export const emailTemplates = {
+  submissionConfirmed: ({
+    teamName,
+    appUrl,
+  }: {
+    teamName: string;
+    appUrl: string;
+  }) =>
+    frame({
+      appUrl,
+      eyebrow: "VIBEATHON 2026",
+      title: "Ton dossier a bien été soumis",
+      introduction: `Bonjour, le dossier de l'équipe ${teamName} a été reçu avec succès.`,
+      content: `<p style="margin:18px 2px 0;color:#c9d1ce;font-size:14px;line-height:1.65">Ton projet sera évalué prochainement. Tu recevras un e-mail dès que les résultats de la première phase seront disponibles.</p>`,
+    }),
+
   juryInvitation: ({
     name,
     email,

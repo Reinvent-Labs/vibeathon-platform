@@ -90,5 +90,6 @@ export async function POST(request: Request) {
     score: evalResult.totalScore,
     summary: evalResult.summary,
     scores: evalResult.scores,
+    browserReport,
   });
 }

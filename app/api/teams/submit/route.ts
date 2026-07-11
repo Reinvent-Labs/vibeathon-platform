@@ -1,6 +1,8 @@
 import { apiError, apiSuccess, readJson } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
-import { evaluateProject } from "@/lib/ai-eval";
+import { sendEmail } from "@/lib/notifications";
+import { appBaseUrl } from "@/lib/campaigns";
+import { emailTemplates } from "@/emails/templates";
 
 type SubmitBody = {
   teamId?: string;
@@ -9,8 +11,6 @@ type SubmitBody = {
   description?: string;
   testCredentials?: string;
 };
-
-export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!prisma) return apiError("Base de données indisponible.", 503);
@@ -27,7 +27,10 @@ export async function POST(request: Request) {
 
   const team = await prisma.team.findFirst({
     where: { id: body.teamId, competition: { slug: "vibeathon-2026" } },
-    include: { competition: { select: { phase: true } } },
+    include: {
+      competition: { select: { phase: true } },
+      members: { select: { email: true } },
+    },
   });
   if (!team) return apiError("Équipe introuvable.", 404);
   if (team.competition.phase !== "SUBMISSIONS_OPEN") {
@@ -44,44 +47,20 @@ export async function POST(request: Request) {
     },
   });
 
-  let evalResult = null;
-  if (process.env.OPENROUTER_API_KEY || process.env.AI_EVAL_MOCK === "1") {
-    try {
-      evalResult = await evaluateProject({
-        teamName: team.name,
-        problem: team.problem,
-        description: body.description.trim(),
-        demoUrl: body.demoUrl.trim(),
-        repositoryUrl: body.repositoryUrl?.trim(),
-      });
-      await prisma.aIEvaluation.upsert({
-        where: { teamId: team.id },
-        create: {
-          teamId: team.id,
-          provider: "openrouter",
-          model: evalResult.model,
-          score: evalResult.totalScore,
-          summary: evalResult.summary,
-          raw: JSON.parse(JSON.stringify(evalResult)),
-        },
-        update: {
-          provider: "openrouter",
-          model: evalResult.model,
-          score: evalResult.totalScore,
-          summary: evalResult.summary,
-          raw: JSON.parse(JSON.stringify(evalResult)),
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      console.error("[ai-eval] evaluation failed:", err);
-    }
-  }
+  // AI evaluation happens only during Phase 1 (admin-controlled) — candidates
+  // never see a score at submission time.
+  const appUrl = appBaseUrl();
+  await Promise.allSettled(
+    team.members.map((member) =>
+      sendEmail({
+        to: member.email,
+        subject: "Dossier reçu — VIBEATHON 2026",
+        template: "submission-confirmed",
+        html: emailTemplates.submissionConfirmed({ teamName: team.name, appUrl }),
+        text: `Bonjour, le dossier de l'équipe ${team.name} a bien été soumis. Tu recevras un e-mail dès que les résultats de la première phase seront disponibles.`,
+      }),
+    ),
+  );
 
-  return apiSuccess({
-    teamName: team.name,
-    submitted: true,
-    aiScore: evalResult?.totalScore ?? null,
-    aiSummary: evalResult?.summary ?? null,
-  });
+  return apiSuccess({ teamName: team.name, submitted: true });
 }

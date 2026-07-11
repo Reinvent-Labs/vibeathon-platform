@@ -5,8 +5,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 type Team = { id: string; name: string; label: string };
-type FormPhase = "form" | "uploading" | "evaluating" | "done";
-type Result = { teamName: string; aiScore: number | null; aiSummary: string | null };
+type FormPhase = "form" | "uploading" | "submitting" | "done";
+type Result = { teamName: string };
 
 export function SubmitForm() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -61,8 +61,8 @@ export function SubmitForm() {
       }
     }
 
-    // Step 2: submit project + trigger AI eval
-    setPhase("evaluating");
+    // Step 2: submit project
+    setPhase("submitting");
     try {
       const res = await fetch("/api/teams/submit", {
         method: "POST",
@@ -108,12 +108,12 @@ export function SubmitForm() {
     );
   }
 
-  if (phase === "evaluating") {
+  if (phase === "submitting") {
     return (
       <div className="submit-loading">
         <div className="submit-spinner" />
-        <p>Évaluation par IA en cours…</p>
-        <span>15 à 30 secondes. Ne ferme pas cette page.</span>
+        <p>Envoi en cours…</p>
+        <span>Ne ferme pas cette page.</span>
       </div>
     );
   }
@@ -122,21 +122,11 @@ export function SubmitForm() {
     return (
       <div className="ticket-success">
         <div className="ticket-success-icon">✓</div>
-        <h2>Projet soumis !</h2>
+        <h2>Votre dossier a été soumis !</h2>
         <p><strong>{result.teamName}</strong> — projet enregistré avec succès.</p>
-        {result.aiScore !== null && (
-          <div className="submit-ai-result">
-            <div className="submit-ai-score">
-              <span className="submit-ai-score-num grad-text-lt">{result.aiScore}</span>
-              <span className="submit-ai-score-denom">/100</span>
-            </div>
-            <p className="submit-ai-score-label">Score IA préliminaire</p>
-            {result.aiSummary && <p className="submit-ai-summary">{result.aiSummary}</p>}
-            <p className="submit-ai-note">
-              Score indicatif. Les jurés humains évaluent le pitch en direct.
-            </p>
-          </div>
-        )}
+        <p style={{ fontSize: 13, color: "var(--ink-faint)" }}>
+          Un e-mail de confirmation vient de vous être envoyé. Vous recevrez les résultats dès que l&apos;évaluation sera terminée.
+        </p>
         <div className="cluster" style={{ justifyContent: "center", marginTop: 24 }}>
           <button type="button" className="btn btn-ghost"
             onClick={() => { setPhase("form"); setResult(null); setSlidesFile(null); }}>
@@ -292,7 +282,7 @@ export function SubmitForm() {
           Soumettre mon projet →
         </button>
         <p className="form-note">
-          La soumission déclenche une évaluation IA instantanée visible par le jury.
+          Vous recevrez un e-mail de confirmation, puis les résultats une fois l&apos;évaluation terminée.
         </p>
       </div>
     </form>

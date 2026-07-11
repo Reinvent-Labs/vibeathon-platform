@@ -27,7 +27,7 @@ export async function GET() {
         isFinalist: true,
         rank: true,
         aiEvaluation: {
-          select: { score: true, summary: true, updatedAt: true },
+          select: { score: true, summary: true, updatedAt: true, raw: true },
         },
       },
       orderBy: { name: "asc" },
@@ -42,17 +42,25 @@ export async function GET() {
 
   return apiSuccess({
     phase: competition.phase,
-    teams: ranked.map((t, i) => ({
-      id: t.id,
-      name: t.name,
-      hasSubmission: Boolean(t.description || t.demoUrl),
-      aiScore: t.aiEvaluation?.score ?? null,
-      aiSummary: t.aiEvaluation?.summary ?? null,
-      aiEvaluatedAt: t.aiEvaluation?.updatedAt ?? null,
-      isFinalist: t.isFinalist,
-      rank: t.rank,
-      position: i + 1,
-    })),
+    teams: ranked.map((t, i) => {
+      const raw = t.aiEvaluation?.raw as
+        | { scores?: { key: string; name: string; weight: number; score: number; reasoning: string }[]; browserReport?: string | null }
+        | null
+        | undefined;
+      return {
+        id: t.id,
+        name: t.name,
+        hasSubmission: Boolean(t.description || t.demoUrl),
+        aiScore: t.aiEvaluation?.score ?? null,
+        aiSummary: t.aiEvaluation?.summary ?? null,
+        aiEvaluatedAt: t.aiEvaluation?.updatedAt ?? null,
+        aiScores: raw?.scores ?? null,
+        browserReport: raw?.browserReport ?? null,
+        isFinalist: t.isFinalist,
+        rank: t.rank,
+        position: i + 1,
+      };
+    }),
   });
 }
 
