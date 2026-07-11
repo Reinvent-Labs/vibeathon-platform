@@ -13,6 +13,7 @@ import {
   Lock,
   MonitorSmartphone,
   Send,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -120,6 +121,16 @@ export function JuryPortal({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [resultsAvailable, setResultsAvailable] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/competition/status")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload.success) setResultsAvailable(payload.data.phase === "PHASE2_DONE");
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     Promise.all([fetch("/api/teams?scope=jury"), fetch("/api/jury/config")])
@@ -265,6 +276,13 @@ export function JuryPortal({
           <BookOpen size={17} />
           Voir les 20 équipes
         </Link>
+
+        {resultsAvailable && (
+          <Link className="jury-directory-link" href="/jury/resultats" prefetch={false}>
+            <Trophy size={17} />
+            Voir les résultats
+          </Link>
+        )}
 
         <nav className="jury-nav">
           {teams.map((item, index) => (

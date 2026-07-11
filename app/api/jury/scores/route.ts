@@ -161,11 +161,12 @@ async function checkPhase2Complete(db: NonNullable<typeof prisma>) {
   <h1 style="font-size:22px;margin:0 0 8px;">Merci pour votre évaluation ✓</h1>
   <p style="color:#a3a3a3;margin:0 0 24px;">Bonjour ${member.fullName},</p>
   <p>Tous les membres du jury ont terminé leur évaluation. Vos notes ont bien été prises en compte.</p>
-  <p style="color:#a3a3a3;">Les résultats seront annoncés prochainement. Merci pour votre temps et votre implication dans VIBEATHON 2026 !</p>
+  <p style="color:#a3a3a3;">Le classement final est maintenant disponible dans votre espace jury.</p>
+  <a href="${appUrl}/jury/resultats" style="display:inline-block;background:#75FF8D;color:#0a0a0a;font-weight:700;font-size:15px;padding:12px 28px;border-radius:8px;text-decoration:none;margin-top:16px;">Voir les résultats →</a>
   <p style="color:#525252;font-size:12px;margin-top:32px;">VIBEATHON 2026 · Abidjan</p>
 </body>
 </html>`,
-          text: `Bonjour ${member.fullName},\n\nTous les membres du jury ont terminé leur évaluation. Vos notes ont bien été prises en compte.\n\nLes résultats seront annoncés prochainement. Merci pour votre temps et votre implication dans VIBEATHON 2026 !`,
+          text: `Bonjour ${member.fullName},\n\nTous les membres du jury ont terminé leur évaluation. Vos notes ont bien été prises en compte.\n\nLe classement final est maintenant disponible :\n\n${appUrl}/jury/resultats`,
         });
       }
       const link = `${appUrl}/admin/jury`;
