@@ -247,6 +247,19 @@ export function EvaluationPanel() {
     toast.success("Ré-évaluation terminée.");
   }
 
+  async function deleteSubmission(teamId: string, teamName: string) {
+    if (!confirm(`Supprimer la soumission de "${teamName}" ? L'équipe pourra soumettre à nouveau.`)) return;
+    const res = await fetch("/api/admin/phase1", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamId }),
+    });
+    const payload = await safeJson(res);
+    if (!payload.success) { toast.error(payload.error ?? "Suppression impossible."); return; }
+    toast.success(`Soumission de "${teamName}" supprimée.`);
+    await load();
+  }
+
   async function qualify() {
     if (!confirm(`Qualifier les ${finalistCount} premières équipes et clôturer la Phase 1 ?`)) return;
     setQualifying(true);
@@ -382,6 +395,7 @@ export function EvaluationPanel() {
                   <th>Statut</th>
                   <th></th>
                   <th></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -458,10 +472,21 @@ export function EvaluationPanel() {
                             </button>
                           )}
                         </td>
+                        <td>
+                          {team.hasSubmission && (
+                            <button
+                              className="btn btn-ghost"
+                              style={{ fontSize: 12, padding: "4px 10px", color: "#ff4d4f" }}
+                              onClick={() => void deleteSubmission(team.id, team.name)}
+                            >
+                              🗑 Supprimer
+                            </button>
+                          )}
+                        </td>
                       </tr>
                       {expanded && (team.hasSubmission || team.aiScores) && (
                         <tr>
-                          <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "24px 26px" }}>
+                          <td colSpan={8} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "24px 26px" }}>
                             <div style={{ display: "grid", gap: 22 }}>
                               {team.hasSubmission && (
                                 <div>

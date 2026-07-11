@@ -138,3 +138,46 @@ export async function POST(request: Request) {
     })),
   });
 }
+
+/** DELETE — wipes a team's submission (lets them resubmit). Body: { teamId } */
+export async function DELETE(request: Request) {
+  if (!isSameOrigin(request)) return apiError("Origine invalide.", 403);
+  const user = await requireRole(["SUPER_ADMIN", "ADMIN"]);
+  if (!user) return apiError("Non autorisé.", 401);
+  if (!prisma) return apiError("Base de données indisponible.", 503);
+
+  const body = (await request.json().catch(() => null)) as { teamId?: string } | null;
+  const teamId = body?.teamId;
+  if (!teamId) return apiError("teamId requis.", 400);
+
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { id: true, name: true } });
+  if (!team) return apiError("Équipe introuvable.", 404);
+
+  await prisma.$transaction([
+    prisma.aIEvaluation.deleteMany({ where: { teamId } }),
+    prisma.team.update({
+      where: { id: teamId },
+      data: {
+        demoUrl: null,
+        repositoryUrl: null,
+        videoUrl: null,
+        slidesUrl: null,
+        description: null,
+        testCredentials: null,
+        isFinalist: false,
+        phase1Rank: null,
+      },
+    }),
+  ]);
+
+  await writeAuditLog({
+    actorId: user.userId,
+    action: "SUBMISSION_DELETED",
+    entityType: "Team",
+    entityId: teamId,
+    ipAddress: requestIp(request),
+    metadata: { teamName: team.name },
+  });
+
+  return apiSuccess({ teamId });
+}
