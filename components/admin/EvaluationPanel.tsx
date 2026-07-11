@@ -107,6 +107,23 @@ type Phase1State = {
   teams: Team[];
 };
 
+/**
+ * Parses a fetch Response as JSON, tolerating an empty/non-JSON body (e.g.
+ * a request that timed out or was cut short while the server was busy
+ * running a long Phase 1 evaluation) instead of throwing a raw JSON.parse
+ * error into the UI.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function safeJson(res: Response): Promise<{ success: boolean; data?: any; error?: string }> {
+  const text = await res.text();
+  if (!text) return { success: false, error: "Réponse vide du serveur (le serveur était probablement occupé). Réessaie." };
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { success: false, error: "Réponse invalide du serveur. Réessaie." };
+  }
+}
+
 export function EvaluationPanel() {
   const [state, setState] = useState<Phase1State | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,19 +135,23 @@ export function EvaluationPanel() {
 
   const load = async () => {
     const res = await fetch("/api/admin/phase1");
-    const payload = await res.json();
+    const payload = await safeJson(res);
     if (payload.success) setState(payload.data);
     else toast.error(payload.error ?? "Chargement impossible.");
   };
 
   useEffect(() => {
-    load().finally(() => setLoading(false));
+    const loadInitialState = async () => {
+      await load();
+      setLoading(false);
+    };
+    void loadInitialState();
   }, []);
 
   async function startPhase1() {
     if (!confirm("Lancer la Phase 1 ? Les soumissions seront définitivement fermées.")) return;
     const res = await fetch("/api/admin/phase1", { method: "POST" });
-    const payload = await res.json();
+    const payload = await safeJson(res);
     if (!payload.success) { toast.error(payload.error ?? "Impossible de démarrer."); return; }
     setState(payload.data);
     toast.success("Phase 1 démarrée — soumissions fermées.");
@@ -151,7 +172,7 @@ export function EvaluationPanel() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ teamId: team.id }),
         });
-        const payload = await res.json();
+        const payload = await safeJson(res);
         if (payload.success) {
           setState((prev) => {
             if (!prev) return prev;
@@ -190,7 +211,7 @@ export function EvaluationPanel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ teamId }),
     });
-    const payload = await res.json();
+    const payload = await safeJson(res);
     if (!payload.success) { toast.error(payload.error ?? "Impossible de re-évaluer."); return; }
     setState((prev) => {
       if (!prev) return prev;
@@ -226,10 +247,10 @@ export function EvaluationPanel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ finalistCount }),
     });
-    const payload = await res.json();
+    const payload = await safeJson(res);
     setQualifying(false);
     if (!payload.success) { toast.error(payload.error ?? "Qualification impossible."); return; }
-    toast.success(`${finalistCount} équipes qualifiées. E-mails envoyés au jury.`);
+    toast.success(`${payload.data.finalistCount} équipes qualifiées. E-mails envoyés au jury.`);
     await load();
   }
 
@@ -248,7 +269,7 @@ export function EvaluationPanel() {
         <div className="phead">
           <div>
             <h3>Phase 1 — Évaluation IA</h3>
-            <p className="panel-sub">L'IA évalue chaque équipe sur 5 critères (100 pts). Les meilleures équipes sont qualifiées pour la Phase 2.</p>
+            <p className="panel-sub">L&apos;IA évalue chaque équipe sur 5 critères (100 pts). Les meilleures équipes sont qualifiées pour la Phase 2.</p>
           </div>
           <span className={`status-pill ${phase === "SUBMISSIONS_OPEN" ? "pending" : phase === "PHASE1_RUNNING" ? "selected" : "confirmed"}`}>
             {phase === "SUBMISSIONS_OPEN" ? "Soumissions ouvertes" : phase === "PHASE1_RUNNING" ? "Phase 1 en cours" : "Phase 1 terminée"}
@@ -267,7 +288,7 @@ export function EvaluationPanel() {
           {phase === "PHASE1_RUNNING" && (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <small>Progression de l'évaluation</small>
+                <small>Progression de l&apos;évaluation</small>
                 <small>{pct}%</small>
               </div>
               <div className="jury-progress-bar">
@@ -284,7 +305,7 @@ export function EvaluationPanel() {
               </button>
               <p style={{ fontSize: 13, color: "var(--ink-faint)", margin: 0 }}>
                 {teams.filter((t) => !t.hasSubmission).length > 0
-                  ? `⚠ ${teams.filter((t) => !t.hasSubmission).length} équipe(s) sans soumission seront évaluées sur leur problème uniquement.`
+                  ? `⚠ ${teams.filter((t) => !t.hasSubmission).length} équipe(s) sans démo ni dépôt recevront 0 point et ne pourront pas être qualifiées.`
                   : "Toutes les équipes ont soumis leur projet."}
               </p>
             </div>
@@ -292,7 +313,7 @@ export function EvaluationPanel() {
 
           {phase === "PHASE1_RUNNING" && !running && evaluated < total && (
             <button className="btn btn-grad" onClick={() => void runEvaluations(teams)}>
-              Reprendre l'évaluation ({total - evaluated} restant(s))
+              Reprendre l&apos;évaluation ({total - evaluated} restant(s))
             </button>
           )}
 
