@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     where: {
       id: parsed.data.teamId,
       competition: { slug: "vibeathon-2026" },
+      isFinalist: true,
       members: {
         some: {},
         every: {

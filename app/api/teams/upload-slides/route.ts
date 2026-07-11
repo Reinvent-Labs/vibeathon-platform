@@ -31,9 +31,15 @@ export async function POST(request: Request) {
 
   const team = await prisma.team.findFirst({
     where: { id: teamId, competition: { slug: "vibeathon-2026" } },
-    select: { id: true, name: true },
+    select: { id: true, name: true, demoUrl: true, competition: { select: { phase: true } } },
   });
   if (!team) return apiError("Équipe introuvable.", 404);
+  if (team.competition.phase !== "SUBMISSIONS_OPEN") {
+    return apiError("Les soumissions sont fermées. La Phase 1 a déjà démarré.", 409);
+  }
+  if (team.demoUrl) {
+    return apiError("Cette équipe a déjà soumis son projet. Une seule soumission par équipe est autorisée.", 409);
+  }
 
   const filename = `${randomUUID()}.pdf`;
   const slidesDir = path.join(process.cwd(), "public", "uploads", "slides");
