@@ -172,6 +172,7 @@ model Team {
   id              String         @id @default(cuid())
   competitionId   String
   name            String
+  domain          String         @default("")
   tableNumber     String?
   problem         String
   description     String?

@@ -22,19 +22,18 @@ and body copy.
 The source file is committed at `data/registered-users.csv`.
 
 - 408 source submissions
-- 395 unique email addresses
+- 395 unique application email addresses
 - 13 duplicate submissions collapsed to the latest row for each email
 - Proposed group names are retained on applications, but are not treated as
   official competition teams.
 
-Every imported participant keeps the original Google Forms row in
-`Participant.rawApplication` for auditability.
+The source CSV remains the historical application record. Bootstrap reconciles
+the definitive 20-team roster, then retains only its 100 official hackathon
+competitors in PostgreSQL. Visitors and training participants are unaffected.
 
-Official teams are created later by administrators from selected participants.
-Selection is globally capped at 100 people regardless of their
-application mode. Admins can form and rebalance teams of up to 5 selected
-participants, including individual applicants. Only official teams whose
-members have all paid or been confirmed appear in the jury portal.
+The definitive roster contains 20 teams of five members. Competition
+registration is closed once that roster is finalized. Only official teams whose
+members have all paid or been confirmed appear in the scoring portal.
 
 ## Local Docker setup
 

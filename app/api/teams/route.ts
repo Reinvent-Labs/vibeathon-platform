@@ -57,6 +57,7 @@ export async function GET(request: Request) {
     teams.map((team, index) => ({
       id: team.id,
       name: team.name,
+      domain: team.domain || team.problem,
       tableNumber: team.tableNumber ?? `Table ${String(index + 1).padStart(2, "0")}`,
       problem: team.problem,
       description: team.description ?? "",
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
   if (!prisma) return apiError("Base de données indisponible.", 503);
   const body = await readJson<{
     name?: string;
+    domain?: string;
     problem?: string;
     memberIds?: string[];
   }>(request);
@@ -122,6 +124,7 @@ export async function POST(request: Request) {
     data: {
       competitionId: competition.id,
       name: body.name.trim(),
+      domain: body.domain?.trim() ?? "",
       problem: body.problem.trim(),
       members: {
         connect: eligibleMembers.map((participant) => ({

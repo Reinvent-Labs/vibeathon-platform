@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ChevronDown, Lock, Send } from "lucide-react";
+import { AlertCircle, BookOpen, ChevronDown, Lock, Send } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -20,6 +21,7 @@ type JuryCriterion = {
 type JuryTeam = {
   id: string;
   name: string;
+  domain: string;
   tableNumber: string;
   problem: string;
   description: string;
@@ -218,6 +220,10 @@ export function JuryPortal({
           Seules les équipes dont tous les membres sont acceptés sont affichées ici.
           L&apos;administration doit former les équipes et confirmer les participants.
         </p>
+        <Link className="btn btn-grad" href="/jury/equipes" prefetch={false}>
+          <BookOpen size={17} />
+          Voir les 20 équipes
+        </Link>
         <LogoutButton />
       </main>
     );
@@ -243,6 +249,11 @@ export function JuryPortal({
             <div className="jury-progress-fill" style={{ width: `${progress}%` }} />
           </div>
         </div>
+
+        <Link className="jury-directory-link" href="/jury/equipes" prefetch={false}>
+          <BookOpen size={17} />
+          Voir les 20 équipes
+        </Link>
 
         <nav className="jury-nav">
           {teams.map((item, index) => (
@@ -277,8 +288,8 @@ export function JuryPortal({
         {/* Team info */}
         <div className="surface jury-team-info">
           <div>
-            <small className="eyebrow" style={{ fontSize: 11 }}>Problème adressé</small>
-            <p style={{ marginTop: 6 }}>{team.problem}</p>
+            <small className="eyebrow" style={{ fontSize: 11 }}>Thématique de l&apos;équipe</small>
+            <p style={{ marginTop: 6 }}>{team.domain || team.problem}</p>
           </div>
           {team.description && (
             <div>

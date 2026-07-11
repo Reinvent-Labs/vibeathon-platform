@@ -6,8 +6,10 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await readSessionToken(token) : null;
   const path = request.nextUrl.pathname;
-  if (path === "/jury" && !session) {
-    return NextResponse.next();
+  if (path.startsWith("/jury") && !session) {
+    return path === "/jury"
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/jury", request.url));
   }
   if (session?.mustChangePassword && path !== "/change-password") {
     return NextResponse.redirect(new URL("/change-password", request.url));

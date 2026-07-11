@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a protected jury directory for all 20 definitive teams, including their domain and five-member contact roster, without changing finalist-only scoring.
+- Added an idempotent definitive-roster importer and an explicit Team domain field, preserving the previous stored domain values during migration.
+- Finalized the hackathon database at the definitive 100 competitors, closed further competition registration, and corrected the admin competitor count.
 - Fixed the jury portal so unauthenticated jurors see the email-link login instead of staff password login, and removed jury password handling from staff-user management.
 - Refined the VIBEATHON UI system across public, auth, scanner, jury, and admin surfaces while preserving the official event colors, and optimized logo image sizing.
 - Added staff-user and event-session deletion controls with guarded admin APIs and audit logging.

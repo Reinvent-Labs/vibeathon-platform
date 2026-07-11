@@ -1,5 +1,6 @@
 -- Additive, idempotent operational migration.
--- This file intentionally contains no DROP, TRUNCATE, DELETE, or data rewrite.
+-- This file intentionally contains no DROP, TRUNCATE, or DELETE statements.
+-- The guarded Team backfill below only populates a newly introduced field.
 
 ALTER TABLE "Session"
   ADD COLUMN IF NOT EXISTS "description" TEXT,
@@ -54,3 +55,12 @@ ALTER TABLE "ScanRecord"
 
 CREATE UNIQUE INDEX IF NOT EXISTS "ScanRecord_acceptedKey_key"
   ON "ScanRecord" ("acceptedKey");
+
+-- The previous implementation stored the team domain in "problem". Keep that
+-- value intact while giving the domain an explicit, queryable home.
+ALTER TABLE "Team"
+  ADD COLUMN IF NOT EXISTS "domain" TEXT NOT NULL DEFAULT '';
+
+UPDATE "Team"
+  SET "domain" = "problem"
+  WHERE "domain" = '';

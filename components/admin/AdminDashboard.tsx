@@ -23,6 +23,12 @@ import { PagesPanel } from "@/components/admin/PagesPanel";
 import { EvaluationPanel } from "@/components/admin/EvaluationPanel";
 import { JuryOverview } from "@/components/admin/JuryOverview";
 
+const OFFICIAL_COMPETITOR_STATUSES = new Set<DemoParticipantStatus>([
+  "SELECTED",
+  "PAID",
+  "CONFIRMED",
+  "CHECKED_IN",
+]);
 
 function categoryLabel(category?: ParticipantCategory | null) {
   return CATEGORIES[category ?? "HACKATHON"].label;
@@ -377,9 +383,12 @@ function ParticipantTable({
   const [statusFilter, setStatusFilter] = useState<"ALL" | DemoParticipantStatus>("ALL");
 
   const hackathon = participants.filter((p) => (p.category ?? "HACKATHON") === "HACKATHON");
+  const officialCompetitors = hackathon.filter((participant) =>
+    OFFICIAL_COMPETITOR_STATUSES.has(participant.status),
+  );
   const billets = participants.filter((p) => BILLET_CATEGORIES.includes((p.category ?? "HACKATHON") as ParticipantCategory));
 
-  const baseRows = tab === "competiteurs" ? hackathon : billets;
+  const baseRows = tab === "competiteurs" ? officialCompetitors : billets;
   const rows = confirmedOnly
     ? baseRows.filter((item) => ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(item.status))
     : baseRows;
@@ -395,8 +404,6 @@ function ParticipantTable({
     }
     return result;
   })();
-
-  const waitlistCount = hackathon.filter((p) => p.status === "WAITLIST").length;
 
   const canSendBadge = (status: string) =>
     ["SELECTED", "PAID", "CONFIRMED", "CHECKED_IN"].includes(status);
@@ -419,7 +426,7 @@ function ParticipantTable({
           className={`tab-btn ${tab === "competiteurs" ? "active" : ""}`}
           style={{ ["--tab-accent" as string]: "#75FF8D" }}
         >
-          Compétiteurs <span className="tab-count">{hackathon.length}</span>
+          Compétiteurs <span className="tab-count">{officialCompetitors.length}</span>
         </button>
         <button
           type="button"
@@ -436,11 +443,10 @@ function ParticipantTable({
         <div className="cat-filter">
           {([
             { value: "ALL" as const, label: "Tous" },
-            { value: "PENDING" as const, label: "À examiner", color: "#f5d778" },
-            { value: "WAITLIST" as const, label: `Liste d'attente${waitlistCount ? ` (${waitlistCount})` : ""}`, color: "#43d9ff" },
             { value: "SELECTED" as const, label: "Acceptés", color: "#ba77ff" },
+            { value: "PAID" as const, label: "Payés", color: "#43d9ff" },
             { value: "CONFIRMED" as const, label: "Confirmés", color: "#75ff8d" },
-            { value: "REJECTED" as const, label: "Non retenus", color: "#ff7a9c" },
+            { value: "CHECKED_IN" as const, label: "Présents", color: "#ff7a9c" },
           ] as const).map((f) => (
             <button
               key={f.value}
