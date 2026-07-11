@@ -16,10 +16,91 @@ type Team = {
   aiEvaluatedAt: string | null;
   aiScores: CriterionScore[] | null;
   browserReport: string | null;
+  promptInjectionDetected: boolean;
+  promptInjectionEvidence: string | null;
+  penalty: number;
+  rawTotal: number | null;
   isFinalist: boolean;
   rank: number | null;
   position: number;
 };
+
+/** Renders inline **bold** segments within a line of text. */
+function renderInline(line: string, keyPrefix: string) {
+  const parts = line.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={`${keyPrefix}-${i}`}>{part}</span>
+    ),
+  );
+}
+
+/**
+ * Lightweight markdown renderer for AI-generated reports (headings, bold,
+ * bullet lists, paragraphs) — good enough for the browser-test / repo-audit
+ * text the model writes, without pulling in a full markdown library.
+ */
+function Report({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const blocks: { type: "heading" | "bullet" | "paragraph"; content: string }[] = [];
+  let bulletBuffer: string[] = [];
+
+  const flushBullets = () => {
+    if (bulletBuffer.length) {
+      blocks.push({ type: "bullet", content: bulletBuffer.join("\n") });
+      bulletBuffer = [];
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) { flushBullets(); continue; }
+    const bulletMatch = line.match(/^[-*]\s+(.*)/);
+    const headingMatch = line.match(/^#{1,4}\s+(.*)/) ?? line.match(/^\*\*([^*]+)\*\*:?$/);
+    if (bulletMatch) {
+      bulletBuffer.push(bulletMatch[1]);
+    } else if (headingMatch) {
+      flushBullets();
+      blocks.push({ type: "heading", content: headingMatch[1] });
+    } else {
+      flushBullets();
+      blocks.push({ type: "paragraph", content: line });
+    }
+  }
+  flushBullets();
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      {blocks.map((block, i) => {
+        if (block.type === "heading") {
+          return (
+            <p key={i} style={{ margin: "6px 0 0", fontWeight: 700, fontSize: 13 }}>
+              {renderInline(block.content, `h${i}`)}
+            </p>
+          );
+        }
+        if (block.type === "bullet") {
+          return (
+            <ul key={i} style={{ margin: 0, paddingLeft: 18 }}>
+              {block.content.split("\n").map((item, j) => (
+                <li key={j} style={{ fontSize: 13, color: "var(--ink-faint)" }}>
+                  {renderInline(item, `b${i}-${j}`)}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={i} style={{ margin: 0, fontSize: 13, color: "var(--ink-faint)" }}>
+            {renderInline(block.content, `p${i}`)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 type Phase1State = {
   phase: CompPhase;
@@ -82,6 +163,9 @@ export function EvaluationPanel() {
                     aiSummary: payload.data.summary,
                     aiScores: payload.data.scores,
                     browserReport: payload.data.browserReport,
+                    promptInjectionDetected: payload.data.promptInjectionDetected,
+                    promptInjectionEvidence: payload.data.promptInjectionEvidence,
+                    penalty: payload.data.penalty,
                     aiEvaluatedAt: new Date().toISOString(),
                   }
                 : t,
@@ -121,6 +205,9 @@ export function EvaluationPanel() {
                   aiSummary: payload.data.summary,
                   aiScores: payload.data.scores,
                   browserReport: payload.data.browserReport,
+                  promptInjectionDetected: payload.data.promptInjectionDetected,
+                  promptInjectionEvidence: payload.data.promptInjectionEvidence,
+                  penalty: payload.data.penalty,
                   aiEvaluatedAt: new Date().toISOString(),
                 }
               : t,
@@ -304,9 +391,20 @@ export function EvaluationPanel() {
                           </span>
                         </td>
                         <td>
-                          {qualifier && (
-                            <span className="status-pill selected">Finaliste</span>
-                          )}
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {qualifier && (
+                              <span className="status-pill selected">Finaliste</span>
+                            )}
+                            {team.promptInjectionDetected && (
+                              <span
+                                className="status-pill"
+                                style={{ background: "color-mix(in srgb, #ff4d4f 18%, transparent)", color: "#ff4d4f", borderColor: "color-mix(in srgb, #ff4d4f 40%, transparent)" }}
+                                title="Tentative d'injection de prompt détectée"
+                              >
+                                ⚠ Injection
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           {team.aiScores && team.aiScores.length > 0 && (
@@ -335,24 +433,60 @@ export function EvaluationPanel() {
                       {expanded && team.aiScores && (
                         <tr>
                           <td colSpan={7} style={{ background: "var(--surface-2, rgba(255,255,255,0.02))", padding: "16px 20px" }}>
-                            <div style={{ display: "grid", gap: 10 }}>
-                              {team.aiScores.map((s) => (
-                                <div key={s.key} style={{ display: "flex", gap: 12, alignItems: "baseline", flexWrap: "wrap" }}>
-                                  <strong style={{ minWidth: 160 }}>{s.name}</strong>
-                                  <span className="grad-text-lt" style={{ fontWeight: 700 }}>
-                                    {s.score}<small style={{ opacity: 0.5 }}>/{s.weight}</small>
-                                  </span>
-                                  <span style={{ fontSize: 13, color: "var(--ink-faint)", flex: 1, minWidth: 200 }}>
-                                    {s.reasoning}
-                                  </span>
-                                </div>
-                              ))}
-                              {team.browserReport && (
-                                <div style={{ marginTop: 8, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
-                                  <small className="eyebrow" style={{ fontSize: 11 }}>Rapport du test navigateur</small>
-                                  <p style={{ fontSize: 13, color: "var(--ink-faint)", whiteSpace: "pre-wrap", marginTop: 6 }}>
-                                    {team.browserReport}
+                            <div style={{ display: "grid", gap: 16 }}>
+                              {team.promptInjectionDetected && (
+                                <div style={{
+                                  padding: "10px 14px",
+                                  borderRadius: 8,
+                                  background: "color-mix(in srgb, #ff4d4f 12%, transparent)",
+                                  border: "1px solid color-mix(in srgb, #ff4d4f 40%, transparent)",
+                                }}>
+                                  <strong style={{ color: "#ff4d4f" }}>⚠ Tentative d&apos;injection de prompt détectée</strong>
+                                  <p style={{ fontSize: 13, margin: "4px 0 0", color: "var(--ink-faint)" }}>
+                                    Pénalité appliquée : -{team.penalty} pts (score brut {team.rawTotal} → {team.aiScore})
                                   </p>
+                                  {team.promptInjectionEvidence && (
+                                    <p style={{ fontSize: 12, margin: "6px 0 0", fontFamily: "monospace", color: "var(--ink-faint)" }}>
+                                      {team.promptInjectionEvidence}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              <div>
+                                <small className="eyebrow" style={{ fontSize: 11 }}>Note par critère</small>
+                                <div style={{ overflowX: "auto", marginTop: 8 }}>
+                                  <table className="data-table" style={{ minWidth: 480 }}>
+                                    <thead>
+                                      <tr>
+                                        <th>Critère</th>
+                                        <th>Note</th>
+                                        <th>Justification</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {team.aiScores.map((s) => (
+                                        <tr key={s.key}>
+                                          <td><b>{s.name}</b></td>
+                                          <td>
+                                            <span className="grad-text-lt" style={{ fontWeight: 700 }}>
+                                              {s.score}<small style={{ opacity: 0.5 }}>/{s.weight}</small>
+                                            </span>
+                                          </td>
+                                          <td style={{ fontSize: 13, color: "var(--ink-faint)" }}>{s.reasoning}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+
+                              {team.browserReport && (
+                                <div style={{ paddingTop: 12, borderTop: "1px solid var(--line)" }}>
+                                  <small className="eyebrow" style={{ fontSize: 11 }}>Rapport du test navigateur</small>
+                                  <div style={{ marginTop: 8 }}>
+                                    <Report text={team.browserReport} />
+                                  </div>
                                 </div>
                               )}
                             </div>

@@ -17,8 +17,10 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 # System Chromium for the Phase 1 browser-test agent (Playwright's bundled
-# build does not run on Alpine/musl)
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+# build does not run on Alpine/musl), plus git for the read-only repo audit
+# (lib/repo-audit.ts clones and inspects submitted repos as text — never
+# executes anything from them)
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont git
 ENV PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/chromium-browser
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public

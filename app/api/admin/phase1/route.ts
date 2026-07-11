@@ -44,7 +44,14 @@ export async function GET() {
     phase: competition.phase,
     teams: ranked.map((t, i) => {
       const raw = t.aiEvaluation?.raw as
-        | { scores?: { key: string; name: string; weight: number; score: number; reasoning: string }[]; browserReport?: string | null }
+        | {
+            scores?: { key: string; name: string; weight: number; score: number; reasoning: string }[];
+            browserReport?: string | null;
+            promptInjectionDetected?: boolean;
+            promptInjectionEvidence?: string | null;
+            penalty?: number;
+            rawTotal?: number;
+          }
         | null
         | undefined;
       return {
@@ -56,6 +63,10 @@ export async function GET() {
         aiEvaluatedAt: t.aiEvaluation?.updatedAt ?? null,
         aiScores: raw?.scores ?? null,
         browserReport: raw?.browserReport ?? null,
+        promptInjectionDetected: raw?.promptInjectionDetected ?? false,
+        promptInjectionEvidence: raw?.promptInjectionEvidence ?? null,
+        penalty: raw?.penalty ?? 0,
+        rawTotal: raw?.rawTotal ?? null,
         isFinalist: t.isFinalist,
         rank: t.rank,
         position: i + 1,

@@ -3,6 +3,7 @@ import { isSameOrigin, requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { evaluateProject } from "@/lib/ai-eval";
 import { testAppInBrowser } from "@/lib/browser-agent";
+import { auditRepository, type RepoAudit } from "@/lib/repo-audit";
 
 export const maxDuration = 300;
 
@@ -40,6 +41,8 @@ export async function POST(request: Request) {
   // Live browser test of the demo before scoring. A failure here must never
   // block scoring — the report simply notes that the app couldn't be tested.
   let browserReport: string | null = null;
+  let browserInjectionDetected = false;
+  let browserInjectionEvidence: string | null = null;
   if (team.demoUrl && process.env.AI_EVAL_MOCK !== "1" && process.env.AI_BROWSER_TEST !== "0") {
     try {
       const result = await testAppInBrowser({
@@ -48,9 +51,22 @@ export async function POST(request: Request) {
         credentials: team.testCredentials,
       });
       browserReport = result.report;
+      browserInjectionDetected = result.injectionDetected;
+      browserInjectionEvidence = result.injectionEvidence;
     } catch (err) {
       console.error(`Browser test failed for ${team.name}:`, err);
       browserReport = "Le test automatisé du navigateur n'a pas pu être exécuté (erreur technique, pas nécessairement la faute de l'application).";
+    }
+  }
+
+  // Read-only clone + static analysis of the repository (no code executed —
+  // see lib/repo-audit.ts). Failure here is non-fatal, same as the browser test.
+  let repoAudit: RepoAudit | null = null;
+  if (team.repositoryUrl && process.env.AI_EVAL_MOCK !== "1") {
+    try {
+      repoAudit = await auditRepository(team.repositoryUrl);
+    } catch (err) {
+      console.error(`Repo audit failed for ${team.name}:`, err);
     }
   }
 
@@ -62,6 +78,9 @@ export async function POST(request: Request) {
     repositoryUrl: team.repositoryUrl,
     testCredentials: team.testCredentials,
     browserReport,
+    browserInjectionDetected,
+    browserInjectionEvidence,
+    repoAudit,
   });
 
   await prisma.aIEvaluation.upsert({
@@ -72,14 +91,14 @@ export async function POST(request: Request) {
       model: evalResult.model,
       score: evalResult.totalScore,
       summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport })),
+      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit })),
     },
     update: {
       provider: "openrouter",
       model: evalResult.model,
       score: evalResult.totalScore,
       summary: evalResult.summary,
-      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport })),
+      raw: JSON.parse(JSON.stringify({ ...evalResult, browserReport, repoAudit })),
       updatedAt: new Date(),
     },
   });
@@ -91,5 +110,8 @@ export async function POST(request: Request) {
     summary: evalResult.summary,
     scores: evalResult.scores,
     browserReport,
+    promptInjectionDetected: evalResult.promptInjectionDetected,
+    promptInjectionEvidence: evalResult.promptInjectionEvidence,
+    penalty: evalResult.penalty,
   });
 }
