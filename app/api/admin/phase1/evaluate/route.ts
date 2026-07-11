@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { evaluateProject } from "@/lib/ai-eval";
 import { testAppInBrowser } from "@/lib/browser-agent";
 import { auditRepository, type RepoAudit } from "@/lib/repo-audit";
+import { AI_EVAL_CRITERIA } from "@/lib/constants";
 
 export const maxDuration = 300;
 
@@ -36,6 +37,50 @@ export async function POST(request: Request) {
 
   if (!process.env.OPENROUTER_API_KEY && process.env.AI_EVAL_MOCK !== "1") {
     return apiError("OPENROUTER_API_KEY non configurée.", 503);
+  }
+
+  // No submission at all → automatic zero, no AI call. A team that never
+  // submitted shouldn't get partial credit for its registered problem
+  // statement alone.
+  if (!team.demoUrl && !team.description) {
+    const zeroScores = AI_EVAL_CRITERIA.map((c) => ({
+      key: c.id,
+      name: c.name,
+      weight: c.weight,
+      score: 0,
+      reasoning: "Aucune soumission reçue.",
+    }));
+    const summary = "Cette équipe n'a soumis aucun projet.";
+    await prisma.aIEvaluation.upsert({
+      where: { teamId: team.id },
+      create: {
+        teamId: team.id,
+        provider: "system",
+        model: "no-submission",
+        score: 0,
+        summary,
+        raw: { scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true },
+      },
+      update: {
+        provider: "system",
+        model: "no-submission",
+        score: 0,
+        summary,
+        raw: { scores: zeroScores, rawTotal: 0, penalty: 0, totalScore: 0, summary, noSubmission: true },
+        updatedAt: new Date(),
+      },
+    });
+    return apiSuccess({
+      teamId: team.id,
+      name: team.name,
+      score: 0,
+      summary,
+      scores: zeroScores,
+      browserReport: null,
+      promptInjectionDetected: false,
+      promptInjectionEvidence: null,
+      penalty: 0,
+    });
   }
 
   // Live browser test of the demo before scoring. A failure here must never
