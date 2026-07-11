@@ -20,25 +20,25 @@ export const AI_EVAL_CRITERIA = [
   {
     id: "execution",
     name: "Execution Quality",
-    weight: 25,
+    weight: 30,
     description: "Does the product actually work? Is the demo convincing? Are the key features implemented well?",
   },
   {
     id: "innovation",
     name: "Innovation",
-    weight: 15,
+    weight: 10,
     description: "Is there a novel insight, approach, or technology? Does it advance the state of the art or create a new experience?",
   },
   {
     id: "impact",
     name: "Impact Potential",
-    weight: 20,
+    weight: 10,
     description: "Could this become a real product, company, or open-source project? Would people use it after the hackathon?",
   },
   {
     id: "technical",
     name: "Technical Excellence",
-    weight: 20,
+    weight: 30,
     description: "How difficult was the engineering challenge? Is the architecture thoughtful? Did the team demonstrate strong technical ability?",
   },
 ] as const;
