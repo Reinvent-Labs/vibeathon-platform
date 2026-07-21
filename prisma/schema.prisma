@@ -144,11 +144,36 @@ model Participant {
   team           Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
   scans          ScanRecord[]
   emailLogs      EmailLog[]
+  certificates   Certificate[]
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
   @@unique([competitionId, email])
   @@index([competitionId, status])
+}
+
+model Certificate {
+  id             String        @id @default(cuid())
+  reference      String        @unique
+  fullName       String
+  roleLabel      String
+  category       CertificateCategory
+  teamName       String?
+  eventDate      DateTime
+  issuedAt       DateTime      @default(now())
+  revoked        Boolean       @default(false)
+  participantId  String?
+  participant    Participant?  @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+
+  @@index([category])
+}
+
+enum CertificateCategory {
+  VISITEUR
+  COMPETITEUR
+  JURY
+  EQUIPE_ORGANISATRICE
 }
 
 model ScanRecord {

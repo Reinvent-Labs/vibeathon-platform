@@ -219,6 +219,13 @@ export async function findParticipantByReference(reference: string) {
   return [...runtimeParticipants.values()].find((p) => p.reference === reference) ?? null;
 }
 
+export async function findCertificateByReference(reference: string) {
+  if (prisma) {
+    return prisma.certificate.findUnique({ where: { reference } });
+  }
+  return null;
+}
+
 export async function listParticipants() {
   if (prisma) {
     return prisma.participant.findMany({
