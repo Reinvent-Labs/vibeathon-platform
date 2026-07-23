@@ -182,6 +182,20 @@ async function main() {
       },
     });
   }
+
+  // TEMPORARY — end-to-end test of the certificate + LinkedIn flow for one
+  // real recipient before the real batch send. Remove once verified.
+  await prisma.certificate.upsert({
+    where: { reference: "VBT-2026-CERT-V-0001" },
+    create: {
+      reference: "VBT-2026-CERT-V-0001",
+      fullName: "Salomon",
+      roleLabel: "Visiteur",
+      category: "VISITEUR",
+      eventDate: new Date("2026-07-11"),
+    },
+    update: {},
+  });
 }
 
 main()
