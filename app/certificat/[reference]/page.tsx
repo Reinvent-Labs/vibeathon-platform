@@ -15,6 +15,35 @@ const CATEGORY_LABELS: Record<string, { label: string; color: string; title: str
   EQUIPE_ORGANISATRICE: { label: "Équipe Organisatrice", color: "#FF57E3", title: "Certificat de Reconnaissance" },
 };
 
+// LinkedIn Company Page "Vibeathon Côte d'Ivoire" — urn:li:organization:112328299
+const LINKEDIN_ORGANIZATION_ID = "112328299";
+
+function buildLinkedInAddUrl(params: {
+  name: string;
+  issueDate: Date;
+  certUrl: string;
+  certId: string;
+}) {
+  const search = new URLSearchParams({
+    startTask: "CERTIFICATION_NAME",
+    name: params.name,
+    organizationId: LINKEDIN_ORGANIZATION_ID,
+    issueYear: String(params.issueDate.getFullYear()),
+    issueMonth: String(params.issueDate.getMonth() + 1),
+    certUrl: params.certUrl,
+    certId: params.certId,
+  });
+  return `https://www.linkedin.com/profile/add?${search.toString()}`;
+}
+
+function LinkedInIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z" />
+    </svg>
+  );
+}
+
 export default async function CertificateVerificationPage({
   params,
 }: {
@@ -39,6 +68,14 @@ export default async function CertificateVerificationPage({
     day: "numeric",
     month: "long",
     year: "numeric",
+  });
+
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://www.vibeathonci.com").replace(/\/$/, "");
+  const linkedInUrl = buildLinkedInAddUrl({
+    name: `${info.title} — ${info.label}, VIBEATHON 2026`,
+    issueDate: new Date(certificate.eventDate),
+    certUrl: `${appUrl}/certificat/${certificate.reference}`,
+    certId: certificate.reference,
   });
 
   return (
@@ -121,6 +158,30 @@ export default async function CertificateVerificationPage({
                   Délivré le {issuedDate}
                 </div>
               </div>
+              <a
+                href={linkedInUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  marginTop: 24,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  width: "100%",
+                  minHeight: 44,
+                  padding: "10px 18px",
+                  borderRadius: 8,
+                  background: "#0A66C2",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  textDecoration: "none",
+                }}
+              >
+                <LinkedInIcon />
+                Ajouter à mon profil LinkedIn
+              </a>
             </>
           )}
         </div>
