@@ -13,6 +13,8 @@ const CATEGORY_LABELS: Record<string, { label: string; color: string; title: str
   COMPETITEUR: { label: "Compétiteur", color: "#75FF8D", title: "Certificat de Participation" },
   JURY: { label: "Membre du Jury", color: "#BA77FF", title: "Certificat de Reconnaissance" },
   EQUIPE_ORGANISATRICE: { label: "Équipe Organisatrice", color: "#FF57E3", title: "Certificat de Reconnaissance" },
+  FORMATION_ADULTE: { label: "Formation Adulte", color: "#FFCB47", title: "Certificat de Formation" },
+  FORMATION_KIDS: { label: "Formation Enfant", color: "#FF8966", title: "Certificat de Formation" },
 };
 
 // LinkedIn Company Page "Vibeathon Côte d'Ivoire" — urn:li:organization:112328299
