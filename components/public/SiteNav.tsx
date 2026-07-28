@@ -4,15 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { REGISTRATIONS_CLOSED } from "@/lib/constants";
 
-const LINKS = [
+const BASE_LINKS = [
   ["/", "Accueil"],
   ["/activites", "Activités"],
   ["/programme", "Programme"],
   ["/formation", "Formations"],
   ["/membres-du-jury", "Le jury"],
-  ["#billets", "Mon pass"],
 ] as const;
+
+/** The pass anchor only makes sense while sign-ups are open. */
+const LINKS: readonly (readonly [string, string])[] = REGISTRATIONS_CLOSED
+  ? BASE_LINKS
+  : [...BASE_LINKS, ["#billets", "Mon pass"] as const];
 
 /**
  * Public site navigation.
@@ -68,9 +73,11 @@ export function SiteNav() {
 
           <div className="nav-cta">
             <Link href="/statut" className="btn btn-ghost">Mon statut</Link>
-            <Link href="/billet" className="btn btn-grad">
-              Prendre mon pass
-            </Link>
+            {REGISTRATIONS_CLOSED ? null : (
+              <Link href="/billet" className="btn btn-grad">
+                Prendre mon pass
+              </Link>
+            )}
           </div>
 
           <button
@@ -112,13 +119,15 @@ export function SiteNav() {
               Mon statut
             </Link>
           </div>
-          <Link
-            href="/billet"
-            className="btn btn-grad btn-block"
-            onClick={() => setOpen(false)}
-          >
-            Prendre mon pass
-          </Link>
+          {REGISTRATIONS_CLOSED ? null : (
+            <Link
+              href="/billet"
+              className="btn btn-grad btn-block"
+              onClick={() => setOpen(false)}
+            >
+              Prendre mon pass
+            </Link>
+          )}
         </div>
       ) : null}
     </>
