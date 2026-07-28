@@ -4,7 +4,11 @@ import { Suspense } from "react";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { TicketForm } from "@/components/public/TicketForm";
-export const metadata: Metadata = { title: "Inscription · Mon pass" };
+import { REGISTRATIONS_CLOSED, REGISTRATIONS_CLOSED_COPY } from "@/lib/constants";
+
+export const metadata: Metadata = {
+  title: REGISTRATIONS_CLOSED ? "Inscriptions fermées" : "Inscription · Mon pass",
+};
 
 export default function BilletPage() {
   return (
@@ -52,9 +56,19 @@ export default function BilletPage() {
           </div>
         </aside>
         <div className="formcol">
-          <Suspense fallback={<div className="form-card">Chargement...</div>}>
-            <TicketForm />
-          </Suspense>
+          {REGISTRATIONS_CLOSED ? (
+            <div className="form-card">
+              <h2>{REGISTRATIONS_CLOSED_COPY.heading}</h2>
+              <p>{REGISTRATIONS_CLOSED_COPY.body}</p>
+              <Link href="/" className="btn btn-grad">
+                Retour à l&apos;accueil
+              </Link>
+            </div>
+          ) : (
+            <Suspense fallback={<div className="form-card">Chargement...</div>}>
+              <TicketForm />
+            </Suspense>
+          )}
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SiteNav } from "@/components/public/SiteNav";
 import { ScrollReveal } from "@/components/public/ScrollReveal";
-import { JUDGING_CRITERIA } from "@/lib/constants";
+import { JUDGING_CRITERIA, REGISTRATIONS_CLOSED, REGISTRATIONS_CLOSED_COPY } from "@/lib/constants";
 import { CATEGORIES, formatFee } from "@/lib/categories";
 import { getSiteContent, get, getList } from "@/lib/site-content";
 import { Countdown } from "@/components/public/Countdown";
@@ -89,9 +89,13 @@ export default async function HomePage() {
         <Countdown />
         <div className="pill-date"><span className="dot" /> {get(c, "hero.date")} · {get(c, "hero.venue")}</div>
         <div className="cta-row">
-          <Link href="#billets" className="btn btn-grad">
-            {get(c, "hero.cta.primary", "Prendre mon pass")} <ArrowRight size={18} />
-          </Link>
+          {/* The primary call to action invited sign-ups, so it is dropped once
+              the edition is over rather than leading to a closed form. */}
+          {REGISTRATIONS_CLOSED ? null : (
+            <Link href="#billets" className="btn btn-grad">
+              {get(c, "hero.cta.primary", "Prendre mon pass")} <ArrowRight size={18} />
+            </Link>
+          )}
           <Link href="#programme" className="btn btn-ghost">{get(c, "hero.cta.secondary", "Découvrir le programme")}</Link>
         </div>
         <div className="hero-stats wrap">
@@ -210,11 +214,19 @@ export default async function HomePage() {
           <div className="wrap">
             <div className="section-head" data-reveal>
               <span className="eyebrow">{get(c, "tickets.eyebrow", "Participer")}</span>
-              <h2 className="display">{get(c, "tickets.title", "Choisis ton pass.")}</h2>
-              <p>{get(c, "tickets.body")}</p>
+              <h2 className="display">
+                {REGISTRATIONS_CLOSED
+                  ? REGISTRATIONS_CLOSED_COPY.heading
+                  : get(c, "tickets.title", "Choisis ton pass.")}
+              </h2>
+              <p>
+                {REGISTRATIONS_CLOSED
+                  ? REGISTRATIONS_CLOSED_COPY.body
+                  : get(c, "tickets.body")}
+              </p>
             </div>
 
-            {openTickets.length === 1 ? (
+            {REGISTRATIONS_CLOSED ? null : openTickets.length === 1 ? (
               /* Single pass: full-width featured treatment */
               <div className="pass-hero" style={{ ["--cat" as string]: openTickets[0].color }} data-reveal="scale">
                 <div className="pass-hero-bar" />

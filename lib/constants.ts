@@ -9,6 +9,27 @@ export const EVENT = {
   competitorCapacity: 100,
 } as const;
 
+/**
+ * The 2026 edition took place on 11 July 2026 and is over. This flag closes
+ * every public sign-up path at once: the pass section on the home page, the
+ * /billet form, and both POST endpoints.
+ *
+ * It is a build-time constant rather than a CMS or database value on purpose.
+ * The site content table is editable from the admin UI, and an accidental edit
+ * there must not be able to reopen registration for a finished event.
+ *
+ * Set back to false only if a future edition reuses this codebase, and update
+ * EVENT plus the Countdown target date at the same time.
+ */
+export const REGISTRATIONS_CLOSED = true;
+
+/** Public wording shown wherever a sign-up entry point used to be. */
+export const REGISTRATIONS_CLOSED_COPY = {
+  heading: "Les inscriptions sont fermées",
+  body: "L'édition 2026 du VIBEATHON s'est tenue le 11 juillet 2026. Merci à toutes les personnes qui y ont participé.",
+  apiMessage: "Les inscriptions sont fermées. L'édition 2026 est terminée.",
+} as const;
+
 /** Criteria used exclusively by the AI for Phase 1 ranking (not the human jury). */
 export const AI_EVAL_CRITERIA = [
   {

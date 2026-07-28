@@ -6,8 +6,15 @@ import { allowRequest } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/notifications";
 import { emailTemplates } from "@/emails/templates";
 import { appBaseUrl } from "@/lib/campaigns";
+import { REGISTRATIONS_CLOSED, REGISTRATIONS_CLOSED_COPY } from "@/lib/constants";
 
 export async function POST(request: Request) {
+  // Checked before anything else so a stale page, a cached form, or a direct
+  // POST cannot create a candidature for an event that has already happened.
+  if (REGISTRATIONS_CLOSED) {
+    return apiError(REGISTRATIONS_CLOSED_COPY.apiMessage, 410);
+  }
+
   const headerStore = await headers();
   const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!allowRequest(`register:${ip}`, 3, 60 * 60 * 1000)) {

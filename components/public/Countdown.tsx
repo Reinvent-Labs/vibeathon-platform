@@ -73,11 +73,14 @@ export function Countdown() {
   }
 
   if (isExpired) {
+    // Once the target date passes this branch stays visible forever, so it must
+    // read as "finished", not "happening now". It previously announced that the
+    // event was live, which was still on screen weeks afterwards.
     return (
       <div className="countdown-container">
         <div className="countdown-inner expired">
-          <div className="countdown-live-pill animate-pulse">
-            <span className="live-dot" /> L'ÉVÉNEMENT EST EN COURS !
+          <div className="countdown-live-pill">
+            <span className="live-dot" /> ÉDITION 2026 TERMINÉE
           </div>
         </div>
       </div>

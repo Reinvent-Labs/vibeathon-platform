@@ -7,6 +7,7 @@ import { deliverBadge } from "@/lib/badge-delivery";
 import { initializePaiementPro } from "@/lib/paiementpro";
 import { badgeUrlFor } from "@/lib/campaigns";
 import { CATEGORIES } from "@/lib/categories";
+import { REGISTRATIONS_CLOSED, REGISTRATIONS_CLOSED_COPY } from "@/lib/constants";
 
 /**
  * Public registration for visitor / formation passes.
@@ -15,6 +16,12 @@ import { CATEGORIES } from "@/lib/categories";
  * badge is delivered by the payment webhook once the transaction succeeds.
  */
 export async function POST(request: Request) {
+  // Checked before anything else so a stale page, a cached form, or a direct
+  // POST cannot create a participant for an event that has already happened.
+  if (REGISTRATIONS_CLOSED) {
+    return apiError(REGISTRATIONS_CLOSED_COPY.apiMessage, 410);
+  }
+
   const headerStore = await headers();
   const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   if (!allowRequest(`tickets:${ip}`, 5, 60 * 60 * 1000)) {
