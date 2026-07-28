@@ -4,6 +4,7 @@ import { ArrowRight, User, Award, Shield } from "lucide-react";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
 import { JuryCard } from "@/components/public/JuryCard";
+import { REGISTRATIONS_CLOSED } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -264,8 +265,15 @@ export default async function JuryMembersPage() {
 
         {/* Footer Link back */}
         <div style={{ textAlign: "center", marginTop: "60px" }}>
-          <Link href="/billet" className="btn btn-grad" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            Rejoindre l&apos;événement en tant que visiteur <ArrowRight size={16} />
+          <Link
+            href={REGISTRATIONS_CLOSED ? "/" : "/billet"}
+            className="btn btn-grad"
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+          >
+            {REGISTRATIONS_CLOSED
+              ? "Retour à l'accueil"
+              : "Rejoindre l'événement en tant que visiteur"}{" "}
+            <ArrowRight size={16} />
           </Link>
         </div>
       </main>

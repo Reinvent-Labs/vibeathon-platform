@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuroraMesh } from "@/components/AuroraMesh";
 import { Logo } from "@/components/Logo";
-import { EVENT } from "@/lib/constants";
+import { EVENT, REGISTRATIONS_CLOSED } from "@/lib/constants";
 import { RegistrationForm } from "@/components/public/RegistrationForm";
 import { prisma } from "@/lib/prisma";
 
@@ -58,14 +58,16 @@ export default async function CandidaturePage() {
               <span className="grad-text-lt">sont closes.</span>
             </h1>
             <p className="closed-body">
-              Les inscriptions à la compétition vibecoding sont terminées.
-              Mais l&apos;événement reste ouvert — rejoins-nous le {EVENT.shortDate}{" "}
-              en tant que visiteur.
+              {REGISTRATIONS_CLOSED
+                ? `L'édition ${EVENT.name.split(" ").pop()} s'est tenue le ${EVENT.shortDate} et est terminée. Merci à toutes les personnes qui y ont participé.`
+                : `Les inscriptions à la compétition vibecoding sont terminées. Mais l'événement reste ouvert, rejoins-nous le ${EVENT.shortDate} en tant que visiteur.`}
             </p>
             <div className="closed-actions">
-              <Link href="/billet" className="btn btn-grad">
-                Prendre un pass visiteur →
-              </Link>
+              {REGISTRATIONS_CLOSED ? null : (
+                <Link href="/billet" className="btn btn-grad">
+                  Prendre un pass visiteur →
+                </Link>
+              )}
               <Link href="/statut" className="btn btn-ghost">
                 Consulter mon statut
               </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { REGISTRATIONS_CLOSED } from "@/lib/constants";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -152,7 +153,7 @@ export function StatusLookup() {
                 </button>
               ) : null}
               {participant.badgeUrl && participant.status !== "SELECTED" ? <Link href={participant.badgeUrl} className="btn btn-grad">Voir mon badge →</Link> : null}
-              {participant.status === "REJECTED" ? (
+              {participant.status === "REJECTED" && !REGISTRATIONS_CLOSED ? (
                 <Link href="/billet" className="btn btn-ghost" style={{ borderColor: "rgba(255,122,156,.35)", color: "#ff7a9c" }}>
                   🎟 Tu veux quand même assister ? Prends un pass visiteur →
                 </Link>

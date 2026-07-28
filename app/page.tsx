@@ -339,9 +339,11 @@ export default async function HomePage() {
                 })()}
               </h2>
               <div className="cta-row">
-                <Link href="/billet" className="btn btn-grad">
-                  {get(c, "cta.final.primary", "Prendre mon pass")} <ArrowRight size={18} />
-                </Link>
+                {REGISTRATIONS_CLOSED ? null : (
+                  <Link href="/billet" className="btn btn-grad">
+                    {get(c, "cta.final.primary", "Prendre mon pass")} <ArrowRight size={18} />
+                  </Link>
+                )}
                 <Link href="/statut" className="btn btn-ghost">
                   {get(c, "cta.final.secondary", "Vérifier mon statut")}
                 </Link>
@@ -392,7 +394,7 @@ export default async function HomePage() {
               <Link href="#programme">Programme</Link>
               <Link href="/formation">Formations</Link>
               <Link href="/membres-du-jury">Le jury</Link>
-              <Link href="#billets">Mon pass</Link>
+              {REGISTRATIONS_CLOSED ? null : <Link href="#billets">Mon pass</Link>}
               <Link href="/statut">Mon statut</Link>
             </nav>
           </div>
